@@ -1,0 +1,60 @@
+package net.akehurst.omg.mof.gen
+
+import net.akehurst.language.types.api.PropertyCharacteristic
+import net.akehurst.language.types.builder.typesDomain
+import java.io.File
+
+fun main(args: Array<String>) {
+    if (args.isEmpty()) {
+        println("Usage: java -jar mof-gen.jar <path_to_xmi_file> [output_directory]")
+        return
+    }
+    val xmiFilePath = args[0]
+    val outputDirPath = if (args.size > 1) args[1] else "generated_code"
+
+    val xmiFile = File(xmiFilePath)
+    val outputDir = File(outputDirPath)
+
+    if (!xmiFile.exists()) {
+        println("Error: XMI File not found at $xmiFilePath")
+        return
+    }
+
+    try {
+        println("Parsing XMI file: ${xmiFile.absolutePath}...")
+        val parser = MetaClassExtractor()
+        parser.parse(xmiFile)
+        println("XMI parsing complete. Found ${parser.metaElementTypes.size} metatypes.")
+
+        for (mt in parser.metaElementTypes.values) {
+            val str = """
+                |interface ${mt.name} {
+                |${mt.property.values.joinToString("\n") {"  val ${it.name}: ${it.type.name}"}}
+                |}
+            """.trimMargin("|")
+            println(str)
+        }
+
+        val tm = typesDomain("MOF", true) {
+            namespace("omg.mof") {
+                for (mt in parser.metaElementTypes.values) {
+                   data(mt.name) {
+                       for (p in mt.property.values) {
+                           val chrs = emptySet<PropertyCharacteristic>()
+                           propertyOf(chrs, p.name, p.type.name)
+                       }
+                   }
+                }
+            }
+        }
+
+
+        println(tm.asString())
+
+        println("\nKotlin code generation complete.")
+
+    } catch (e: Exception) {
+        println("\nAn error occurred:")
+        e.printStackTrace()
+    }
+}
