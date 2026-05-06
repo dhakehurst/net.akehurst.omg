@@ -7,8 +7,6 @@
 	</documentation>
 	<uml:Package xmi:type="uml:Package" xmi:id="_0" name="UML"
                        URI="http://www.omg.org/spec/UML/20161101">
-         <packageImport xmi:type="uml:PackageImport" xmi:id="_packageImport.0"
-                        importedPackage="_0"/>
          <packageImport xmi:type="uml:PackageImport" xmi:id="_packageImport.1"
                         importedPackage="Actions"/>
          <packageImport xmi:type="uml:PackageImport" xmi:id="_packageImport.2"

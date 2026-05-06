@@ -7,6 +7,7 @@ kotlin {
         commonMain {
             dependencies {
                 api(libs.nak.kotlinx.collections)
+                implementation(project(":uml-api"))
             }
         }
     }

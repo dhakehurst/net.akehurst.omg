@@ -4,6 +4,7 @@ import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
+import kotlin.text.ifEmpty
 
 class MofXmiParser {
 
@@ -71,54 +72,92 @@ class MofXmiParser {
         val childNodes = parentElement.childNodes
         for (i in 0 until childNodes.length) {
             val node = childNodes.item(i)
-            if (node is Element && node.tagName == "packagedElement") {
-                val xmiType = node.getAttribute("xmi:type")
+            if (node is Element) {
                 val xmiId = node.getAttribute("xmi:id")
-                val name = node.getAttribute("name")
-
                 if (xmiId.isEmpty()) continue // Skip elements without an ID if they are not meant to be referenced
 
-                when (xmiType) {
-                    "uml:Package" -> {
-                        if (!model.idToElementMap.containsKey(xmiId)) {
-                            val subPackage = MofPackage(name, xmiId, parentPackage = currentMofPackage)
-                            model.packages[xmiId] = subPackage
-                            model.idToElementMap[xmiId] = subPackage
-                            currentMofPackage.subPackages.add(subPackage)
-                            discoverElements(node, subPackage) // Recurse
-                        }
-                    }
-                    "uml:Class" -> {
-                        if (!model.idToElementMap.containsKey(xmiId)) {
-                            val mofClass = MofClass(name, xmiId, parentPackage = currentMofPackage)
-                            mofClass.isAbstract = node.getAttribute("isAbstract") == "true"
-                            model.classes[xmiId] = mofClass
-                            model.idToElementMap[xmiId] = mofClass
-                            currentMofPackage.classes.add(mofClass)
-                            discoverElements(node, currentMofPackage) // Classes can contain nested elements in some UML profiles, but usually not for MOF structure
-                        }
-                    }
-                    "uml:Association" -> {
-                        if (!model.idToElementMap.containsKey(xmiId)) {
-                            val mofAssociation = MofAssociation(name.ifEmpty { null }, xmiId, emptyList())
-                            mofAssociation.parentPackage = currentMofPackage
-                            model.associations[xmiId] = mofAssociation
-                            model.idToElementMap[xmiId] = mofAssociation
-                            currentMofPackage.associations.add(mofAssociation)
-                            // Associations have memberEnds and ownedEnds, discover them if needed for ID mapping
-                        }
-                    }
-                    else -> println("Unknown element type $xmiType")
+                when(node.tagName) {
+                    "packagedElement" -> packagedElement(node, currentMofPackage)
+                    "packageImport" -> packageImport(node, currentMofPackage)
                 }
+
             }
         }
+    }
+
+    private fun packagedElement(node: Element, currentMofPackage: MofPackage) {
+        val xmiType = node.getAttribute("xmi:type")
+        val xmiId = node.getAttribute("xmi:id")
+        val name = node.getAttribute("name")
+        when (xmiType) {
+            "uml:Package" -> {
+                if (!model.idToElementMap.containsKey(xmiId)) {
+                    val subPackage = MofPackage(model,name, xmiId, parentPackage = currentMofPackage)
+                    model.packages[xmiId] = subPackage
+                    model.idToElementMap[xmiId] = subPackage
+                    currentMofPackage.subPackages.add(subPackage)
+                    discoverElements(node, subPackage) // Recurse
+                }
+            }
+            "uml:Class" -> {
+                if (!model.idToElementMap.containsKey(xmiId)) {
+                    val mofClass = MofClass(model,name, xmiId, parentPackage = currentMofPackage)
+                    mofClass.isAbstract = node.getAttribute("isAbstract") == "true"
+                    model.classes[xmiId] = mofClass
+                    model.idToElementMap[xmiId] = mofClass
+                    currentMofPackage.classes.add(mofClass)
+                    discoverElements(node, currentMofPackage) // Classes can contain nested elements in some UML profiles, but usually not for MOF structure
+                }
+            }
+            "uml:Association" -> {
+                if (!model.idToElementMap.containsKey(xmiId)) {
+                    val mofAssociation = MofAssociation(model,name.ifEmpty { null }, xmiId, emptyList())
+                    mofAssociation.parentPackage = currentMofPackage
+                    model.associations[xmiId] = mofAssociation
+                    model.idToElementMap[xmiId] = mofAssociation
+                    currentMofPackage.associations.add(mofAssociation)
+                    // Associations have memberEnds and ownedEnds, discover them if needed for ID mapping
+                }
+            }
+            "uml:PrimitiveType" -> {
+                if (!model.idToElementMap.containsKey(xmiId)) {
+                    val mofClass = MofClass(model,name, xmiId, parentPackage = currentMofPackage)
+                    mofClass.isAbstract = false
+                    model.classes[xmiId] = mofClass
+                    model.idToElementMap[xmiId] = mofClass
+                    currentMofPackage.classes.add(mofClass)
+                }
+            }
+            "uml:Enumeration" -> {
+                if (!model.idToElementMap.containsKey(xmiId)) {
+                    val mofEnum = MofEnum(model,name, xmiId, parentPackage = currentMofPackage)
+                    model.enums[xmiId] = mofEnum
+                    model.idToElementMap[xmiId] = mofEnum
+                    currentMofPackage.enums.add(mofEnum)
+                }
+            }
+            else -> println("Unknown element type '$xmiType' of packagedElement")
+        }
+    }
+
+    private fun packageImport(node: Element, currentMofPackage: MofPackage) {
+        val xmiType = node.getAttribute("xmi:type")
+        val xmiId = node.getAttribute("xmi:id")
+        when (xmiType) {
+            "uml:PackageImport" -> {
+                val importedPackageName = node.getAttribute("importedPackage")
+                currentMofPackage.packageImport.add(importedPackageName)
+            }
+            else -> println("Unknown element type '$xmiType' of packageImport")
+        }
+
     }
 
     private fun preParsePackage(packageElement: Element): MofPackage? {
         val xmiId = packageElement.getAttribute("xmi:id")
         val name = packageElement.getAttribute("name")
         if (xmiId.isNotEmpty() && name.isNotEmpty()) {
-            return MofPackage(name, xmiId)
+            return MofPackage(model,name, xmiId)
         }
         return null
     }
@@ -135,8 +174,12 @@ class MofXmiParser {
             if (node !is Element) continue
             when (node.tagName) {
                 "generalization" -> {
-                    val general = node.getElementsByTagName("general").item(0) as? Element
-                    general?.getAttribute("xmi:idref")?.let { mofClass.generalizations.add(it) }
+                    val general = node.getAttribute("general")
+                    if (general.isNotEmpty()) {
+                        mofClass.generalizations.add(general)
+                    }
+                    val gen2 = node.getElementsByTagName("general").item(0) as? Element
+                    gen2?.getAttribute("xmi:idref")?.let { mofClass.generalizations.add(it) }
                 }
                 "ownedAttribute" -> {
                     val prop = parseProperty(node, mofClass)
@@ -166,7 +209,9 @@ class MofXmiParser {
             val referencedProperty = model.getElementById(idRef) as? MofProperty
             if (referencedProperty != null && !memberEnds.any { it.xmiId == referencedProperty.xmiId }) {
                 // Ensure it's correctly marked with its association
-                val updatedRefProperty = referencedProperty.copy(associationXmiId = referencedProperty.associationXmiId ?: mofAssociation.xmiId)
+                val updatedRefProperty = referencedProperty.copy().apply {
+                    associationXmiId = referencedProperty.associationXmiId ?: mofAssociation.xmiId
+                }
                 memberEnds.add(updatedRefProperty)
                 // Update the original property in the class's attribute list if necessary
                 val ownerClass = updatedRefProperty.parentClass
@@ -177,12 +222,11 @@ class MofXmiParser {
         mofAssociation.memberEnds = memberEnds.distinctBy { it.xmiId }
     }
 
-
     private fun parseProperty(propertyElement: Element, ownerClass: MofClass?, assocXmiId: String? = null): MofProperty {
         val name = propertyElement.getAttribute("name")
         val xmiId = propertyElement.getAttribute("xmi:id")
 
-        var typeXmiId: String? = null
+        var typeXmiId: String? = propertyElement.getAttribute("type")
         var typeHref: String? = null
         val typeNode = getChildrenByTagName(propertyElement, "type").firstOrNull()
         if (typeNode != null) {
@@ -211,18 +255,31 @@ class MofXmiParser {
             else -> MofAggregationKind.NONE
         }
 
+        var isUnique = true //default
+        propertyElement.getAttribute("isUnique").let {
+            if(it.isNotEmpty()) isUnique = it.toBoolean()
+        }
+        var isOrdered = false //default
+        propertyElement.getAttribute("isOrdered").let {
+            if(it.isNotEmpty()) isOrdered = it.toBoolean()
+        }
+
         val prop = MofProperty(
+            model,
             name = name,
-            xmiId = xmiId,
-            typeXmiId = typeXmiId,
-            typeHref = typeHref,
-            lowerBound = lower,
-            upperBound = upper,
-            isDerived = propertyElement.getAttribute("isDerived") == "true",
-            isReadOnly = propertyElement.getAttribute("isReadOnly") == "true" || propertyElement.getAttribute("isLeaf") == "true", // isLeaf implies read-only in some contexts
-            aggregation = aggregationKind,
-            associationXmiId = assocXmiId ?: propertyElement.getAttribute("association").ifEmpty { null }
-        )
+            xmiId = xmiId
+        ).also {
+            it.typeXmiId = typeXmiId
+            it.typeHref = typeHref
+            it.lowerBound = lower
+            it.upperBound = upper
+            it.isDerived = propertyElement.getAttribute("isDerived") == "true"
+            it.isReadOnly = propertyElement.getAttribute("isReadOnly") == "true" || propertyElement.getAttribute("isLeaf") == "true" // isLeaf implies read-only in some contexts
+            it.isUnique = isUnique
+            it. isOrdered = isOrdered
+            it.aggregation = aggregationKind
+            it.associationXmiId = assocXmiId ?: propertyElement.getAttribute("association").ifEmpty { null }
+        }
         prop.parentClass = ownerClass
         model.idToElementMap[xmiId] = prop // Ensure property is also in the global map
         return prop
@@ -246,7 +303,7 @@ class MofXmiParser {
                 paramTypeHref = typeElem.getAttribute("href").ifEmpty { null }
             }
 
-            val mofParam = MofParameter(paramName, paramXmiId, paramTypeXmiId, paramTypeHref, direction)
+            val mofParam = MofParameter(model,paramName, paramXmiId, paramTypeXmiId, paramTypeHref, direction)
             model.idToElementMap[paramXmiId] = mofParam // Register param
 
             if (direction == "return") {
@@ -257,6 +314,7 @@ class MofXmiParser {
         }
 
         val op = MofOperation(
+            model,
             name = name,
             xmiId = xmiId,
             visibility = operationElement.getAttribute("visibility").ifEmpty { "public" },

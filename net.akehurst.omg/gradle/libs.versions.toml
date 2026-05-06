@@ -10,12 +10,14 @@ vanniktech = "0.35.0"
 korlibs = "6.0.1"
 kotlinx-coroutines = "1.10.1"
 
+nak-kotlinx = "2.2.21-SNAPSHOT"
 nal-agl = "4.2.2.21-SNAPSHOT"
 
 [libraries]
 korlibs-korio = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 
+nak-kotlinx-collections = { module = "net.akehurst.kotlinx:kotlinx-collections", version.ref = "nak-kotlinx" }
 nal-agl-processor = { module = "net.akehurst.language:agl-processor", version.ref = "nal-agl" }
 
 

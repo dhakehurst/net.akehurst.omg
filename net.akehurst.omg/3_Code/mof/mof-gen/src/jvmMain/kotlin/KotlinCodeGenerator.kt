@@ -57,7 +57,7 @@ class KotlinCodeGenerator(private val model: MofModel) {
         // Generalization (Inheritance)
         if (cls.generalizations.isNotEmpty()) {
             val superTypes = cls.generalizations.mapNotNull { genId ->
-                model.findClassById(genId)?.let { superClass ->
+                model.findTypeById(genId)?.let { superClass ->
                     val superClassFullPackage = model.getFullPackagePath(superClass.parentPackage)
                     if (superClassFullPackage.isNotEmpty() && superClassFullPackage != packageName) {
                         imports.add("$superClassFullPackage.${superClass.name.capitalize()}")
@@ -133,7 +133,7 @@ class KotlinCodeGenerator(private val model: MofModel) {
             }
         }
         typeXmiId?.let { id ->
-            model.findClassById(id)?.let { referencedClass ->
+            model.findTypeById(id)?.let { referencedClass ->
                 val referencedPackagePath = model.getFullPackagePath(referencedClass.parentPackage)
                 if (referencedPackagePath.isNotEmpty() && referencedPackagePath != currentPackageName) {
                     imports.add("$referencedPackagePath.${referencedClass.name.capitalize()}")

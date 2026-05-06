@@ -1,5 +1,8 @@
 package net.akehurst.omg.mof.gen
 
+import net.akehurst.omg.mof.gen.template.SimpleMofToApi
+import net.akehurst.omg.mof.gen.template.SimpleMofToRam
+import sun.nio.cs.Surrogate
 import java.io.File
 
 fun main(args: Array<String>) {
@@ -21,16 +24,26 @@ fun main(args: Array<String>) {
     try {
         println("Parsing XMI file: ${xmiFile.absolutePath}...")
         val parser = MofXmiParser()
+       // val mdl = parser.parse(File("../../uml/specs/2.5.1/UML_2013-10-01_PrimitiveTypes.xmi"))
+       // mdl.packages["PrimitiveTypes"] = mdl.packages["_0"]!!
         val mofModel = parser.parse(xmiFile)
         println("XMI parsing complete. Found ${mofModel.packages.size} root packages, ${mofModel.classes.size} classes total.")
 
         // Optional: Print model structure for debugging
-        printModelStructure(mofModel)
+       // printModelStructure(mofModel)
 
 
         println("\nGenerating Kotlin code to directory: ${outputDir.absolutePath}...")
-        val generator = KotlinCodeGenerator(mofModel)
-        generator.generateToFiles(outputDir)
+        //val generator = KotlinCodeGenerator(mofModel)
+        //generator.generateToFiles(outputDir)
+
+        //Api
+//        val generator = GeneratorFromTemplate(SimpleMofToApi.format, SimpleMof.types)
+//        generator.generateToFiles(mofModel, outputDir)
+
+        //Ram
+        val generator = GeneratorFromTemplate(SimpleMofToRam.format, SimpleMof.types)
+        generator.generateToFiles(mofModel, outputDir)
 
         println("\nKotlin code generation complete.")
 
