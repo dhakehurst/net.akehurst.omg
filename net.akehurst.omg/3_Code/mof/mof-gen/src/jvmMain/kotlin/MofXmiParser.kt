@@ -1,7 +1,6 @@
 package net.akehurst.omg.mof.gen
 
 import org.w3c.dom.Element
-import org.w3c.dom.Node
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.text.ifEmpty
@@ -103,6 +102,16 @@ class MofXmiParser {
                 if (!model.idToElementMap.containsKey(xmiId)) {
                     val mofClass = MofClass(model,name, xmiId, parentPackage = currentMofPackage)
                     mofClass.isAbstract = node.getAttribute("isAbstract") == "true"
+                    mofClass.comment = getChildrenByTagName(node, "ownedComment").joinToString("\n") {
+                        val annotated = getChildrenByTagName(it, "annotatedElement").firstOrNull()?.let {
+                            it.getAttribute("xmi:idref")
+                        }
+                        if (xmiId==annotated) {
+                            it.getAttribute("body")
+                        } else {
+                            ""
+                        }
+                    }
                     model.classes[xmiId] = mofClass
                     model.idToElementMap[xmiId] = mofClass
                     currentMofPackage.classes.add(mofClass)
@@ -183,7 +192,7 @@ class MofXmiParser {
                 }
                 "ownedAttribute" -> {
                     val prop = parseProperty(node, mofClass)
-                    mofClass.attributes.add(prop)
+                    mofClass.ownedAttribute.add(prop)
                 }
                 "ownedOperation" -> {
                     val op = parseOperation(node, mofClass)
@@ -209,22 +218,45 @@ class MofXmiParser {
             val referencedProperty = model.getElementById(idRef) as? MofProperty
             if (referencedProperty != null && !memberEnds.any { it.xmiId == referencedProperty.xmiId }) {
                 // Ensure it's correctly marked with its association
-                val updatedRefProperty = referencedProperty.copy().apply {
-                    associationXmiId = referencedProperty.associationXmiId ?: mofAssociation.xmiId
-                }
-                memberEnds.add(updatedRefProperty)
+                referencedProperty.associationXmiId = referencedProperty.associationXmiId ?: mofAssociation.xmiId
+                memberEnds.add(referencedProperty)
                 // Update the original property in the class's attribute list if necessary
-                val ownerClass = updatedRefProperty.parentClass
-                ownerClass?.attributes?.replaceAll { if (it.xmiId == updatedRefProperty.xmiId) updatedRefProperty else it }
-
+               // val ownerClass = referencedProperty.parentClass
+               // ownerClass?.attributes?.replaceAll { if (it.xmiId == updatedRefProperty.xmiId) updatedRefProperty else it }
             }
         }
         mofAssociation.memberEnds = memberEnds.distinctBy { it.xmiId }
+
+        // set the parentClass of memberEnds if not set
+        // ends 'owned' by the association are not navigable - so do not imply a property on the otherEnd class
+        memberEnds.forEach { end ->
+            val otherEnd = memberEnds.firstOrNull { it.xmiId != end.xmiId }
+            end.opposite = otherEnd
+            when {
+                null==otherEnd -> error("Error, there must be an 'other' end for an association")
+                null==end.parentClass -> {
+                    end.parentClass = model.classes[otherEnd.typeXmiId]
+                }
+                else -> {
+                    check(end.parentClass == model.classes[otherEnd.typeXmiId]) { "parentClass is wrong" }
+                }
+            }
+        }
     }
 
     private fun parseProperty(propertyElement: Element, ownerClass: MofClass?, assocXmiId: String? = null): MofProperty {
         val name = propertyElement.getAttribute("name")
         val xmiId = propertyElement.getAttribute("xmi:id")
+        val comment = getChildrenByTagName(propertyElement, "ownedComment").joinToString("\n") {
+            val annotated = getChildrenByTagName(it, "annotatedElement").firstOrNull()?.let {
+                it.getAttribute("xmi:idref")
+            }
+            if (xmiId==annotated) {
+                it.getAttribute("body")
+            } else {
+                ""
+            }
+        }
 
         var typeXmiId: String? = propertyElement.getAttribute("type")
         var typeHref: String? = null
@@ -248,7 +280,6 @@ class MofXmiParser {
             lower = 0 // Default lower to 0 for unbounded collections if not specified
         }
 
-
         val aggregationKind = when (propertyElement.getAttribute("aggregation")) {
             "composite" -> MofAggregationKind.COMPOSITE
             "shared" -> MofAggregationKind.SHARED
@@ -263,22 +294,30 @@ class MofXmiParser {
         propertyElement.getAttribute("isOrdered").let {
             if(it.isNotEmpty()) isOrdered = it.toBoolean()
         }
-
+        val redefinedRef = getChildrenByTagName(propertyElement, "redefinedProperty").firstOrNull()?.let {
+            it.getAttribute("xmi:idref")
+        }
+        val subsettedRef = getChildrenByTagName(propertyElement, "subsettedProperty").firstOrNull()?.let {
+            it.getAttribute("xmi:idref")
+        }
         val prop = MofProperty(
             model,
             name = name,
             xmiId = xmiId
-        ).also {
-            it.typeXmiId = typeXmiId
-            it.typeHref = typeHref
-            it.lowerBound = lower
-            it.upperBound = upper
-            it.isDerived = propertyElement.getAttribute("isDerived") == "true"
-            it.isReadOnly = propertyElement.getAttribute("isReadOnly") == "true" || propertyElement.getAttribute("isLeaf") == "true" // isLeaf implies read-only in some contexts
-            it.isUnique = isUnique
-            it. isOrdered = isOrdered
-            it.aggregation = aggregationKind
-            it.associationXmiId = assocXmiId ?: propertyElement.getAttribute("association").ifEmpty { null }
+        ).also { self ->
+            self.typeXmiId = typeXmiId
+            self.typeHref = typeHref
+            self.comment = comment
+            self.lowerBound = lower
+            self.upperBound = upper
+            self.isDerived = propertyElement.getAttribute("isDerived") == "true"
+            self.isReadOnly = propertyElement.getAttribute("isReadOnly") == "true" || propertyElement.getAttribute("isLeaf") == "true" // isLeaf implies read-only in some contexts
+            self.isUnique = isUnique
+            self. isOrdered = isOrdered
+            self.aggregation = aggregationKind
+            self.associationXmiId = assocXmiId ?: propertyElement.getAttribute("association").ifEmpty { null }
+            redefinedRef?.let{(self.redefinedPropertyRef as MutableSet).add(it)}
+            subsettedRef?.let {(self.subsettedPropertyRef as MutableSet).add(it)}
         }
         prop.parentClass = ownerClass
         model.idToElementMap[xmiId] = prop // Ensure property is also in the global map

@@ -72,7 +72,7 @@ class KotlinCodeGenerator(private val model: MofModel) {
         sb.append(" {\n\n")
 
         // Attributes explicitly owned by the class
-        cls.attributes.forEach {
+        cls.ownedAttribute.forEach {
             sb.append(generateProperty(it, packageName, imports))
         }
 

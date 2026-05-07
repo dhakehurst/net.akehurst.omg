@@ -39,6 +39,12 @@ object SimpleMofToRam {
               // --- ${name} ---
               $[attributes sep $EOL]
             "
+            Pair<MofClass, List<MofProperty>> -> {
+                "
+                  // --- ${first.name} ---
+                  $[second sep $EOL]${$EOL}
+                "
+            }
             MofProperty -> {
                 val_var := when {
                   true==isReadOnly -> 'val'
@@ -70,8 +76,15 @@ object SimpleMofToRam {
                     else -> 'ERROR'
                   }
                 }
+                brdg := when {
+                   isRedefining -> $EOL + {
+                     redefined := redefinedProperty.filter({it -> it.name != name})
+                     "$[redefined sep $EOL]"
+                   }
+                   else -> ''
+                }
                 "
-                  override $val_var ${valid(name)}: $resType = $resTypeImpl
+                  override $val_var ${valid(name)}: $resType = $resTypeImpl$brdg
                 "
             }
         }
@@ -95,11 +108,11 @@ object SimpleMofToRam {
                  */            
             
                 // *** Generated code do NOT manually edit. ***
-                package ${qualifiedName}.ram
+                package net.akehurst.omg.uml_2_5_1.ram
                 
                 import net.akehurst.kotlinx.collections.OrderedSet
                 import net.akehurst.kotlinx.collections.mutableOrderedSetOf
-                $[allImport.map({it -> 'import UML.'+it+'.*'}) sep $EOL]
+                import net.akehurst.omg.uml_2_5_1.api.*
                                 
                 $[classes sep $EOL]
             "
@@ -111,8 +124,7 @@ object SimpleMofToRam {
                 }
                 "
                   ${abs}class ${valid(name)}Ram : ${valid(name)} {
-                     $[attributes sep $EOL via Property]
-                     $[allSuperClasses sep $EOL via Property]
+                     $[allNormalisedAttribute sep $EOL via Property]
                   }
                 "
             }

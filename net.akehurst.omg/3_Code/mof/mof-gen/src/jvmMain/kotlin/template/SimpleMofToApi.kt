@@ -53,10 +53,9 @@ object SimpleMofToApi {
                  */            
             
                 // *** Generated code do NOT manually edit. ***
-                package $qualifiedName
+                package net.akehurst.omg.uml_2_5_1.api
                 
                 import net.akehurst.kotlinx.collections.OrderedSet
-                $[allImport.map({it -> 'import UML.'+it+'.*'}) sep $EOL]
                 
                 $[enums sep $EOL]
                 
@@ -71,16 +70,16 @@ object SimpleMofToApi {
                   else -> " : $[generalizations sep ',']"
                 }
                 "
+                  /**
+                    $comment
+                  */
                   interface ${valid(name)}$superTypes {
                      $[attributes sep $EOL]
                   }
                 "
             }
+            // Always use 'val' for properties so that subclasses can override with a subtype
             MofProperty -> {
-                val_var := when {
-                  true==isReadOnly -> 'val'
-                  else -> 'var'
-                }
                 resType := when {
                   (1 == upperBound) -> when {
                     (0 == lowerBound) -> valid(typeName)+'?'  
@@ -95,15 +94,49 @@ object SimpleMofToApi {
                   }
                 }
                 cons := when {
-                    (false == isUnique) and (false == isOrdered) -> '{}'
-                    (true == isUnique) and (false == isOrdered) -> '{unique}'
-                    (false == isUnique) and (true == isOrdered) -> '{ordered}'
-                    (true == isUnique) and (true == isOrdered) -> '{ordered, unique}'
+                    (false == isUnique) and (false == isOrdered) -> ''
+                    (true == isUnique) and (false == isOrdered) -> 'unique'
+                    (false == isUnique) and (true == isOrdered) -> 'ordered'
+                    (true == isUnique) and (true == isOrdered) -> 'ordered, unique'
                     else -> '{ERROR}'               
                 }
+                redef := when {
+                  isRedefining -> ', redefines ' + redefinedProperty.map({it -> it.parentClass.name +'.'+ it.name}).join
+                  else -> ''
+                }
+                subs := when {
+                  isSubsetting -> ', subsets ' + subsettedProperty.map({it -> it.parentClass.name +'.'+ it.name}).join
+                  else -> ''
+                }
+                redefName := when {
+                  isRedefining -> when {
+                    name == redefinedProperty.name -> when {
+                      upperBound != redefinedProperty.upperBound -> name+'_'+valid(parentClass.name)
+                      else -> name
+                    }
+                    else -> name
+                  }
+                  else -> name
+                }
+                ovr := when {
+                  isOverride -> when {
+                    redefName == name -> 'override '
+                    else -> ''
+                  }
+                  else -> ''
+                }
+                opp := when {
+                  $nothing == opposite -> ''
+                  else -> ' opposite '+ opposite.parentClass.name+'.' + opposite.name
+                }
                 "
-                  /** [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}] $cons */
-                  $val_var ${valid(name)}: $resType
+                  /** 
+                     $comment
+                   
+                     [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}]{$cons$redef$subs}
+                     $opp
+                   */
+                  ${ovr}val ${valid(redefName)}: $resType
                 "
             }
         }

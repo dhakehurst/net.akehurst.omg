@@ -48,19 +48,23 @@ data class MofPackage(
     val packageImport: MutableList<String> = mutableListOf(),
     var parentPackage: MofPackage? = null // For establishing hierarchy
 ) {
+    var comment: String? = null
+
     val qualifiedName: String = parentPackage?.let { it.qualifiedName + "." + name } ?: name
-    val allImport : List<String> get() = when(parentPackage) {
-        null -> packageImport.toSet().sorted()
-        else -> (parentPackage!!.allImport + packageImport).toSet().sorted()
-    }
+    val allImport: List<String>
+        get() = when (parentPackage) {
+            null -> packageImport.toSet().sorted()
+            else -> (parentPackage!!.allImport + packageImport).toSet().sorted()
+        }
 
     override fun hashCode(): Int = arrayOf(xmiId).contentHashCode()
-    override fun equals(other: Any?): Boolean = when  {
+    override fun equals(other: Any?): Boolean = when {
         other !is MofClass -> false
         xmiId != other.xmiId -> false
         else -> true
     }
-    override fun toString(): String ="${parentPackage?.qualifiedName}.$name"
+
+    override fun toString(): String = "${parentPackage?.qualifiedName}.$name"
 }
 
 interface MofType {
@@ -75,7 +79,9 @@ data class MofEnum(
     override val name: String,
     override val xmiId: String,
     override var parentPackage: MofPackage? = null
-) : MofType
+) : MofType {
+    var comment: String? = null
+}
 
 class MofClass(
     override val model: MofModel,
@@ -83,31 +89,110 @@ class MofClass(
     override val xmiId: String,
     var isAbstract: Boolean = false,
     val generalizations: MutableList<String> = mutableListOf(), // Stores xmi:idref of general classes
-    val attributes: MutableList<MofProperty> = mutableListOf(),
+    val ownedAttribute: MutableList<MofProperty> = mutableListOf(),
     val operations: MutableList<MofOperation> = mutableListOf(),
     override var parentPackage: MofPackage? = null
 ) : MofType {
 
-    val superClasses:List<MofClass> get() = generalizations.map { model.findTypeById(it) as MofClass }
-    val allSuperClasses:Set<MofClass> get() {
-        return superClasses.transitiveClosure { it.superClasses }.toSet()
+    companion object {
+        /**
+         * Checks if 'potentialSubtype' inherits from 'superType' in the UML metamodel.
+         */
+        fun isSubtypeOf(potentialSubtype: MofClass, superType: MofClass): Boolean {
+            if (potentialSubtype == superType) return true
+
+            // If it's a primitive or outside the metamodel hierarchy, handle accordingly
+            if (potentialSubtype !is MofClass || superType !is MofClass) return false
+
+            // Recursively check if any of the superclasses match
+            return potentialSubtype.superClasses.any { isSubtypeOf(it, superType) }
+        }
     }
 
-    override fun hashCode(): Int = arrayOf(xmiId).contentHashCode()
-    override fun equals(other: Any?): Boolean = when  {
+    var comment: String? = null
+
+    val superClasses: List<MofClass> get() = generalizations.map { model.findTypeById(it) as MofClass }
+    val allSuperClasses: Set<MofClass>
+        get() {
+            return superClasses.transitiveClosure { it.superClasses }.toSet()
+        }
+
+    val allAttributes get() = (allSuperClasses.flatMap { it.ownedAttribute } + ownedAttribute).toSet()
+
+    val redefiningProperty get() = ownedAttribute.filter { it.isRedefining }
+
+    val allNormalisedAttribute: Map<MofClass, List<MofProperty>>
+        by lazy {
+            // 1. Get properties explicitly owned by this class
+            val ownedProperties = ownedAttribute
+            // 2. Recursively get the normalized properties from all superclasses
+            val inheritedProperties = superClasses.flatMap { it.allNormalisedAttribute.values.flatten() }.toSet()
+            val allCandidateProperties = ownedProperties + inheritedProperties
+            // 4. THE FIX: Get ALL redefined targets from EVERY candidate property
+            val redefinedTargets = allCandidateProperties.flatMap { it.redefinedProperty }.toSet()
+            // 5. Filter out any property that was a target of redefinition
+            val survivingProperties = allCandidateProperties.filter { it !in redefinedTargets }.toSet()
+
+            val deduplicatedProperties = mutableMapOf<String, MofProperty>()
+            for (prop in survivingProperties) {
+                val existing = deduplicatedProperties[prop.name]
+                if (existing == null) {
+                    deduplicatedProperties[prop.name] = prop
+                } else {
+                    // --- COLLISION RESOLUTION ---
+                    // 1. Identity: They are literally the exact same property inherited from a common ancestor.
+                    if (existing == prop) {
+                        continue
+                    }
+
+                    // 2. Type Narrowing (Covariance):
+                    // If they have different types, we MUST pick the subtype.
+                    // e.g., If existing is 'Element' and prop is 'Activity', we must keep 'Activity'.
+                    if (isSubtypeOf(prop.parentClass!!, existing.parentClass!!)) {
+                        deduplicatedProperties[prop.name] = prop
+                    } else if (isSubtypeOf(existing.parentClass!!, prop.parentClass!!)) {
+                        // Keep the 'existing' one, it is already the narrower type
+                        continue
+                    }
+                    // 3. Multiplicity Narrowing:
+                    // If types are identical, but one restricts the multiplicity (e.g., [0..*] vs [0..1]),
+                    // pick the scalar [0..1] version, as a scalar can conceptually satisfy a collection
+                    // contract in your generated getters/setters.
+                    else if (prop.upperBound == 1 && existing.upperBound != 1) {
+                        deduplicatedProperties[prop.name] = prop
+                    } else if (existing.upperBound == 1 && prop.upperBound != 1) {
+                        continue
+                    }
+                    // 4. Irresolvable Conflict (Fallback)
+                    // They have the same name, but completely incompatible types (e.g., String vs Int).
+                    // This means the source UML is fundamentally broken/ill-formed.
+                    else {
+                        throw IllegalStateException(
+                            "Irresolvable property collision in flat implementation. " +
+                                    "Property '${prop.name}' has conflicting types: '${existing.parentClass!!.name}' and '${prop.parentClass!!.name}'."
+                        )
+                    }
+                }
+            }
+            val normalized = deduplicatedProperties.values
+            normalized.groupBy { it.parentClass!! }
+        }
+
+    override fun hashCode(): Int = xmiId.hashCode()
+    override fun equals(other: Any?): Boolean = when {
         other !is MofClass -> false
         xmiId != other.xmiId -> false
         else -> true
     }
-    override fun toString(): String ="${parentPackage?.qualifiedName}.$name"
+
+    override fun toString(): String = "${parentPackage?.qualifiedName}.$name"
 }
 
 
-data class MofProperty(
+class MofProperty(
     val model: MofModel,
     val name: String,
     val xmiId: String,
-
 ) {
     // Helper to get the parent class, assuming this property is an attribute of a class
     @Transient
@@ -119,8 +204,9 @@ data class MofProperty(
             ?: "<Unknown type for xmiId = $xmiId>"
     }
 
+    var comment: String? = null
     var typeXmiId: String? = null // For internal references like _MOF-Reflection-Element
-    var typeHref: String? =null // For external references like PrimitiveTypes.xmi#String
+    var typeHref: String? = null // For external references like PrimitiveTypes.xmi#String
     var lowerBound: Int = 0
     var upperBound: Int = 1 // -1 for unbounded (*)
     var isDerived: Boolean = false
@@ -129,7 +215,35 @@ data class MofProperty(
     var isUnique: Boolean = true
     var aggregation: MofAggregationKind = MofAggregationKind.NONE
     var associationXmiId: String? = null // To link with MofAssociation
+    val redefinedPropertyRef: Set<String> = mutableSetOf()
+    val subsettedPropertyRef: Set<String> = mutableSetOf()
+    var opposite: MofProperty? = null
 
+    val isOverride
+        get() = parentClass?.allSuperClasses?.any { sc ->
+            sc.allAttributes.any { it.name == this.name }
+        } ?: false
+
+    val isRedefining get() = redefinedPropertyRef.isNotEmpty()
+    val redefinedProperty get() = redefinedPropertyRef.map { model.idToElementMap[it]!! as MofProperty }
+
+    val redefinedName
+        get() = when {
+            isRedefining -> {}
+            else -> name
+        }
+
+    val isSubsetting get() = subsettedPropertyRef.isNotEmpty()
+    val subsettedProperty get() = subsettedPropertyRef.map { model.idToElementMap[it]!! as MofProperty }
+
+    override fun hashCode(): Int = xmiId.hashCode()
+    override fun equals(other: Any?): Boolean = when {
+        other !is MofProperty -> false
+        xmiId != other.xmiId -> false
+        else -> true
+    }
+
+    override fun toString(): String = "${parentClass?.parentPackage?.qualifiedName}.${parentClass?.name}.$name"
 }
 
 data class MofOperation(
@@ -146,13 +260,14 @@ data class MofOperation(
     var parentClass: MofClass? = null
 
     override fun hashCode(): Int = arrayOf(parentClass, name).contentHashCode()
-    override fun equals(other: Any?): Boolean = when  {
+    override fun equals(other: Any?): Boolean = when {
         other !is MofOperation -> false
         name != other.name -> false
         parentClass != other.parentClass -> false
         else -> true
     }
-    override fun toString(): String ="${parentClass?.parentPackage?.qualifiedName}.${parentClass?.name}.$name"
+
+    override fun toString(): String = "${parentClass?.parentPackage?.qualifiedName}.${parentClass?.name}.$name"
 }
 
 data class MofParameter(
@@ -233,7 +348,7 @@ object SimpleMof {
                     parameter(setOf(REF, VAL), "parentPackage", "MofPackage", true, propertyExecution = MofPackage::parentPackage)
                 }
                 propertyOf(setOf(DER), "qualifiedName", "String")
-                propertyOf(setOf(DER), "allImport", "List") { typeArgument("String")}
+                propertyOf(setOf(DER), "allImport", "List") { typeArgument("String") }
             }
             interface_("MofType", implementation = MofType::class)
             data("MofEnum", implementation = MofEnum::class) {
@@ -248,13 +363,20 @@ object SimpleMof {
                     parameter(setOf(CMP, VAL), "generalizations", "List", propertyExecution = MofClass::generalizations) {
                         typeArgument("String")
                     }
-                    parameter(setOf(CMP, VAL), "attributes", "List", propertyExecution = MofClass::attributes) {
+                    parameter(setOf(CMP, VAL), "attributes", "List", propertyExecution = MofClass::ownedAttribute) {
                         typeArgument("MofProperty")
                     }
                     parameter(setOf(CMP, VAL), "operations", "List", propertyExecution = MofClass::operations) {
                         typeArgument("MofOperation")
                     }
                     parameter(setOf(REF, VAL), "parentPackage", "MofPackage", true, propertyExecution = MofClass::parentPackage) {}
+                }
+
+                propertyOf(setOf(DER), "allNormalisedAttribute", "Map", execution = MofClass::allNormalisedAttribute) {
+                    typeArgument("MofClass")
+                    typeArgument("List") {
+                        typeArgument("MofProperty")
+                    }
                 }
             }
             data("MofProperty", implementation = MofProperty::class) {
@@ -272,6 +394,7 @@ object SimpleMof {
                     parameter(setOf(CMP, VAL), "aggregation", "MofAggregationKind", propertyExecution = MofProperty::aggregation)
                     parameter(setOf(CMP, VAL), "associationXmiId", "String", true, propertyExecution = MofProperty::associationXmiId)
                 }
+                propertyOf(setOf(DER), "isOverride", "Boolean", execution = MofProperty::isOverride)
             }
             data("MofOperation", implementation = MofOperation::class) {
                 constructor_ {

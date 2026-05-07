@@ -1,8 +1,6 @@
 package net.akehurst.omg.mof.gen
 
-import net.akehurst.omg.mof.gen.template.SimpleMofToApi
 import net.akehurst.omg.mof.gen.template.SimpleMofToRam
-import sun.nio.cs.Surrogate
 import java.io.File
 
 fun main(args: Array<String>) {
@@ -66,7 +64,7 @@ fun printPackageRecursive(pkg: MofPackage, indentLevel: Int, model: MofModel) {
     println("${indent}Package: ${pkg.name} (ID: ${pkg.xmiId}, Path: ${model.getFullPackagePath(pkg)})")
     pkg.classes.forEach { cls ->
         println("${indent}  Class: ${cls.name} (Abstract: ${cls.isAbstract})")
-        cls.attributes.forEach { attr ->
+        cls.ownedAttribute.forEach { attr ->
             println("${indent}    Attr: ${attr.name}: ${attr.typeHref ?: attr.typeXmiId} [${attr.lowerBound}..${if(attr.upperBound == -1) "*" else attr.upperBound.toString()}] ${if(attr.associationXmiId != null) "(Assoc: ${attr.associationXmiId})" else ""}")
         }
         cls.operations.forEach { op ->
