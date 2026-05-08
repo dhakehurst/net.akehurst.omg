@@ -5,6 +5,12 @@ println("===============================================")
 
 pluginManagement {
     repositories {
+        mavenLocal {
+            content{
+                includeGroupByRegex("net\\.akehurst.+")
+            }
+        }
+        mavenCentral()
         gradlePluginPortal()
     }
     includeBuild("./0_build-logic")

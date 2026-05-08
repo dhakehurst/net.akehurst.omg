@@ -1,5 +1,6 @@
-package net.akehurst.omg.mof.gen
+package generator
 
+import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
@@ -7,7 +8,7 @@ import kotlin.text.ifEmpty
 
 class MofXmiParser {
 
-    private val model = MofModel()
+    private lateinit var model: MofModel
 
     fun parse(file: File): MofModel {
         val dbFactory = DocumentBuilderFactory.newInstance()
@@ -19,6 +20,9 @@ class MofXmiParser {
         if (rootXmiElement.tagName != "xmi:XMI") {
             throw IllegalArgumentException("Root element is not xmi:XMI")
         }
+
+        val modelName = getChildrenByTagName(rootXmiElement,"mofext:Tag").firstOrNull()?.let { it.getAttribute("element") } ?: "Model"
+        this.model = MofModel(modelName)
 
         // First pass: Discover all top-level packagedElements (Packages, Classes, Associations)
         // and register them with their IDs.
@@ -54,7 +58,7 @@ class MofXmiParser {
         return model
     }
 
-    private fun findDomElementById(doc: org.w3c.dom.Document, id: String): Element? {
+    private fun findDomElementById(doc: Document, id: String): Element? {
         // This is inefficient for large documents. A map built during a first pass would be better.
         // For now, we iterate.
         val nodeList = doc.getElementsByTagName("*")

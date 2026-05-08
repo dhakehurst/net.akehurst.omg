@@ -19,8 +19,17 @@ plugins {
 }
 
 repositories {
+    mavenLocal {
+        content{
+            includeGroupByRegex("net\\.akehurst.+")
+        }
+    }
     mavenCentral()
     gradlePluginPortal()
 }
 
 project.layout.buildDirectory = File(rootProject.projectDir, ".gradle-build/${project.name}")
+
+dependencies {
+    implementation(libs.nal.agl.processor)
+}

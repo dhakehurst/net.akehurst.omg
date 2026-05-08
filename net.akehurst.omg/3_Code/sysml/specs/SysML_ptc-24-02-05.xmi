@@ -1,5 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<xmi:XMI xmlns:xmi="http://www.omg.org/spec/XMI/20161101" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uml="http://www.omg.org/spec/UML/20161101" xmlns:mofext="http://www.omg.org/spec/MOF/20161101" xmlns:UML="https://www.omg.org/spec/UML/20161101">
+<xmi:XMI
+        xmlns:xmi="http://www.omg.org/spec/XMI/20161101"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:uml="http://www.omg.org/spec/UML/20161101"
+        xmlns:mofext="http://www.omg.org/spec/MOF/20161101"
+        xmlns:UML="https://www.omg.org/spec/UML/20161101"
+>
   <uml:Package xmi:id="SysML" URI="https://ww.omg.org/spec/SysML/20240201" name="SysML" viewpoint="">
     <packageImport xmi:id="_packageImport._0" xmi:type="uml:PackageImport">
       <importedPackage href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#_0"/>

@@ -7,10 +7,11 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(project(":uml-api"))
-
+                api(libs.nal.agl.processor)
                 api(libs.nak.kotlinx.collections)
                 api(libs.nak.kotlinx.utils)
+
+                api(project(":uml-ram"))
             }
         }
     }
