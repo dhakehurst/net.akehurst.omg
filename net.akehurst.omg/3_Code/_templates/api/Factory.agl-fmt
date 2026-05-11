@@ -24,8 +24,10 @@ fun valid(str:String): String = {
                    'super','this','throw','true','try','typealias','typeof','val',
                    'var','when','while'
               )
+  problematicKotlinTypes := Set('Annotation')
   when {
     keywords.contains(str) -> str+'_'
+    problematicKotlinTypes.contains(str) -> str+'_'
     else -> str
   }
 }
@@ -51,7 +53,7 @@ format ApiPackageFile {
          */
 
         // *** Generated code do NOT manually edit. ***
-        package net.akehurst.omg.uml_2_5_1.api
+        package ${TARGET_PACKAGE}.api
 
         import net.akehurst.kotlinx.utils.UniqueIdentityGenerator
 

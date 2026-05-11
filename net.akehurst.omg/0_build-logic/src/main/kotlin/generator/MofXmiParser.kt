@@ -29,7 +29,7 @@ class MofXmiParser {
         val rootPackagedElementNodes = rootXmiElement.childNodes
         for (i in 0 until rootPackagedElementNodes.length) {
             val node = rootPackagedElementNodes.item(i)
-            if (node is Element && (node.tagName == "packagedElement" || node.tagName == "uml:Package") && node.getAttribute("xmi:type") == "uml:Package") {
+            if (node is Element && (node.tagName == "packagedElement" || node.tagName == "uml:Package")) {
                 // This should be the root "MOF" package
                 val rootMofPackage = preParsePackage(node)
                 if (rootMofPackage != null) {
@@ -187,12 +187,27 @@ class MofXmiParser {
             if (node !is Element) continue
             when (node.tagName) {
                 "generalization" -> {
+                    // try attribute
                     val general = node.getAttribute("general")
-                    if (general.isNotEmpty()) {
+                    if (general.isNotBlank()) {
                         mofClass.generalizations.add(general)
+                    } else {
+                        //try child element
+                        val gen2 = node.getElementsByTagName("general").item(0) as? Element
+                        if (null != gen2) {
+                            // try direct ref
+                            val v = gen2.getAttribute("xmi:idref")
+                            if (v.isNullOrBlank().not()) {
+                                mofClass.generalizations.add(v)
+                            } else {
+                                //try href
+                                val href = gen2.getAttribute("href")
+                                if (href.isNotBlank()) {
+                                    mofClass.generalizations.add(href.substringAfter("#"))
+                                }
+                            }
+                        }
                     }
-                    val gen2 = node.getElementsByTagName("general").item(0) as? Element
-                    gen2?.getAttribute("xmi:idref")?.let { mofClass.generalizations.add(it) }
                 }
                 "ownedAttribute" -> {
                     val prop = parseProperty(node, mofClass)

@@ -24,14 +24,16 @@ fun valid(str:String): String = {
                    'super','this','throw','true','try','typealias','typeof','val',
                    'var','when','while'
               )
+  problematicKotlinTypes := Set('Annotation')
   when {
     keywords.contains(str) -> str+'_'
+    problematicKotlinTypes.contains(str) -> str+'_'
     else -> str
   }
 }
 
 format ApiPackageFile {
-    #output: 'MofModel -> "agl/${name}TypesDomain.kt"'
+    #output: 'MofModel -> "ram/${name}FactoryRam.kt"'
 
     MofModel -> "
         /**
@@ -51,37 +53,17 @@ format ApiPackageFile {
          */
 
         // *** Generated code do NOT manually edit. ***
-        package net.akehurst.omg.uml_2_5_1.agl
+        package ${TARGET_PACKAGE}.ram
 
-        import net.akehurst.omg.uml_2_5_1.api.*
-        import net.akehurst.omg.uml_2_5_1.ram.*
-        import net.akehurst.language.types.builder.typesDomain
+        import ${TARGET_PACKAGE}.api.*
 
-        class ${name}TypesDomain(factory:${name}Factory = ${name}FactoryRam) {
-            val types = typesDomain(\"${name}\", true) {
-                $[packageList sep $EOL]
-            }
+        object ${name}FactoryRam : ${name}Factory {
+          $[allClasses.filter({it -> false == it.isAbstract}) sep $EOL]
         }
-    "
-
-    MofPackage -> "
-      namespace(\"$qualifiedName\") {
-          $[enums sep $EOL]
-          $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
-      }
-    "
-
-    MofEnum -> "
-      enum(\"$name\", listOf(/*TODO*/), implementation = $name::class)
     "
 
     MofClass -> "
-      data(\"$name\", implementation = $name::class) {
-        constructor_ {
-          parameter(setOf(REF, VAL),\"_identity\", \"Any\", true, $name::_identity)
-          execution { args -> args.getOrNull(0)?.let { factory.create${name}(it) } ?: factory.create${name}() }
-        }
-      }
+      override fun create${valid(name)}(identity:Any) = ${valid(name)}Ram(identity)
     "
 
 

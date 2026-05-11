@@ -24,8 +24,10 @@ fun valid(str:String): String = {
                    'super','this','throw','true','try','typealias','typeof','val',
                    'var','when','while'
               )
+  problematicKotlinTypes := Set('Annotation')
   when {
     keywords.contains(str) -> str+'_'
+    problematicKotlinTypes.contains(str) -> str+'_'
     else -> str
   }
 }
@@ -39,7 +41,7 @@ format PropertyImpl {
         resTypeImpl := when {
           (1 == upperBound) -> when {
             (0 == lowerBound) -> '= null'
-            else -> '= '+valid(typeName)+'Ram()'
+            else -> '// [1] must be set before use'
           }
           else -> when {
             (false == isUnique) and (false == isOrdered) -> "= mutableCollectionOf()"
@@ -62,7 +64,7 @@ format Property {
     }
     MofProperty -> {
         val_var := when {
-          true==isReadOnly -> 'val'
+          (1 == upperBound) and (1==lowerBound) -> 'lateinit var'
           else -> 'var'
         }
         resType := when {
@@ -93,7 +95,7 @@ format Property {
 }
 
 format ApiPackageFile {
-    #output: 'MofPackage -> "ram/${name}.kt"'
+    #output: 'MofPackage -> "ram/${qualifiedName}.kt"'
 
     MofModel -> "$packageList"
     MofPackage -> "
@@ -114,11 +116,11 @@ format ApiPackageFile {
          */
 
         // *** Generated code do NOT manually edit. ***
-        package net.akehurst.omg.uml_2_5_1.ram
+        package ${TARGET_PACKAGE}.ram
 
         import net.akehurst.kotlinx.collections.OrderedSet
         import net.akehurst.kotlinx.collections.mutableOrderedSetOf
-        import net.akehurst.omg.uml_2_5_1.api.*
+        import ${TARGET_PACKAGE}.api.*
 
         $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
     "

@@ -25,14 +25,14 @@ class GeneratorFromTemplate(
     }
     val objectGraph = ObjectGraphAccessorMutatorByReflection(types, issues)
 
-    fun generateToFiles(model: MofModel, outputDir: File) {
+    fun generateToFiles(model: MofModel, parameters:Map<String,Any>, outputDir: File) {
         if (!outputDir.exists()) outputDir.mkdirs()
         val typedModel = objectGraph.toTypedObject(model, StdLibDefault.NothingType)
 
-        val options = FormatOptionsDefault(
-            mapOf($$"$MODEL" to typedModel)
-        )
         val self = objectGraph.toTypedObject(model, StdLibDefault.NothingType)
+        val typedParams = parameters.map { (k, v) -> Pair(k,objectGraph.toTypedObject(v, StdLibDefault.AnyType)) }.toMap()
+
+        val options = FormatOptionsDefault(typedParams)
         val result = Agl.format(template, objectGraph, self, options)
         check(result.issues.errors.isEmpty()) { result.issues.toString() }
         result.output.filterNot{it.key== FormatResultDefault.DEFAULT }.forEach { (n,v) ->

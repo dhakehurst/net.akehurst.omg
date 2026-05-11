@@ -14,11 +14,16 @@ class MofModel(
     val idToElementMap: MutableMap<String, Any> = mutableMapOf(), // Generic map for resolving IDs
     val primitiveTypes: Map<String, String> = mapOf(
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#String" to "String",
-        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Integer" to "Int",
+        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Integer" to "Long",
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Boolean" to "Boolean",
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Real" to "Double",
-        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#UnlimitedNatural" to "Long" // Or custom type
+        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#UnlimitedNatural" to "Long", // Or custom type
         // Add more as needed
+        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" to "String",
+        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Integer" to "Long",
+        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Boolean" to "Boolean",
+        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Real" to "Double",
+        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#UnlimitedNatural" to "Long" // Or custom type
     )
 ) {
     val packageList get() = packages.values.toList()
@@ -68,6 +73,8 @@ data class MofPackage(
             null -> packageImport.toSet().sorted()
             else -> (parentPackage!!.allImport + packageImport).toSet().sorted()
         }
+
+    val isEmpty: Boolean get() = enums.isEmpty() && classes.isEmpty()
 
     override fun hashCode(): Int = arrayOf(xmiId).contentHashCode()
     override fun equals(other: Any?): Boolean = when {
@@ -245,7 +252,9 @@ class MofProperty(
         } ?: false
 
     val isRedefining get() = redefinedPropertyRef.isNotEmpty()
-    val redefinedProperty get() = redefinedPropertyRef.map { model.idToElementMap[it]!! as MofProperty }
+    val redefinedProperty get() = redefinedPropertyRef.map {
+        model.idToElementMap[it]!! as MofProperty
+    }
 
     val normName
         get() = when {

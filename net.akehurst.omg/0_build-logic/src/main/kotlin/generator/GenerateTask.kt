@@ -20,6 +20,10 @@ abstract class GenerateTask : DefaultTask() {
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val generateDir: DirectoryProperty
 
+    // values to pass to the generator
+    @get:Input
+    abstract var parameters: Map<String, Any>
+
     // The folder where Kotlin files will be written
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
@@ -42,6 +46,7 @@ abstract class GenerateTask : DefaultTask() {
         val parser = MofXmiParser()
         val mofModel = parser.parse(xmiFile)
         val templateFiles = templateDir.listFiles { it.extension == "agl-fmt" }
+
         templateFiles.forEach {
             generateForTemplate(mofModel, targetDir, it)
         }
@@ -58,7 +63,7 @@ abstract class GenerateTask : DefaultTask() {
             val templateText = aglFormatFile.readText()
             logger.lifecycle("Generating to directory: ${outputDir.absolutePath}...")
             val generator = GeneratorFromTemplate(logger, templateText, SimpleMof.types)
-            generator.generateToFiles(mofModel, outputDir)
+            generator.generateToFiles(mofModel, parameters, outputDir)
             logger.lifecycle("Generation complete.")
         } catch (e: Exception) {
             logger.error("e: An error occurred while generating from template file '$aglFormatFile'.")

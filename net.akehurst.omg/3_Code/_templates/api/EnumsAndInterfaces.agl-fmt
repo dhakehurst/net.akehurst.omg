@@ -24,14 +24,16 @@ fun valid(str:String): String = {
                    'super','this','throw','true','try','typealias','typeof','val',
                    'var','when','while'
               )
+  problematicKotlinTypes := Set('Annotation')
   when {
     keywords.contains(str) -> str+'_'
+    problematicKotlinTypes.contains(str) -> str+'_'
     else -> str
   }
 }
 
 format ApiPackageFile {
-    #output: 'MofPackage -> "api/${name}.kt"'
+    #output: 'MofPackage -> "api/${qualifiedName}.kt"'
 
     MofModel -> "$packageList"
     MofPackage -> "
@@ -52,7 +54,7 @@ format ApiPackageFile {
          */
 
         // *** Generated code do NOT manually edit. ***
-        package net.akehurst.omg.uml_2_5_1.api
+        package ${TARGET_PACKAGE}.api
 
         import net.akehurst.kotlinx.collections.OrderedSet
 
@@ -65,11 +67,11 @@ format ApiPackageFile {
     "
     MofClass -> {
         superTypes := when {
-          generalizations.isEmpty -> ''
-          else -> " : $[generalizations sep ',']"
+          superClasses.isEmpty -> ''
+          else -> " : $[superClasses.map({it -> it.name}) sep ',']"
         }
         id := when {
-          generalizations.isEmpty -> 'val _identity: Any'
+          superClasses.isEmpty -> 'val _identity: Any'
           else -> ''
         }
         "
@@ -124,7 +126,7 @@ format ApiPackageFile {
           /**
              $comment
 
-             [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}]{$cons$redef$subs}
+             $name: $typeName [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}]{$cons$redef$subs}
              $opp
            */
           ${ovr}val ${valid(normName)}: $resType

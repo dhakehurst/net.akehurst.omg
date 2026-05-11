@@ -16,4 +16,8 @@ kotlin {
 
 tasks.named<generator.GenerateTask>("generate") {
     sourceXmi.set(layout.projectDirectory.file("../specs/2.5.1/UML_2-5-1_ASM_ptc-18-01-01.xmi"))
+    generateDir.set(layout.projectDirectory.dir("../../../_templates/api"))
+    parameters = mapOf(
+        "TARGET_PACKAGE" to "net.akehurst.omg.uml.v2_5_1"
+    )
 }
