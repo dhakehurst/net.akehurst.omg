@@ -6,7 +6,9 @@ dokka = "2.1.0"
 buildconfig = "5.7.1"
 kotlinx-serialization = "1.9.0"
 vanniktech = "0.35.0"
+compose = "1.9.3"
 
+material-icons = "1.7.3"
 korlibs = "6.0.1"
 kotlinx-coroutines = "1.10.1"
 
@@ -20,7 +22,8 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 nak-kotlinx-collections = { module = "net.akehurst.kotlinx:kotlinx-collections", version.ref = "nak-kotlinx" }
 nak-kotlinx-utils = { module = "net.akehurst.kotlinx:kotlinx-utils", version.ref = "nak-kotlinx" }
 nal-agl-processor = { module = "net.akehurst.language:agl-processor", version.ref = "nal-agl" }
-
+material-icons-core = { module="org.jetbrains.compose.material:material-icons-core", version.ref="material-icons"}
+material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "material-icons" }
 
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 
@@ -30,4 +33,6 @@ kotlin = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
+compose = { id="org.jetbrains.compose", version.ref="compose" }
+kotlin-compose = { id="org.jetbrains.kotlin.plugin.compose", version.ref="kotlin" }
 vanniktech-maven-publish = { id="com.vanniktech.maven.publish", version.ref="vanniktech" }

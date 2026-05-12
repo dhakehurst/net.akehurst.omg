@@ -26,8 +26,8 @@ fun valid(str:String): String = {
               )
   problematicKotlinTypes := Set('Annotation')
   when {
-    keywords.contains(str) -> str+'_'
-    problematicKotlinTypes.contains(str) -> str+'_'
+    keywords.contains(str) -> (str+'_')
+    problematicKotlinTypes.contains(str) -> (str+'_')
     else -> str
   }
 }
@@ -80,10 +80,10 @@ format Property {
             else -> 'ERROR'
           }
         }
-        impl := when{ false ->'' else -> "${$self via PropertyImpl}" }
+        impl := "${$self via PropertyImpl}"
         brdg := when {
            isRedefining -> $EOL + {
-             redefined := redefinedProperty.filter({it -> it.normName != normName})
+             redefined := allRedefinedProperty.filter({it -> it.normName != normName})
              "$[redefined sep $EOL]"
            }
            else -> ''

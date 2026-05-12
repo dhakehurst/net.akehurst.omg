@@ -32,7 +32,7 @@ class GeneratorFromTemplate(
         val self = objectGraph.toTypedObject(model, StdLibDefault.NothingType)
         val typedParams = parameters.map { (k, v) -> Pair(k,objectGraph.toTypedObject(v, StdLibDefault.AnyType)) }.toMap()
 
-        val options = FormatOptionsDefault(typedParams)
+        val options = FormatOptionsDefault(environment = typedParams)
         val result = Agl.format(template, objectGraph, self, options)
         check(result.issues.errors.isEmpty()) { result.issues.toString() }
         result.output.filterNot{it.key== FormatResultDefault.DEFAULT }.forEach { (n,v) ->

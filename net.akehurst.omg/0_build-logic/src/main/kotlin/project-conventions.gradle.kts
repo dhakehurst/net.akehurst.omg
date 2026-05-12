@@ -23,6 +23,7 @@ repositories {
         }
     }
     mavenCentral()
+    google()
     gradlePluginPortal()
 }
 

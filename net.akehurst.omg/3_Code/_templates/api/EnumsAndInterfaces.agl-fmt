@@ -26,8 +26,8 @@ fun valid(str:String): String = {
               )
   problematicKotlinTypes := Set('Annotation')
   when {
-    keywords.contains(str) -> str+'_'
-    problematicKotlinTypes.contains(str) -> str+'_'
+    keywords.contains(str) -> (str+'_')
+    problematicKotlinTypes.contains(str) -> (str+'_')
     else -> str
   }
 }
@@ -88,7 +88,7 @@ format ApiPackageFile {
     MofProperty -> {
         resType := when {
           (1 == upperBound) -> when {
-            (0 == lowerBound) -> valid(typeName)+'?'
+            (0 == lowerBound) -> (valid(typeName)+'?')
             else -> valid(typeName)
           }
           else -> when {

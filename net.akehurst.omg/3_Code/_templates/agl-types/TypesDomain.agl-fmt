@@ -26,8 +26,8 @@ fun valid(str:String): String = {
               )
   problematicKotlinTypes := Set('Annotation')
   when {
-    keywords.contains(str) -> str+'_'
-    problematicKotlinTypes.contains(str) -> str+'_'
+    keywords.contains(str) -> (str+'_')
+    problematicKotlinTypes.contains(str) -> (str+'_')
     else -> str
   }
 }

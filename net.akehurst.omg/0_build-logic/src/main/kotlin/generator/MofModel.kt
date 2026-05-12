@@ -159,11 +159,12 @@ class MofClass(
                 // 5. Filter out any property that was a target of redefinition
                 val survivingProperties = allCandidateProperties.filter { it !in redefinedTargets }.toSet()
 
-                val deduplicatedProperties = mutableMapOf<String, MofProperty>()
+                val deduplicatedProperties = linkedMapOf<String, MofProperty>()
                 for (prop in survivingProperties) {
-                    val existing = deduplicatedProperties[prop.name]
+                    val key = prop.normName
+                    val existing = deduplicatedProperties[key]
                     if (existing == null) {
-                        deduplicatedProperties[prop.name] = prop
+                        deduplicatedProperties[key] = prop
                     } else {
                         // --- COLLISION RESOLUTION ---
                         // 1. Identity: They are literally the exact same property inherited from a common ancestor.
@@ -175,7 +176,7 @@ class MofClass(
                         // If they have different types, we MUST pick the subtype.
                         // e.g., If existing is 'Element' and prop is 'Activity', we must keep 'Activity'.
                         if (isSubtypeOf(prop.parentClass!!, existing.parentClass!!)) {
-                            deduplicatedProperties[prop.name] = prop
+                            deduplicatedProperties[key] = prop
                         } else if (isSubtypeOf(existing.parentClass!!, prop.parentClass!!)) {
                             // Keep the 'existing' one, it is already the narrower type
                             continue
@@ -185,7 +186,7 @@ class MofClass(
                         // pick the scalar [0..1] version, as a scalar can conceptually satisfy a collection
                         // contract in your generated getters/setters.
                         else if (prop.upperBound == 1 && existing.upperBound != 1) {
-                            deduplicatedProperties[prop.name] = prop
+                            deduplicatedProperties[key] = prop
                         } else if (existing.upperBound == 1 && prop.upperBound != 1) {
                             continue
                         }
@@ -255,6 +256,24 @@ class MofProperty(
     val redefinedProperty get() = redefinedPropertyRef.map {
         model.idToElementMap[it]!! as MofProperty
     }
+
+    val allRedefinedProperty: Set<MofProperty>
+        get() {
+            val byNormName = linkedMapOf<String, MofProperty>()
+            val visited = mutableSetOf<String>()
+            val queue = redefinedProperty.toMutableList()
+            var index = 0
+
+            while (index < queue.size) {
+                val prop = queue[index++]
+                if (!visited.add(prop.xmiId)) continue
+
+                byNormName.putIfAbsent(prop.normName, prop)
+                queue.addAll(prop.redefinedProperty)
+            }
+
+            return byNormName.values.toSet()
+        }
 
     val normName
         get() = when {
