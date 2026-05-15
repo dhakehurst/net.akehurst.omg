@@ -24,7 +24,7 @@ fun valid(str:String): String = {
                    'super','this','throw','true','try','typealias','typeof','val',
                    'var','when','while'
               )
-  problematicKotlinTypes := Set('Annotation')
+  problematicKotlinTypes := Set('Annotation', 'Function')
   when {
     keywords.contains(str) -> (str+'_')
     problematicKotlinTypes.contains(str) -> (str+'_')
@@ -35,7 +35,7 @@ fun valid(str:String): String = {
 format ApiPackageFile {
     #output: 'MofPackage -> "api/${qualifiedName}.kt"'
 
-    MofModel -> "$packageList"
+    MofModel -> "${packageList.filter({it -> false == it.isEmpty})}"
     MofPackage -> "
         /**
          * Copyright (C) 2026 Dr. David H. Akehurst (http://dr.david.h.akehurst.net)
@@ -59,16 +59,16 @@ format ApiPackageFile {
         import net.akehurst.kotlinx.collections.OrderedSet
 
         $[enums sep $EOL]
-
+        $[interfaces sep $EOL]
         $[classes sep $EOL]
     "
     MofEnum -> "
       enum class ${valid(name)} { }
     "
-    MofClass -> {
+    MofInterface -> {
         superTypes := when {
           superClasses.isEmpty -> ''
-          else -> " : $[superClasses.map({it -> it.name}) sep ',']"
+          else -> " : $[superClasses.map({it -> valid(it.name)}) sep ',']"
         }
         id := when {
           superClasses.isEmpty -> 'val _identity: Any'
@@ -78,6 +78,30 @@ format ApiPackageFile {
           /**
             $comment
           */
+          interface ${valid(name)}$superTypes {
+             $id
+             $[ownedAttribute sep $EOL]
+          }
+        "
+    }
+    MofClass -> {
+        superTypes := when {
+          superClasses.isEmpty -> ''
+          else -> " : $[superClasses.map({it -> valid(it.name)}) sep ',']"
+        }
+        id := when {
+          superClasses.isEmpty -> 'val _identity: Any'
+          else -> ''
+        }
+        abs := when {
+          isAbstract -> 'abstract'
+          else -> ''
+        }
+        "
+          /**
+             $comment
+           * ${abs}
+           */
           interface ${valid(name)}$superTypes {
              $id
              $[ownedAttribute sep $EOL]

@@ -15,12 +15,16 @@ kotlin {
 }
 
 tasks.named<generator.GenerateTask>("generate") {
-    modelName = "UML"
-    instanceRoots = listOf("Model")
-    sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/UML_2-5-1_ASM_ptc-18-01-01.xmi"))
+    modelName = "DiagramDefinition"
+    sourceXmiPaths = listOf(
+        layout.projectDirectory.file("../specs/DD_20131001_DiagramCommon.xmi"),
+        layout.projectDirectory.file("../specs/DD_20131001DiagramGraph.xmi"),
+        layout.projectDirectory.file("../specs/DD_20131001_DiagramInterchange.xmi")
+
+    )
     generateDir.set(layout.projectDirectory.dir("../../../_templates/api"))
     parameters = mapOf(
-        "TARGET_PACKAGE" to "net.akehurst.omg.uml.v2_5_1"
+        "TARGET_PACKAGE" to "net.akehurst.omg.dd.v1_1"
     )
     referencedTypeMapping = mapOf(
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#String" to "String",
@@ -28,5 +32,6 @@ tasks.named<generator.GenerateTask>("generate") {
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Boolean" to "Boolean",
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Real" to "Double",
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#UnlimitedNatural" to "Long",
+        "http://www.omg.org/spec/UML/20131001/UML.xmi#Element" to "Any"
     )
 }

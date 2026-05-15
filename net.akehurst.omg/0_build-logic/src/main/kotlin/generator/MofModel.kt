@@ -7,11 +7,8 @@ import net.akehurst.language.collections.transitiveClosure
 // A top-level container for the parsed model
 class MofModel(
     val name: String,
-    val packages: MutableMap<String, MofPackage> = mutableMapOf(),
-    val enums: MutableMap<String, MofEnum> = mutableMapOf(),
-    val classes: MutableMap<String, MofClass> = mutableMapOf(),
-    val associations: MutableMap<String, MofAssociation> = mutableMapOf(),
-    val idToElementMap: MutableMap<String, Any> = mutableMapOf(), // Generic map for resolving IDs
+    val instanceRootNames: List<String>,
+    val refHandler: XmiReferenceHandler,
     val primitiveTypes: Map<String, String> = mapOf(
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#String" to "String",
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Integer" to "Long",
@@ -26,12 +23,38 @@ class MofModel(
         "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#UnlimitedNatural" to "Long" // Or custom type
     )
 ) {
-    val packageList get() = packages.values.toList()
-    val allClasses get() = packages.values.flatMap { it.classes }.toSet()
+    fun UnknownType(xmiId:String) = ExternalReferenceClass(this, "UNKOWN","Any /*TODO: <Unknown type for xmiId = $xmiId>*/")
 
-    fun findTypeById(id: String): MofType? = idToElementMap[id] as? MofType
-    fun findPackageById(id: String): MofPackage? = idToElementMap[id] as? MofPackage
-    fun getElementById(id: String): Any? = idToElementMap[id]
+    val packageList = mutableListOf<MofPackage>()
+    val enumList = mutableListOf<MofEnum>()
+    val interfaceList = mutableListOf<MofInterface>()
+    val classList = mutableListOf<MofClass>()
+    val associationList = mutableListOf<MofAssociation>()
+    val allClasses get() = packageList.flatMap { it.classes }.toSet()
+
+    val externalTypes by lazy {
+        primitiveTypes.map { (k, v) ->
+            ExternalReferenceClass(this, k, v).also {
+                refHandler.setRef("EXTERNAL", k, it)
+            }
+        }
+    }
+
+    val instanceRootList: List<MofClass> by lazy {
+        instanceRootNames.map { n -> allClasses.first { n == it.name } }
+    }
+
+    fun findTypeById(id: String): MofType? = when {
+        id.startsWith("http://www.omg.org") -> {
+            val ref = id.substringAfter("#")
+            refHandler.getRef(null, ref) as? MofType
+        }
+
+        else -> refHandler.getRef(null, id) as? MofType
+    }
+
+    fun findPackageById(id: String): MofPackage? = refHandler.getRef(null, id) as? MofPackage
+    fun getElementById(id: String): Any? = refHandler.getRef(null, id)
 
     fun getFullPackagePath(pkg: MofPackage?): String {
         if (pkg == null) return ""
@@ -58,14 +81,16 @@ data class MofPackage(
     val model: MofModel,
     val name: String,
     val xmiId: String,
-    val enums: MutableList<MofEnum> = mutableListOf(),
-    val classes: MutableList<MofClass> = mutableListOf(),
-    val subPackages: MutableList<MofPackage> = mutableListOf(),
-    val associations: MutableList<MofAssociation> = mutableListOf(),
-    val packageImport: MutableList<String> = mutableListOf(),
     var parentPackage: MofPackage? = null // For establishing hierarchy
 ) {
     var comment: String? = null
+
+    val enums: MutableList<MofEnum> = mutableListOf()
+    val interfaces: MutableList<MofInterface> = mutableListOf()
+    val classes: MutableList<MofClass> = mutableListOf()
+    val subPackages: MutableList<MofPackage> = mutableListOf()
+    val associations: MutableList<MofAssociation> = mutableListOf()
+    val packageImport: MutableList<String> = mutableListOf()
 
     val qualifiedName: String = parentPackage?.let { it.qualifiedName + "." + name } ?: name
     val allImport: List<String>
@@ -111,7 +136,21 @@ class MofEnum(
     override fun toString(): String = "${parentPackage?.qualifiedName}.$name"
 }
 
-class MofClass(
+class MofInterface(
+    override val model: MofModel,
+    override val name: String,
+    override val xmiId: String,
+) : MofType {
+    override var parentPackage: MofPackage? = null
+    val generalizations: MutableList<String> = mutableListOf() // Stores xmi:idref of general classes
+    val ownedAttribute: MutableList<MofProperty> = mutableListOf()
+    val operations: MutableList<MofOperation> = mutableListOf()
+    var comment: String? = null
+
+    val superClasses: List<MofClass> get() = generalizations.map { model.findTypeById(it) as MofClass }
+}
+
+open class MofClass(
     override val model: MofModel,
     override val name: String,
     override val xmiId: String,
@@ -205,6 +244,16 @@ class MofClass(
                 normalized.groupBy { it.parentClass!! }
             }
 
+    val compositeAttribute: List<MofProperty>
+        get() {
+            return allNormalisedAttribute.values.flatten().filter { it.isComposite  }
+        }
+
+    val concreteSubclasses: List<MofClass> by lazy {
+        (if (isAbstract) mutableListOf() else mutableListOf(this)) +
+        model.classList.filter { !it.isAbstract  && it.allSuperClasses.contains(this) }
+    }
+
     override fun hashCode(): Int = xmiId.hashCode()
     override fun equals(other: Any?): Boolean = when {
         other !is MofClass -> false
@@ -213,6 +262,21 @@ class MofClass(
     }
 
     override fun toString(): String = "${parentPackage?.qualifiedName}.$name"
+}
+
+class ExternalReferenceClass(
+    model: MofModel,
+    href: String,
+    name: String
+) : MofClass(model, name, href) {
+    override fun hashCode(): Int = xmiId.hashCode()
+    override fun equals(other: Any?): Boolean = when {
+        other !is ExternalReferenceClass -> false
+        xmiId != other.xmiId -> false
+        else -> true
+    }
+
+    override fun toString(): String = "ExternalRef($xmiId)"
 }
 
 class MofProperty(
@@ -224,17 +288,12 @@ class MofProperty(
     @Transient
     var parentClass: MofClass? = null
 
-    val typeName: String by lazy {
-        typeXmiId?.let { model.findTypeById(it)?.name }
-            ?: typeHref?.let { model.primitiveTypes[it] }
-            ?: "<Unknown type for xmiId = $xmiId>"
-    }
-
     var comment: String? = null
     var typeXmiId: String? = null // For internal references like _MOF-Reflection-Element
     var typeHref: String? = null // For external references like PrimitiveTypes.xmi#String
     var lowerBound: Int = 0
     var upperBound: Int = 1 // -1 for unbounded (*)
+    var isComposite: Boolean = false
     var isDerived: Boolean = false
     var isReadOnly: Boolean = false
     var isOrdered: Boolean = false
@@ -247,15 +306,30 @@ class MofProperty(
 
     val qualifiedName: String = parentClass?.let { it.qualifiedName + "." + name } ?: name
 
+    val type: MofType by lazy {
+        typeXmiId?.let { model.findTypeById(it) }
+            ?: typeHref?.let { model.findTypeById(it) }
+            ?: model.UnknownType(xmiId)
+    }
+
+    val typeName get() = type.name
+//    val typeName: String by lazy {
+//        typeXmiId?.let { model.findTypeById(it)?.name ?: model.primitiveTypes[it] }
+//            ?: typeHref?.let { model.findTypeById(it)?.name ?: model.primitiveTypes[it] }
+//            ?: "Any /*TODO: <Unknown type for xmiId = $xmiId>*/"
+//    }
+
+
     val isOverride
         get() = parentClass?.allSuperClasses?.any { sc ->
             sc.allAttributes.any { it.normName == this.normName }
         } ?: false
 
     val isRedefining get() = redefinedPropertyRef.isNotEmpty()
-    val redefinedProperty get() = redefinedPropertyRef.map {
-        model.idToElementMap[it]!! as MofProperty
-    }
+    val redefinedProperty
+        get() = redefinedPropertyRef.map {
+            model.refHandler.getRef(null, it)!! as MofProperty
+        }
 
     val allRedefinedProperty: Set<MofProperty>
         get() {
@@ -288,7 +362,7 @@ class MofProperty(
         }
 
     val isSubsetting get() = subsettedPropertyRef.isNotEmpty()
-    val subsettedProperty get() = subsettedPropertyRef.map { model.idToElementMap[it]!! as MofProperty }
+    val subsettedProperty get() = subsettedPropertyRef.map { model.refHandler.getRef(null, it)!! as MofProperty }
 
     override fun hashCode(): Int = xmiId.hashCode()
     override fun equals(other: Any?): Boolean = when {

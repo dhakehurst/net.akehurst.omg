@@ -24,7 +24,7 @@ fun valid(str:String): String = {
                    'super','this','throw','true','try','typealias','typeof','val',
                    'var','when','while'
               )
-  problematicKotlinTypes := Set('Annotation')
+  problematicKotlinTypes := Set('Annotation', 'Function')
   when {
     keywords.contains(str) -> (str+'_')
     problematicKotlinTypes.contains(str) -> (str+'_')
@@ -52,6 +52,36 @@ format PropertyImpl {
           }
         }
         resTypeImpl
+    }
+}
+
+format PropertyBridge {
+    Pair<MofProperty,MofProperty> -> "
+      // Bridging ${first.name}
+      $second
+    "
+    MofProperty -> {
+        val_var := when {
+          (1 == upperBound) and (1==lowerBound) -> 'lateinit var'
+          else -> 'var'
+        }
+        resType := when {
+          (1 == upperBound) -> when {
+            (0 == lowerBound) -> valid(typeName)+'?'
+            else -> valid(typeName)
+          }
+          else -> when {
+            (false == isUnique) and (false == isOrdered) -> "Collection<${valid(typeName)}>"
+            (true == isUnique) and (false == isOrdered) -> "Set<${valid(typeName)}>"
+            (false == isUnique) and (true == isOrdered) -> "List<${valid(typeName)}>"
+            (true == isUnique) and (true == isOrdered) -> "OrderedSet<${valid(typeName)}>"
+            else -> 'ERROR'
+          }
+        }
+        impl := "${$self via PropertyImpl}"
+        "
+          override $val_var ${valid(normName)}: $resType $impl
+        "
     }
 }
 
@@ -83,8 +113,8 @@ format Property {
         impl := "${$self via PropertyImpl}"
         brdg := when {
            isRedefining -> $EOL + {
-             redefined := allRedefinedProperty.filter({it -> it.normName != normName})
-             "$[redefined sep $EOL]"
+             redefined := allRedefinedProperty.filter({it -> it.normName != normName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
+             "$[redefined sep $EOL via PropertyBridge]"
            }
            else -> ''
         }

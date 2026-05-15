@@ -16,31 +16,67 @@
 
 package net.akehurst.omg.uml.gui.compose
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
-object ClassDiagram :StructureDiagram {
-
-    @Composable
-    fun ActivityView() {}
-
-    @Composable
-    fun ActivityFinalNodeView() {}
+object ClassDiagram : StructureDiagram {
 
     @Composable
-    fun ActivityParameterNode() {}
+    fun AssociationView() {
+    }
 
     @Composable
-    fun ActivityPartitionView() {}
+    fun ClassifierView(titleBoxText:String, compartments:List<List<String>>,stroke:Color, fill: Color) = Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(fill)
+            .border(1.5.dp, stroke)
+    ) {
+        Text(
+            text = titleBoxText,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(top = 4.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = stroke
+        )
+        compartments.forEach { comp ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(fill)
+                    .border(1.5.dp, stroke)
+            ) {
+                comp.forEach { item ->
+                    Text(
+                        text = item,
+                        modifier = Modifier
+                            .align(Alignment.Start)
+                            .padding(top = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = stroke
+                    )
+                }
+            }
+        }
+    }
+
 
     @Composable
-    fun CentralBufferNodeView() {}
+    fun DependencyView() {
+    }
 
     @Composable
-    fun ControlFlowView() {}
-
-    @Composable
-    fun DataStoreNodeView() {}
-
-    @Composable
-    fun CompositionView() {}
+    fun GeneralizationView() {
+    }
 }

@@ -1,16 +1,57 @@
 package generator
 
+import net.akehurst.kotlinx.collections.LazyMapNotNull
+import net.akehurst.kotlinx.collections.lazyMapNotNull
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.text.ifEmpty
 
-class MofXmiParser {
+class XmiReferenceHandler {
 
-    private lateinit var model: MofModel
+    val refsByFile: LazyMapNotNull<String, MutableMap<String, Any>> = lazyMapNotNull { file ->
+        mutableMapOf()
+    }
+
+    fun hasRef(currentFileName: String?, ref: String) =
+        currentFileName?.let { refsByFile[currentFileName].containsKey(ref) }
+            ?: refsByFile.values.any { it.containsKey(ref) }
+
+    fun getRef(currentFileName: String?, ref: String) =
+        currentFileName?.let { refsByFile[currentFileName][ref] }
+            ?: refsByFile.values.firstNotNullOfOrNull { it[ref] }
+
+    fun setRef(currentFileName: String, ref: String, value: Any) {
+        refsByFile[currentFileName][ref] = value
+    }
+}
+
+class MofXmiParser(
+    modelName: String,
+    instanceRoots:List<String>,
+    referencedTypeMapping: Map<String, String>
+) {
+
+    companion object {
+        fun Element.getXmiId() = this.getAttribute("xmi:id")
+        fun Element.getAttributeOrNull(name: String) = this.getAttributeNode(name)?.value
+    }
+
+
+    val refHandler = XmiReferenceHandler()
+
+    val model: MofModel = MofModel(modelName, instanceRoots, refHandler, referencedTypeMapping)
+
+    lateinit var currentFileName: String
+    fun hasRef(ref: String) = refHandler.hasRef(currentFileName, ref)
+    fun getRef(ref: String) = refHandler.getRef(currentFileName, ref)
+    fun setRef(ref: String, value: Any) {
+        refHandler.setRef(currentFileName, ref, value)
+    }
 
     fun parse(file: File): MofModel {
+        currentFileName = file.name
         val dbFactory = DocumentBuilderFactory.newInstance()
         val dBuilder = dbFactory.newDocumentBuilder()
         val doc = dBuilder.parse(file)
@@ -21,20 +62,17 @@ class MofXmiParser {
             throw IllegalArgumentException("Root element is not xmi:XMI")
         }
 
-        val modelName = getChildrenByTagName(rootXmiElement,"mofext:Tag").firstOrNull()?.let { it.getAttribute("element") } ?: "Model"
-        this.model = MofModel(modelName)
-
         // First pass: Discover all top-level packagedElements (Packages, Classes, Associations)
         // and register them with their IDs.
         val rootPackagedElementNodes = rootXmiElement.childNodes
         for (i in 0 until rootPackagedElementNodes.length) {
             val node = rootPackagedElementNodes.item(i)
-            if (node is Element && (node.tagName == "packagedElement" || node.tagName == "uml:Package")) {
+            if (node is Element && (node.tagName == "packagedElement" || node.tagName == "uml:Package"|| node.tagName == "uml:Model")) {
                 // This should be the root "MOF" package
                 val rootMofPackage = preParsePackage(node)
                 if (rootMofPackage != null) {
-                    model.packages[rootMofPackage.xmiId] = rootMofPackage
-                    model.idToElementMap[rootMofPackage.xmiId] = rootMofPackage
+                    setRef(rootMofPackage.xmiId, rootMofPackage)
+                    model.packageList.add(rootMofPackage)
                     // Recursively pre-parse to discover all elements and their IDs
                     discoverElements(node, rootMofPackage)
                 }
@@ -42,15 +80,15 @@ class MofXmiParser {
         }
 
         // Second pass: Populate details (attributes, operations, generalizations, linking, etc.)
-        model.packages.values.forEach { pkg ->
+        model.packageList.forEach { pkg ->
             val packageElement = findDomElementById(doc, pkg.xmiId) // Helper to find the original DOM element
             packageElement?.let { populatePackageDetails(it, pkg) }
         }
-        model.classes.values.forEach { cls ->
+        model.classList.forEach { cls ->
             val classElement = findDomElementById(doc, cls.xmiId)
             classElement?.let { populateClassDetails(it, cls) }
         }
-        model.associations.values.forEach { assoc ->
+        model.associationList.forEach { assoc ->
             val assocElement = findDomElementById(doc, assoc.xmiId)
             assocElement?.let { populateAssociationDetails(it, assoc) }
         }
@@ -79,7 +117,7 @@ class MofXmiParser {
                 val xmiId = node.getAttribute("xmi:id")
                 if (xmiId.isEmpty()) continue // Skip elements without an ID if they are not meant to be referenced
 
-                when(node.tagName) {
+                when (node.tagName) {
                     "packagedElement" -> packagedElement(node, currentMofPackage)
                     "packageImport" -> packageImport(node, currentMofPackage)
                 }
@@ -94,61 +132,86 @@ class MofXmiParser {
         val name = node.getAttribute("name")
         when (xmiType) {
             "uml:Package" -> {
-                if (!model.idToElementMap.containsKey(xmiId)) {
-                    val subPackage = MofPackage(model,name, xmiId, parentPackage = currentMofPackage)
-                    model.packages[xmiId] = subPackage
-                    model.idToElementMap[xmiId] = subPackage
+                if (!hasRef(xmiId)) {
+                    val subPackage = MofPackage(model, name, xmiId, parentPackage = currentMofPackage)
+                    model.packageList.add(subPackage)
+                    setRef(xmiId, subPackage)
                     currentMofPackage.subPackages.add(subPackage)
                     discoverElements(node, subPackage) // Recurse
                 }
             }
-            "uml:Class" -> {
-                if (!model.idToElementMap.containsKey(xmiId)) {
-                    val mofClass = MofClass(model,name, xmiId, parentPackage = currentMofPackage)
+
+            "uml:Class", "uml:DataType" -> {
+                if (!hasRef(xmiId)) {
+                    val mofClass = MofClass(model, name, xmiId, parentPackage = currentMofPackage)
                     mofClass.isAbstract = node.getAttribute("isAbstract") == "true"
                     mofClass.comment = getChildrenByTagName(node, "ownedComment").joinToString("\n") {
                         val annotated = getChildrenByTagName(it, "annotatedElement").firstOrNull()?.let {
                             it.getAttribute("xmi:idref")
                         }
-                        if (xmiId==annotated) {
+                        if (xmiId == annotated) {
                             it.getAttribute("body")
                         } else {
                             ""
                         }
                     }
-                    model.classes[xmiId] = mofClass
-                    model.idToElementMap[xmiId] = mofClass
+                    model.classList.add(mofClass)
+                    setRef(xmiId, mofClass)
                     currentMofPackage.classes.add(mofClass)
                     discoverElements(node, currentMofPackage) // Classes can contain nested elements in some UML profiles, but usually not for MOF structure
                 }
             }
+
+            "uml:Interface" -> {
+                if (!hasRef(xmiId)) {
+                    val mof = MofInterface(model, name, xmiId).apply {  parentPackage = currentMofPackage }
+                    mof.comment = getChildrenByTagName(node, "ownedComment").joinToString("\n") {
+                        val annotated = getChildrenByTagName(it, "annotatedElement").firstOrNull()?.let {
+                            it.getAttribute("xmi:idref")
+                        }
+                        if (xmiId == annotated) {
+                            it.getAttribute("body")
+                        } else {
+                            ""
+                        }
+                    }
+                    model.interfaceList.add(mof)
+                    setRef(xmiId, mof)
+                    currentMofPackage.interfaces.add(mof)
+                    discoverElements(node, currentMofPackage) // Classes can contain nested elements in some UML profiles, but usually not for MOF structure
+                }
+            }
+
             "uml:Association" -> {
-                if (!model.idToElementMap.containsKey(xmiId)) {
-                    val mofAssociation = MofAssociation(model,name.ifEmpty { null }, xmiId, emptyList())
+                if (!hasRef(xmiId)) {
+                    val mofAssociation = MofAssociation(model, name.ifEmpty { null }, xmiId, emptyList())
                     mofAssociation.parentPackage = currentMofPackage
-                    model.associations[xmiId] = mofAssociation
-                    model.idToElementMap[xmiId] = mofAssociation
+                    model.associationList.add(mofAssociation)
+                    setRef(xmiId, mofAssociation)
                     currentMofPackage.associations.add(mofAssociation)
                     // Associations have memberEnds and ownedEnds, discover them if needed for ID mapping
                 }
             }
+
             "uml:PrimitiveType" -> {
-                if (!model.idToElementMap.containsKey(xmiId)) {
-                    val mofClass = MofClass(model,name, xmiId, parentPackage = currentMofPackage)
+                if (!hasRef(xmiId)) {
+                    val mofClass = MofClass(model, name, xmiId, parentPackage = currentMofPackage)
                     mofClass.isAbstract = false
-                    model.classes[xmiId] = mofClass
-                    model.idToElementMap[xmiId] = mofClass
+                    model.classList.add(mofClass)
+                    setRef(xmiId, mofClass)
                     currentMofPackage.classes.add(mofClass)
                 }
             }
+
             "uml:Enumeration" -> {
-                if (!model.idToElementMap.containsKey(xmiId)) {
-                    val mofEnum = MofEnum(model,name, xmiId, parentPackage = currentMofPackage)
-                    model.enums[xmiId] = mofEnum
-                    model.idToElementMap[xmiId] = mofEnum
+                if (!hasRef(xmiId)) {
+                    val mofEnum = MofEnum(model, name, xmiId, parentPackage = currentMofPackage)
+                    model.enumList.add(mofEnum)
+                    setRef(xmiId, mofEnum)
                     currentMofPackage.enums.add(mofEnum)
                 }
             }
+
             else -> println("Unknown element type '$xmiType' of packagedElement")
         }
     }
@@ -161,6 +224,7 @@ class MofXmiParser {
                 val importedPackageName = node.getAttribute("importedPackage")
                 currentMofPackage.packageImport.add(importedPackageName)
             }
+
             else -> println("Unknown element type '$xmiType' of packageImport")
         }
 
@@ -170,7 +234,7 @@ class MofXmiParser {
         val xmiId = packageElement.getAttribute("xmi:id")
         val name = packageElement.getAttribute("name")
         if (xmiId.isNotEmpty() && name.isNotEmpty()) {
-            return MofPackage(model,name, xmiId)
+            return MofPackage(model, name, xmiId)
         }
         return null
     }
@@ -209,10 +273,12 @@ class MofXmiParser {
                         }
                     }
                 }
+
                 "ownedAttribute" -> {
                     val prop = parseProperty(node, mofClass)
                     mofClass.ownedAttribute.add(prop)
                 }
+
                 "ownedOperation" -> {
                     val op = parseOperation(node, mofClass)
                     mofClass.operations.add(op)
@@ -231,6 +297,19 @@ class MofXmiParser {
             memberEnds.add(parseProperty(ownedEndElement, null, mofAssociation.xmiId))
         }
         // Process 'memberEnd' which are references to properties defined elsewhere (typically on classes)
+        associationElement.getAttributeOrNull("memberEnd")?.let {
+            it.split(" ").forEach { idRef ->
+                val referencedProperty = model.getElementById(idRef) as? MofProperty
+                if (referencedProperty != null && !memberEnds.any { it.xmiId == referencedProperty.xmiId }) {
+                    // Ensure it's correctly marked with its association
+                    referencedProperty.associationXmiId = referencedProperty.associationXmiId ?: mofAssociation.xmiId
+                    memberEnds.add(referencedProperty)
+                    // Update the original property in the class's attribute list if necessary
+                    // val ownerClass = referencedProperty.parentClass
+                    // ownerClass?.attributes?.replaceAll { if (it.xmiId == updatedRefProperty.xmiId) updatedRefProperty else it }
+                }
+            }
+        }
         getChildrenByTagName(associationElement, "memberEnd").forEach { memberEndRefElement ->
             val idRef = memberEndRefElement.getAttribute("xmi:idref")
             // Find the MofProperty by idRef. It should already be parsed as an ownedAttribute of a class.
@@ -240,8 +319,8 @@ class MofXmiParser {
                 referencedProperty.associationXmiId = referencedProperty.associationXmiId ?: mofAssociation.xmiId
                 memberEnds.add(referencedProperty)
                 // Update the original property in the class's attribute list if necessary
-               // val ownerClass = referencedProperty.parentClass
-               // ownerClass?.attributes?.replaceAll { if (it.xmiId == updatedRefProperty.xmiId) updatedRefProperty else it }
+                // val ownerClass = referencedProperty.parentClass
+                // ownerClass?.attributes?.replaceAll { if (it.xmiId == updatedRefProperty.xmiId) updatedRefProperty else it }
             }
         }
         mofAssociation.memberEnds = memberEnds.distinctBy { it.xmiId }
@@ -252,12 +331,13 @@ class MofXmiParser {
             val otherEnd = memberEnds.firstOrNull { it.xmiId != end.xmiId }
             end.opposite = otherEnd
             when {
-                null==otherEnd -> error("Error, there must be an 'other' end for an association")
-                null==end.parentClass -> {
-                    end.parentClass = model.classes[otherEnd.typeXmiId]
-                }
+                null == otherEnd -> error("Error, there must be an 'other' end for an association. end=$end, memberEnds = $memberEnds")
+                null == end.parentClass -> otherEnd.typeXmiId?.let { end.parentClass = getRef(it) as? MofClass }
+                    ?: otherEnd.typeHref?.let{ ExternalReferenceClass(model,it, it.substringAfter("#")) }
+
                 else -> {
-                    check(end.parentClass == model.classes[otherEnd.typeXmiId]) { "parentClass is wrong" }
+                    val otherClass = getRef(otherEnd.typeXmiId!!) as MofClass
+                    check(end.parentClass == otherClass) { "parentClass is wrong" }
                 }
             }
         }
@@ -270,7 +350,7 @@ class MofXmiParser {
             val annotated = getChildrenByTagName(it, "annotatedElement").firstOrNull()?.let {
                 it.getAttribute("xmi:idref")
             }
-            if (xmiId==annotated) {
+            if (xmiId == annotated) {
                 it.getAttribute("body")
             } else {
                 ""
@@ -307,11 +387,11 @@ class MofXmiParser {
 
         var isUnique = true //default
         propertyElement.getAttribute("isUnique").let {
-            if(it.isNotEmpty()) isUnique = it.toBoolean()
+            if (it.isNotEmpty()) isUnique = it.toBoolean()
         }
         var isOrdered = false //default
         propertyElement.getAttribute("isOrdered").let {
-            if(it.isNotEmpty()) isOrdered = it.toBoolean()
+            if (it.isNotEmpty()) isOrdered = it.toBoolean()
         }
         val redefinedRef = getChildrenByTagName(propertyElement, "redefinedProperty").firstOrNull()?.let {
             it.getAttribute("xmi:idref")
@@ -329,17 +409,18 @@ class MofXmiParser {
             self.comment = comment
             self.lowerBound = lower
             self.upperBound = upper
+            self.isComposite = propertyElement.getAttributeOrNull("aggregation")?.let { it == "composite" } ?: false
             self.isDerived = propertyElement.getAttribute("isDerived") == "true"
             self.isReadOnly = propertyElement.getAttribute("isReadOnly") == "true" || propertyElement.getAttribute("isLeaf") == "true" // isLeaf implies read-only in some contexts
             self.isUnique = isUnique
-            self. isOrdered = isOrdered
+            self.isOrdered = isOrdered
             self.aggregation = aggregationKind
             self.associationXmiId = assocXmiId ?: propertyElement.getAttribute("association").ifEmpty { null }
-            redefinedRef?.let{(self.redefinedPropertyRef as MutableSet).add(it)}
-            subsettedRef?.let {(self.subsettedPropertyRef as MutableSet).add(it)}
+            redefinedRef?.let { (self.redefinedPropertyRef as MutableSet).add(it) }
+            subsettedRef?.let { (self.subsettedPropertyRef as MutableSet).add(it) }
         }
         prop.parentClass = ownerClass
-        model.idToElementMap[xmiId] = prop // Ensure property is also in the global map
+        setRef(xmiId, prop) // Ensure property is also in the global map
         return prop
     }
 
@@ -361,8 +442,8 @@ class MofXmiParser {
                 paramTypeHref = typeElem.getAttribute("href").ifEmpty { null }
             }
 
-            val mofParam = MofParameter(model,paramName, paramXmiId, paramTypeXmiId, paramTypeHref, direction)
-            model.idToElementMap[paramXmiId] = mofParam // Register param
+            val mofParam = MofParameter(model, paramName, paramXmiId, paramTypeXmiId, paramTypeHref, direction)
+            setRef(paramXmiId, mofParam) // Register param
 
             if (direction == "return") {
                 returnParam = mofParam
@@ -381,7 +462,7 @@ class MofXmiParser {
             returnParameter = returnParam
         )
         op.parentClass = ownerClass
-        model.idToElementMap[xmiId] = op // Register op
+        setRef(xmiId, op) // Register op
         return op
     }
 

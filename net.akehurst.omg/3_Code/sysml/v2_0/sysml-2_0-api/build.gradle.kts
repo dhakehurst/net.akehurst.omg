@@ -15,9 +15,17 @@ kotlin {
 }
 
 tasks.named<generator.GenerateTask>("generate") {
-    sourceXmi.set(layout.projectDirectory.file("../specs/SysML_2-0_ptc-25-02-15.xmi"))
+    modelName = "SysML"
+    sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/SysML_2-0_ptc-25-02-15.xmi"))
     generateDir.set(layout.projectDirectory.dir("../../../_templates/api"))
     parameters = mapOf(
         "TARGET_PACKAGE" to "net.akehurst.omg.sysml.v2_0"
+    )
+    referencedTypeMapping = mapOf(
+        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" to "String",
+        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Integer" to "Long",
+        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Boolean" to "Boolean",
+        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Real" to "Double",
+        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#UnlimitedNatural" to "Long"
     )
 }

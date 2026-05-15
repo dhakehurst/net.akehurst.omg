@@ -8,28 +8,13 @@ object SimpleMof {
         namespace("net.akehurst.omg.mof.gen.simple") {
             data("MofModel", implementation = MofModel::class) {
                 constructor_ {
-                    parameter(setOf(CMP, VAL), "packages", "Map", propertyExecution = MofModel::packages) {
-                        typeArgument("String")
-                        typeArgument("MofPackage")
-                    }
-                    parameter(setOf(REF, VAL), "classes", "Map", propertyExecution = MofModel::classes) {
-                        typeArgument("String")
-                        typeArgument("MofClass")
-                    }
-                    parameter(setOf(REF, VAL), "associations", "Map", propertyExecution = MofModel::associations) {
-                        typeArgument("String")
-                        typeArgument("MofAssociation")
-                    }
-                    parameter(setOf(REF, VAL), "idToElementMap", "Map", propertyExecution = MofModel::idToElementMap) {
-                        typeArgument("String")
-                        typeArgument("Any")
-                    }
-                    parameter(setOf(CMP, VAL), "primitiveTypes", "Map", propertyExecution = MofModel::primitiveTypes) {
-                        typeArgument("String")
-                        typeArgument("String")
-                    }
+                    parameter(setOf(REF, VAL), "name", "String", propertyExecution = MofModel::name)
                 }
-                propertyOf(setOf(DER), "packageList", "List", execution = MofModel::packageList) { typeArgument("MofPackage") }
+                propertyOf(setOf(CMP,VAL), "packageList", "List", execution = MofModel::packageList) { typeArgument("MofPackage") }
+                propertyOf(setOf(CMP,VAL), "classeList", "List", execution = MofModel::classList) { typeArgument("MofEnum") }
+                propertyOf(setOf(CMP,VAL), "enumList", "List", execution = MofModel::enumList) { typeArgument("MofClass") }
+                propertyOf(setOf(CMP,VAL), "associationList", "List", execution = MofModel::associationList) { typeArgument("MofAssociation") }
+                propertyOf(setOf(DER), "allClasses", "List", execution = MofModel::allClasses) { typeArgument("MofClass") }
                 methodPrimitive("findTypeById", "MofType", true) {
                     execution { self, args ->
                         (args[0] as? String)?.let {
@@ -63,6 +48,9 @@ object SimpleMof {
             interface_("MofType", implementation = MofType::class)
             data("MofEnum", implementation = MofEnum::class) {
                 supertype("MofType")
+            }
+            data("MofInterface", implementation = MofInterface::class) {
+
             }
             data("MofClass", implementation = MofClass::class) {
                 supertype("MofType")
@@ -105,6 +93,7 @@ object SimpleMof {
                     parameter(setOf(CMP, VAL), "associationXmiId", "String", true, propertyExecution = MofProperty::associationXmiId)
                 }
                 propertyOf(setOf(DER), "isOverride", "Boolean", execution = MofProperty::isOverride)
+                propertyOf(setOf(DER),"allRedefinedProperty","Set", execution = MofProperty::allRedefinedProperty) {typeArgument("MofProperty")}
             }
             data("MofOperation", implementation = MofOperation::class) {
                 constructor_ {

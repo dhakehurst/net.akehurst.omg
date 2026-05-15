@@ -1,0 +1,209 @@
+/**
+ * Copyright (C) 2026 Dr. David H. Akehurst (http://dr.david.h.akehurst.net)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace net.akehurst.omg.mof.gen.template
+
+import net.akehurst.omg.mof.gen.simple
+
+fun valid(str:String): String = {
+  keywords := Set( 'as','break','class','continue','do','else','false','for','fun',
+                   'if','in','interface','is','null','object','package','return',
+                   'super','this','throw','true','try','typealias','typeof','val',
+                   'var','when','while'
+              )
+  problematicKotlinTypes := Set('Annotation', 'Function')
+  when {
+    keywords.contains(str) -> (str+'_')
+    problematicKotlinTypes.contains(str) -> (str+'_')
+    else -> str
+  }
+}
+
+format RootBuilderFunction {
+   MofClass -> {
+     "
+       fun ${model.name}_${name}(factory:${model.name}Factory, id:Any, init:${name}_Builder.()->Unit): ${valid(name)} {
+          val b = ${name}_Builder(factory, id)
+          b.init()
+          return b.build()
+       }
+     "
+   }
+}
+
+format BuilderClassAssignment {
+   MofProperty -> when {
+       (upperBound == 1) -> "_${valid(name)}?.let{ set_${valid(name)}(it) }"
+       else -> when {
+            (false == isUnique) and (false == isOrdered) -> "_${valid(name)}?.let{ set_${valid(name)}(it) }"
+            (true == isUnique) and (false == isOrdered) -> "_${valid(name)}?.let{ set_${valid(name)}(it.toSet()) }"
+            (false == isUnique) and (true == isOrdered) -> "_${valid(name)}?.let{ set_${valid(name)}(it.toList()) }"
+            (true == isUnique) and (true == isOrdered) -> "_${valid(name)}?.let{ set_${valid(name)}(it.toOrderedSet()) }"
+            else -> "ERROR"
+       }
+   }
+}
+
+format BuilderClass {
+   MofClass -> {
+     "
+        @${model.name}DslMarker
+        class ${valid(name)}_Builder(
+           val factory: ${model.name}Factory,
+           val id: Any
+        ) {
+
+            $[compositeAttribute sep $EOL]
+
+            fun build(): ${valid(name)} = factory.create${valid(name)}(id).apply {
+               $[compositeAttribute sep $EOL via BuilderClassAssignment]
+            }
+        }
+     "
+   }
+    MofProperty -> when {
+        (upperBound == 1) -> when {
+          type.isAbstract -> "
+            private var _${valid(name)}: ${valid(typeName)}? = null
+            fun ${valid(name)}(init:${valid(typeName)}_ContentBuilder.()->Unit): ${valid(typeName)} {
+                val b = ${valid(typeName)}_ContentBuilder(factory, id)
+                b.init()
+                val obj = b.build().first()
+                _${valid(name)} = obj
+                return obj
+            }
+          "
+          else -> "
+            private var _${valid(name)}: ${valid(typeName)}? = null
+            fun ${valid(name)}(id:String, init:${valid(typeName)}_Builder.()->Unit): ${valid(typeName)} {
+                val b = ${valid(typeName)}_Builder(factory, id)
+                b.init()
+                val obj = b.build()
+                _${valid(name)} = obj
+                return obj
+            }
+          "
+        }
+        else ->  "
+            private var _${valid(name)}: Collection<${valid(typeName)}>? = null
+            fun ${valid(name)}(init:${valid(typeName)}_ContentBuilder.()->Unit): Collection<${valid(typeName)}> {
+                val b = ${valid(typeName)}_ContentBuilder(factory, id)
+                b.init()
+                val obj = b.build()
+                _${valid(name)} = obj
+                return obj
+            }
+        "
+    }
+}
+
+format ContentBuilderFunction {
+   MofClass -> {
+     "
+        fun ${valid(name)}(id:Any, init:${valid(name)}_Builder.()->Unit): ${valid(name)} {
+            val b = ${valid(name)}_Builder(factory,id)
+            b.init()
+            val obj = b.build()
+            _content.add(obj)
+            return obj
+        }
+     "
+   }
+}
+
+format ContentBuilderClass {
+   MofClass -> {
+     "
+        @${model.name}DslMarker
+        class ${valid(name)}_ContentBuilder(
+           val factory: ${model.name}Factory,
+           val id: Any
+        ) {
+            private val _content = mutableListOf<${valid(name)}>()
+
+            $[concreteSubclasses sep $EOL via ContentBuilderFunction]
+
+            fun build():Collection<${valid(name)}> = _content
+        }
+     "
+   }
+}
+
+format ApiPackageBuilderFile {
+    #output: 'MofPackage -> "api/${qualifiedName}_Builder.kt"'
+
+    MofPackage -> "
+        /**
+         * Copyright (C) 2026 Dr. David H. Akehurst (http://dr.david.h.akehurst.net)
+         *
+         * Licensed under the Apache License, Version 2.0 (the \"License\");
+         * you may not use this file except in compliance with the License.
+         * You may obtain a copy of the License at
+         *
+         *         http://www.apache.org/licenses/LICENSE-2.0
+         *
+         * Unless required by applicable law or agreed to in writing, software
+         * distributed under the License is distributed on an \"AS IS\" BASIS,
+         * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+         * See the License for the specific language governing permissions and
+         * limitations under the License.
+         */
+
+        // *** Generated code do NOT manually edit. ***
+        package ${TARGET_PACKAGE}.api
+
+        import net.akehurst.kotlinx.collections.toOrderedSet
+
+        $[classes sep $EOL via ContentBuilderClass]
+
+        $[classes.filter({it -> false == it.isAbstract}) sep $EOL via BuilderClass]
+    "
+}
+
+format ApiModelBuilderFile {
+    #output: 'MofModel -> "api/${name}_Builder.kt"'
+
+    MofModel -> "
+        /**
+         * Copyright (C) 2026 Dr. David H. Akehurst (http://dr.david.h.akehurst.net)
+         *
+         * Licensed under the Apache License, Version 2.0 (the \"License\");
+         * you may not use this file except in compliance with the License.
+         * You may obtain a copy of the License at
+         *
+         *         http://www.apache.org/licenses/LICENSE-2.0
+         *
+         * Unless required by applicable law or agreed to in writing, software
+         * distributed under the License is distributed on an \"AS IS\" BASIS,
+         * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+         * See the License for the specific language governing permissions and
+         * limitations under the License.
+         */
+
+        // *** Generated code do NOT manually edit. ***
+        package ${TARGET_PACKAGE}.api
+
+        import net.akehurst.kotlinx.collections.toOrderedSet
+
+        @DslMarker
+        annotation class ${name}DslMarker
+
+        $[instanceRootList sep $EOL via RootBuilderFunction]
+        ${packageList.filter({it -> false == it.isEmpty}) via ApiPackageBuilderFile}
+    "
+
+
+}

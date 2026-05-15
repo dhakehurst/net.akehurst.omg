@@ -10,9 +10,6 @@ val generate = tasks.register<GenerateTask>("generate") {
     group = "generation"
     description = "Generates things from an OMG-MOF XMI file using AGL format."
 
-    // Set default paths (the target project can override these if needed)
-    sourceXmi.set(layout.projectDirectory.file("src/specs/omg.xmi"))
-
     // Generate into the build directory so we don't pollute version control
     generateDir.set(layout.projectDirectory.dir("src/generator/agl"))
 

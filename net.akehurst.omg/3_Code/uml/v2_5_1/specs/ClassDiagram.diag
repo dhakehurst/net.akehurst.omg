@@ -1,0 +1,13 @@
+ClassView = rectangle {
+    layout = vertical-flow
+    content = List
+}
+
+AssociationView = line {
+    layout = line
+    end1Symbol:Symbol
+    end2Symbol:Symbol
+    end1Content = Text
+    midContent = Text
+    end2Content = Text
+}

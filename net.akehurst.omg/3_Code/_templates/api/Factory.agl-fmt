@@ -24,7 +24,7 @@ fun valid(str:String): String = {
                    'super','this','throw','true','try','typealias','typeof','val',
                    'var','when','while'
               )
-  problematicKotlinTypes := Set('Annotation')
+  problematicKotlinTypes := Set('Annotation', 'Function')
   when {
     keywords.contains(str) -> (str+'_')
     problematicKotlinTypes.contains(str) -> (str+'_')
@@ -57,13 +57,16 @@ format ApiPackageFile {
 
         import net.akehurst.kotlinx.utils.UniqueIdentityGenerator
 
+        /**
+         * Factory covering packages $[packageList.map({it -> it.qualifiedName}) sep ', ']
+         */
         interface ${name}Factory {
           $[allClasses.filter({it -> false == it.isAbstract}) sep $EOL]
         }
     "
 
     MofClass -> "
-      fun create${valid(name)}(identity:Any = UniqueIdentityGenerator.generate(\"name\")): ${valid(name)}
+      fun create${valid(name)}(identity:Any = UniqueIdentityGenerator.generate(\"$name\")): ${valid(name)}
     "
 
 
