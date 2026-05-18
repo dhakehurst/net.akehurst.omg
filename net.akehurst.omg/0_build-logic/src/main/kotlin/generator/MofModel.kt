@@ -8,20 +8,7 @@ import net.akehurst.language.collections.transitiveClosure
 class MofModel(
     val name: String,
     val instanceRootNames: List<String>,
-    val refHandler: XmiReferenceHandler,
-    val primitiveTypes: Map<String, String> = mapOf(
-        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#String" to "String",
-        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Integer" to "Long",
-        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Boolean" to "Boolean",
-        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Real" to "Double",
-        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#UnlimitedNatural" to "Long", // Or custom type
-        // Add more as needed
-        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" to "String",
-        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Integer" to "Long",
-        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Boolean" to "Boolean",
-        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Real" to "Double",
-        "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#UnlimitedNatural" to "Long" // Or custom type
-    )
+    val refHandler: XmiReferenceHandler
 ) {
     fun UnknownType(xmiId:String) = ExternalReferenceClass(this, "UNKOWN","Any /*TODO: <Unknown type for xmiId = $xmiId>*/")
 
@@ -32,22 +19,14 @@ class MofModel(
     val associationList = mutableListOf<MofAssociation>()
     val allClasses get() = packageList.flatMap { it.classes }.toSet()
 
-    val externalTypes by lazy {
-        primitiveTypes.map { (k, v) ->
-            ExternalReferenceClass(this, k, v).also {
-                refHandler.setRef("EXTERNAL", k, it)
-            }
-        }
-    }
-
     val instanceRootList: List<MofClass> by lazy {
         instanceRootNames.map { n -> allClasses.first { n == it.name } }
     }
 
     fun findTypeById(id: String): MofType? = when {
         id.startsWith("http://www.omg.org") -> {
-            val ref = id.substringAfter("#")
-            refHandler.getRef(null, ref) as? MofType
+            //val ref = id.substringAfter("#")
+            refHandler.getRef(null, id) as? MofType
         }
 
         else -> refHandler.getRef(null, id) as? MofType
@@ -184,23 +163,84 @@ open class MofClass(
 
     val allAttributes get() = (allSuperClasses.flatMap { it.ownedAttribute } + ownedAttribute).toSet()
 
-    val redefiningProperty get() = ownedAttribute.filter { it.isRedefining }
+    val ownedRedefiningAttribute get() = ownedAttribute.filter { it.isRedefining }
+    val allRedefiningAttribute by lazy { (allSuperClasses.flatMap { it.ownedRedefiningAttribute } + ownedRedefiningAttribute).toSet() }
 
+    /**
+     * Returns all properties inherited from superclasses plus owned properties, with duplicate resolution.
+     * When the same property appears multiple times (e.g., from diamond inheritance), resolves conflicts using
+     * type covariance and multiplicity narrowing. Excludes properties that have been redefined.
+     * Results are grouped by their defining parent class.
+     */
     val allNormalisedAttribute: Map<MofClass, List<MofProperty>>
             by lazy {
-                // 1. Get properties explicitly owned by this class
-                val ownedProperties = ownedAttribute
                 // 2. Recursively get the normalized properties from all superclasses
                 val inheritedProperties = superClasses.flatMap { it.allNormalisedAttribute.values.flatten() }.toSet()
-                val allCandidateProperties = ownedProperties + inheritedProperties
-                // 4. THE FIX: Get ALL redefined targets from EVERY candidate property
+                val allCandidateProperties = ownedAttribute + inheritedProperties
+                // 4. Get ALL redefined targets from EVERY candidate property
                 val redefinedTargets = allCandidateProperties.flatMap { it.redefinedProperty }.toSet()
                 // 5. Filter out any property that was a target of redefinition
                 val survivingProperties = allCandidateProperties.filter { it !in redefinedTargets }.toSet()
 
                 val deduplicatedProperties = linkedMapOf<String, MofProperty>()
                 for (prop in survivingProperties) {
-                    val key = prop.normName
+                    val key = prop.genName
+                    val existing = deduplicatedProperties[key]
+                    if (existing == null) {
+                        deduplicatedProperties[key] = prop
+                    } else {
+                        // --- COLLISION RESOLUTION ---
+                        // 1. Identity: They are literally the exact same property inherited from a common ancestor.
+                        if (existing == prop) {
+                            continue
+                        }
+
+                        // 2. Type Narrowing (Covariance):
+                        // If they have different types, we MUST pick the subtype.
+                        // e.g., If existing is 'Element' and prop is 'Activity', we must keep 'Activity'.
+                        if (isSubtypeOf(prop.parentClass!!, existing.parentClass!!)) {
+                            deduplicatedProperties[key] = prop
+                        } else if (isSubtypeOf(existing.parentClass!!, prop.parentClass!!)) {
+                            // Keep the 'existing' one, it is already the narrower type
+                            continue
+                        }
+                        // 3. Multiplicity Narrowing:
+                        // If types are identical, but one restricts the multiplicity (e.g., [0..*] vs [0..1]),
+                        // pick the scalar [0..1] version, as a scalar can conceptually satisfy a collection
+                        // contract in your generated getters/setters.
+                        else if (prop.upperBound == 1 && existing.upperBound != 1) {
+                            deduplicatedProperties[key] = prop
+                        } else if (existing.upperBound == 1 && prop.upperBound != 1) {
+                            continue
+                        }
+                        // 4. Irresolvable Conflict (Fallback)
+                        // They have the same name, but completely incompatible types (e.g., String vs Int).
+                        // This means the source UML is fundamentally broken/ill-formed.
+                        else {
+                            throw IllegalStateException(
+                                "Irresolvable property collision in flat implementation. " +
+                                        "Property '${prop.name}' has conflicting types: '${existing.parentClass!!.name}' and '${prop.parentClass!!.name}'."
+                            )
+                        }
+                    }
+                }
+                val normalized = deduplicatedProperties.values
+                normalized.groupBy { it.parentClass!! }
+            }
+
+    val allNormalisedAttribute2: Map<MofClass, List<MofProperty>>
+            by lazy {
+                // 2. Recursively get the normalized properties from all superclasses
+                val inheritedProperties = superClasses.flatMap { it.allNormalisedAttribute.values.flatten() }.toSet()
+                val allCandidateProperties = ownedAttribute + inheritedProperties
+                // 4. Get ALL redefined targets from EVERY candidate property
+                val redefinedTargets = allCandidateProperties + allCandidateProperties.flatMap { it.redefinedProperty }.toSet()
+                // 5. Filter out any property that redefines something unless its type is redefined also
+                val survivingProperties = redefinedTargets.filter { it.isRedefining.not() || (it.isTypeRedefined && it.isComposite)  }.toSet()
+
+                val deduplicatedProperties = linkedMapOf<String, MofProperty>()
+                for (prop in survivingProperties) {
+                    val key = prop.genName
                     val existing = deduplicatedProperties[key]
                     if (existing == null) {
                         deduplicatedProperties[key] = prop
@@ -313,18 +353,22 @@ class MofProperty(
     }
 
     val typeName get() = type.name
-//    val typeName: String by lazy {
-//        typeXmiId?.let { model.findTypeById(it)?.name ?: model.primitiveTypes[it] }
-//            ?: typeHref?.let { model.findTypeById(it)?.name ?: model.primitiveTypes[it] }
-//            ?: "Any /*TODO: <Unknown type for xmiId = $xmiId>*/"
-//    }
 
-
+    val isReference get() = isComposite.not() && type !is MofEnum
     val isOverride
         get() = parentClass?.allSuperClasses?.any { sc ->
-            sc.allAttributes.any { it.normName == this.normName }
+            sc.allAttributes.any { it.genName == this.genName }
         } ?: false
 
+    val isNameRedefined get() = allRedefinedProperty.any { it.name != this.name }
+    val isTypeRedefined get() = allRedefinedProperty.any { it.type != this.type }
+
+    val isGenNameRedefined get() = allRedefinedProperty.any {it.genName != this.genName}
+
+    val isGenTypeRedefined get() = isTypeRedefined || isGenNameRedefined.not()
+
+
+    //val isRedefined by lazy { parentClass!!.allRedefiningAttribute.contains(this) }
     val isRedefining get() = redefinedPropertyRef.isNotEmpty()
     val redefinedProperty
         get() = redefinedPropertyRef.map {
@@ -342,14 +386,16 @@ class MofProperty(
                 val prop = queue[index++]
                 if (!visited.add(prop.xmiId)) continue
 
-                byNormName.putIfAbsent(prop.normName, prop)
+                byNormName.putIfAbsent(prop.genName, prop)
                 queue.addAll(prop.redefinedProperty)
             }
 
             return byNormName.values.toSet()
         }
 
-    val normName
+
+
+    val genName
         get() = when {
             (1 == upperBound) -> name
             else -> when {

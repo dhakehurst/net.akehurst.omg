@@ -48,10 +48,10 @@ format BuilderClassAssignment {
    MofProperty -> when {
        (upperBound == 1) -> "_${valid(name)}?.let{ set_${valid(name)}(it) }"
        else -> when {
-            (false == isUnique) and (false == isOrdered) -> "_${valid(name)}?.let{ set_${valid(name)}(it) }"
-            (true == isUnique) and (false == isOrdered) -> "_${valid(name)}?.let{ set_${valid(name)}(it.toSet()) }"
-            (false == isUnique) and (true == isOrdered) -> "_${valid(name)}?.let{ set_${valid(name)}(it.toList()) }"
-            (true == isUnique) and (true == isOrdered) -> "_${valid(name)}?.let{ set_${valid(name)}(it.toOrderedSet()) }"
+            (false == isUnique) and (false == isOrdered) -> "_${valid(name)}?.let{ set_${valid(genName)}(it) }"
+            (true == isUnique) and (false == isOrdered) -> "_${valid(name)}?.let{ set_${valid(genName)}(it.toSet()) }"
+            (false == isUnique) and (true == isOrdered) -> "_${valid(name)}?.let{ set_${valid(genName)}(it.toList()) }"
+            (true == isUnique) and (true == isOrdered) -> "_${valid(name)}?.let{ set_${valid(genName)}(it.toOrderedSet()) }"
             else -> "ERROR"
        }
    }

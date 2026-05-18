@@ -76,6 +76,14 @@ object SimpleMof {
                         typeArgument("MofProperty")
                     }
                 }
+                propertyOf(setOf(DER), "allNormalisedAttribute2", "Map", execution = MofClass::allNormalisedAttribute2) {
+                    typeArgument("MofClass")
+                    typeArgument("List") {
+                        typeArgument("MofProperty")
+                    }
+                }
+                propertyOf(setOf(DER), "compositeAttribute", "List", execution = MofClass::compositeAttribute) { typeArgument("MofProperty") }
+
             }
             data("MofProperty", implementation = MofProperty::class) {
                 constructor_ {

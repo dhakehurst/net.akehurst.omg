@@ -6,6 +6,8 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
+import kotlin.collections.component1
+import kotlin.collections.component2
 import kotlin.text.ifEmpty
 
 class XmiReferenceHandler {
@@ -29,7 +31,7 @@ class XmiReferenceHandler {
 
 class MofXmiParser(
     modelName: String,
-    instanceRoots:List<String>,
+    instanceRoots: List<String>,
     referencedTypeMapping: Map<String, String>
 ) {
 
@@ -38,10 +40,17 @@ class MofXmiParser(
         fun Element.getAttributeOrNull(name: String) = this.getAttributeNode(name)?.value
     }
 
-
     val refHandler = XmiReferenceHandler()
+    val model: MofModel = MofModel(modelName, instanceRoots, refHandler)
 
-    val model: MofModel = MofModel(modelName, instanceRoots, refHandler, referencedTypeMapping)
+    init {
+        referencedTypeMapping.forEach { (k, v) ->
+            ExternalReferenceClass(model, k, v).also {
+                refHandler.setRef("EXTERNAL", k, it)
+            }
+        }
+
+    }
 
     lateinit var currentFileName: String
     fun hasRef(ref: String) = refHandler.hasRef(currentFileName, ref)
@@ -67,7 +76,7 @@ class MofXmiParser(
         val rootPackagedElementNodes = rootXmiElement.childNodes
         for (i in 0 until rootPackagedElementNodes.length) {
             val node = rootPackagedElementNodes.item(i)
-            if (node is Element && (node.tagName == "packagedElement" || node.tagName == "uml:Package"|| node.tagName == "uml:Model")) {
+            if (node is Element && (node.tagName == "packagedElement" || node.tagName == "uml:Package" || node.tagName == "uml:Model")) {
                 // This should be the root "MOF" package
                 val rootMofPackage = preParsePackage(node)
                 if (rootMofPackage != null) {
@@ -164,7 +173,7 @@ class MofXmiParser(
 
             "uml:Interface" -> {
                 if (!hasRef(xmiId)) {
-                    val mof = MofInterface(model, name, xmiId).apply {  parentPackage = currentMofPackage }
+                    val mof = MofInterface(model, name, xmiId).apply { parentPackage = currentMofPackage }
                     mof.comment = getChildrenByTagName(node, "ownedComment").joinToString("\n") {
                         val annotated = getChildrenByTagName(it, "annotatedElement").firstOrNull()?.let {
                             it.getAttribute("xmi:idref")
@@ -333,7 +342,7 @@ class MofXmiParser(
             when {
                 null == otherEnd -> error("Error, there must be an 'other' end for an association. end=$end, memberEnds = $memberEnds")
                 null == end.parentClass -> otherEnd.typeXmiId?.let { end.parentClass = getRef(it) as? MofClass }
-                    ?: otherEnd.typeHref?.let{ ExternalReferenceClass(model,it, it.substringAfter("#")) }
+                    ?: otherEnd.typeHref?.let { ExternalReferenceClass(model, it, it.substringAfter("#")) }
 
                 else -> {
                     val otherClass = getRef(otherEnd.typeXmiId!!) as MofClass

@@ -32,6 +32,37 @@ fun valid(str:String): String = {
   }
 }
 
+fun resultType(prop:MofProperty): String = with(prop) when {
+    (1 == upperBound) -> when {
+        (0 == lowerBound) -> (valid(typeName)+'?')
+        else -> valid(typeName)
+    }
+    else -> when {
+        (false == isUnique) and (false == isOrdered) -> "Collection<${valid(typeName)}>"
+        (true == isUnique) and (false == isOrdered) -> "Set<${valid(typeName)}>"
+        (false == isUnique) and (true == isOrdered) -> "List<${valid(typeName)}>"
+        (true == isUnique) and (true == isOrdered) -> "OrderedSet<${valid(typeName)}>"
+        else -> 'ERROR'
+    }
+}
+
+fun setterArgument(prop:MofProperty): String = with(prop) when {
+    isComposite -> "value: ${resultType($self)}"
+    else -> when {
+        (1 == upperBound) -> when {
+            (0 == lowerBound) -> "ref: Reference<Any, ${valid(typeName)}>?"
+            else -> "ref: Reference<Any, ${valid(typeName)}>"
+        }
+        else -> when {
+            (false == isUnique) and (false == isOrdered) -> "ref: Collection<Reference<Any, ${valid(typeName)}>>"
+            (true == isUnique) and (false == isOrdered) -> "ref: Set<Reference<Any, ${valid(typeName)}>>"
+            (false == isUnique) and (true == isOrdered) -> "ref: List<Reference<Any, ${valid(typeName)}>>"
+            (true == isUnique) and (true == isOrdered) -> "ref: OrderedSet<Reference<Any, ${valid(typeName)}>>"
+            else -> 'ERROR'
+        }
+    }
+}
+
 format PropertyBridgingImpl {
 
 }
@@ -55,7 +86,7 @@ format PropertyImpl {
     }
 }
 
-format PropertyBridge {
+format GetPropertyBridge {
     Pair<MofProperty,MofProperty> -> "
       // Bridging ${first.name}
       $second
@@ -65,27 +96,13 @@ format PropertyBridge {
           (1 == upperBound) and (1==lowerBound) -> 'lateinit var'
           else -> 'var'
         }
-        resType := when {
-          (1 == upperBound) -> when {
-            (0 == lowerBound) -> valid(typeName)+'?'
-            else -> valid(typeName)
-          }
-          else -> when {
-            (false == isUnique) and (false == isOrdered) -> "Collection<${valid(typeName)}>"
-            (true == isUnique) and (false == isOrdered) -> "Set<${valid(typeName)}>"
-            (false == isUnique) and (true == isOrdered) -> "List<${valid(typeName)}>"
-            (true == isUnique) and (true == isOrdered) -> "OrderedSet<${valid(typeName)}>"
-            else -> 'ERROR'
-          }
-        }
+        resType := resultType($self)
         impl := "${$self via PropertyImpl}"
-        "
-          override $val_var ${valid(normName)}: $resType $impl
-        "
+        "override $val_var ${valid(genName)}: $resType $impl "
     }
 }
 
-format Property {
+format GetProperty {
     Pair<MofClass, List<MofProperty>> -> {
         "
           // --- ${first.name} ---
@@ -97,30 +114,59 @@ format Property {
           (1 == upperBound) and (1==lowerBound) -> 'lateinit var'
           else -> 'var'
         }
-        resType := when {
-          (1 == upperBound) -> when {
-            (0 == lowerBound) -> valid(typeName)+'?'
-            else -> valid(typeName)
-          }
-          else -> when {
-            (false == isUnique) and (false == isOrdered) -> "Collection<${valid(typeName)}>"
-            (true == isUnique) and (false == isOrdered) -> "Set<${valid(typeName)}>"
-            (false == isUnique) and (true == isOrdered) -> "List<${valid(typeName)}>"
-            (true == isUnique) and (true == isOrdered) -> "OrderedSet<${valid(typeName)}>"
-            else -> 'ERROR'
-          }
-        }
+        resType := resultType($self)
         impl := "${$self via PropertyImpl}"
         brdg := when {
            isRedefining -> $EOL + {
-             redefined := allRedefinedProperty.filter({it -> it.normName != normName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
-             "$[redefined sep $EOL via PropertyBridge]"
+             redefined := allRedefinedProperty.filter({it -> it.genName != genName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
+             "$[redefined sep $EOL via GetPropertyBridge]"
            }
            else -> ''
         }
         "
-          override $val_var ${valid(normName)}: $resType $impl$brdg
+          override $val_var ${valid(genName)}: $resType $impl$brdg
         "
+    }
+}
+
+
+format SetPropertyBridge {
+    Pair<MofProperty,MofProperty> -> "
+      // Bridging ${first.name}
+      $second
+    "
+    MofProperty -> {
+        setterArg := setterArgument($self)
+        setterOvr := 'override '
+        setter :=  "
+             ${setterOvr}fun set_${valid(genName)}($setterArg){
+             }
+           "
+        "$setter"
+    }
+}
+
+format SetProperty {
+    Pair<MofClass, List<MofProperty>> -> {
+        "
+          // --- ${first.name} ---
+          $[second sep $EOL]${$EOL}
+        "
+    }
+    MofProperty -> {
+        setterArg := setterArgument($self)
+        setter := "
+             override fun set_${valid(genName)}($setterArg){
+             }
+           "
+        brdg := when {
+           isRedefining -> $EOL + {
+             redefined := allRedefinedProperty.filter({it -> it.genName != genName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
+             "$[redefined sep $EOL via SetPropertyBridge]"
+           }
+           else -> ''
+        }
+        "${setter}"
     }
 }
 
@@ -150,6 +196,7 @@ format ApiPackageFile {
 
         import net.akehurst.kotlinx.collections.OrderedSet
         import net.akehurst.kotlinx.collections.mutableOrderedSetOf
+        import net.akehurst.kotlinx.utils.Reference
         import ${TARGET_PACKAGE}.api.*
 
         $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
@@ -157,7 +204,8 @@ format ApiPackageFile {
     // no need for MofEnum
     MofClass -> "
         data class ${valid(name)}Ram(override val _identity:Any) : ${valid(name)} {
-         $[allNormalisedAttribute sep $EOL via Property]
+            $[allNormalisedAttribute sep $EOL via GetProperty]
+            $[allNormalisedAttribute2 sep $EOL via SetProperty]
         }
     "
 }

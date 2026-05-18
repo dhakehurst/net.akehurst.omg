@@ -32,6 +32,54 @@ fun valid(str:String): String = {
   }
 }
 
+fun resultType(prop:MofProperty): String = with(prop) when {
+    (1 == upperBound) -> when {
+        (0 == lowerBound) -> (valid(typeName)+'?')
+        else -> valid(typeName)
+    }
+    else -> when {
+        (false == isUnique) and (false == isOrdered) -> "Collection<${valid(typeName)}>"
+        (true == isUnique) and (false == isOrdered) -> "Set<${valid(typeName)}>"
+        (false == isUnique) and (true == isOrdered) -> "List<${valid(typeName)}>"
+        (true == isUnique) and (true == isOrdered) -> "OrderedSet<${valid(typeName)}>"
+        else -> 'ERROR'
+    }
+}
+
+fun setterArgument(prop:MofProperty): String = with(prop) when {
+    isComposite -> "value: ${resultType($self)}"
+    else -> when {
+        (1 == upperBound) -> when {
+            (0 == lowerBound) -> "ref: Reference<Any, ${valid(typeName)}>?"
+            else -> "ref: Reference<Any, ${valid(typeName)}>"
+        }
+        else -> when {
+            (false == isUnique) and (false == isOrdered) -> "ref: Collection<Reference<Any, ${valid(typeName)}>>"
+            (true == isUnique) and (false == isOrdered) -> "ref: Set<Reference<Any, ${valid(typeName)}>>"
+            (false == isUnique) and (true == isOrdered) -> "ref: List<Reference<Any, ${valid(typeName)}>>"
+            (true == isUnique) and (true == isOrdered) -> "ref: OrderedSet<Reference<Any, ${valid(typeName)}>>"
+            else -> 'ERROR'
+        }
+    }
+}
+
+format ExtensionFunctionSetter {
+    MofProperty -> {
+        resType := resultType($self)
+        setterArg := setterArgument($self)
+        setterOvr := when {
+          isOverride and false== isTypeRedefined -> 'override '
+          else -> ''
+        }
+        jvmName := ("@kotlin.jvm.JvmName(\"set_${valid(genName)}_${valid(typeName)}\")"+$EOL)
+        "
+          ${jvmName}${setterOvr}fun ${valid(parentClass.name)}.set_${valid(genName)}($setterArg) {
+          // TODO
+          }
+       "
+    }
+}
+
 format ApiPackageFile {
     #output: 'MofPackage -> "api/${qualifiedName}.kt"'
 
@@ -57,6 +105,7 @@ format ApiPackageFile {
         package ${TARGET_PACKAGE}.api
 
         import net.akehurst.kotlinx.collections.OrderedSet
+        import net.akehurst.kotlinx.utils.Reference
 
         $[enums sep $EOL]
         $[interfaces sep $EOL]
@@ -106,23 +155,12 @@ format ApiPackageFile {
              $id
              $[ownedAttribute sep $EOL]
           }
+          $[ownedAttribute.filter({it -> it.isTypeRedefined and it.isOverride}) sep $EOL via ExtensionFunctionSetter]
         "
     }
     // Always use 'val' for properties so that subclasses can override with a subtype
     MofProperty -> {
-        resType := when {
-          (1 == upperBound) -> when {
-            (0 == lowerBound) -> (valid(typeName)+'?')
-            else -> valid(typeName)
-          }
-          else -> when {
-            (false == isUnique) and (false == isOrdered) -> "Collection<${valid(typeName)}>"
-            (true == isUnique) and (false == isOrdered) -> "Set<${valid(typeName)}>"
-            (false == isUnique) and (true == isOrdered) -> "List<${valid(typeName)}>"
-            (true == isUnique) and (true == isOrdered) -> "OrderedSet<${valid(typeName)}>"
-            else -> 'ERROR'
-          }
-        }
+        resType := resultType($self)
         cons := when {
             (false == isUnique) and (false == isOrdered) -> ''
             (true == isUnique) and (false == isOrdered) -> 'unique'
@@ -146,6 +184,15 @@ format ApiPackageFile {
           $nothing == opposite -> ''
           else -> ' opposite '+ opposite.parentClass.name+'.' + opposite.name
         }
+        setterArg := setterArgument($self)
+        setterOvr := when {
+          isOverride and (false==isTypeRedefined) -> 'override '
+          else -> ''
+        }
+        setter := when {
+           isTypeRedefined and (false==isGenNameRedefined) -> "// property '${valid(genName)}' is redefining something with a different type, use extension function"
+           else -> "${setterOvr}fun set_${valid(genName)}($setterArg)"
+        }
         "
           /**
              $comment
@@ -153,7 +200,8 @@ format ApiPackageFile {
              $name: $typeName [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}]{$cons$redef$subs}
              $opp
            */
-          ${ovr}val ${valid(normName)}: $resType
+          ${ovr}val ${valid(genName)}: $resType
+          ${setter}
         "
     }
 }

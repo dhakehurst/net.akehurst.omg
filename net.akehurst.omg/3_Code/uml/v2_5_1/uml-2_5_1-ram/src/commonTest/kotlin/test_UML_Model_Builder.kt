@@ -17,6 +17,7 @@
 package net.akehurst.omg.uml.v2_5_1
 
 import net.akehurst.omg.uml.v2_5_1.api.Package
+import net.akehurst.omg.uml.v2_5_1.api.UMLAsString
 import net.akehurst.omg.uml.v2_5_1.api.UMLFactory
 import net.akehurst.omg.uml.v2_5_1.api.UML_Model
 import net.akehurst.omg.uml.v2_5_1.ram.UMLFactoryRam
@@ -39,6 +40,8 @@ class test_UML_Model_Builder {
             }
         }
 
+        val actual = UMLAsString.asStringModel(model)
+        println(actual)
     }
 
 }
