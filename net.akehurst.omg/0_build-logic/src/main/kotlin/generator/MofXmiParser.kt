@@ -1,33 +1,27 @@
+/**
+ * Copyright (C) 2026 Dr. David H. Akehurst (http://dr.david.h.akehurst.net)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package generator
 
-import net.akehurst.kotlinx.collections.LazyMapNotNull
-import net.akehurst.kotlinx.collections.lazyMapNotNull
+import net.akehurst.omg._simple_mof_for_xmi.*
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.text.ifEmpty
 
-class XmiReferenceHandler {
-
-    val refsByFile: LazyMapNotNull<String, MutableMap<String, Any>> = lazyMapNotNull { file ->
-        mutableMapOf()
-    }
-
-    fun hasRef(currentFileName: String?, ref: String) =
-        currentFileName?.let { refsByFile[currentFileName].containsKey(ref) }
-            ?: refsByFile.values.any { it.containsKey(ref) }
-
-    fun getRef(currentFileName: String?, ref: String) =
-        currentFileName?.let { refsByFile[currentFileName][ref] }
-            ?: refsByFile.values.firstNotNullOfOrNull { it[ref] }
-
-    fun setRef(currentFileName: String, ref: String, value: Any) {
-        refsByFile[currentFileName][ref] = value
-    }
-}
 
 class MofXmiParser(
     modelName: String,
@@ -80,8 +74,7 @@ class MofXmiParser(
                 // This should be the root "MOF" package
                 val rootMofPackage = preParsePackage(node)
                 if (rootMofPackage != null) {
-                    setRef(rootMofPackage.xmiId, rootMofPackage)
-                    model.packageList.add(rootMofPackage)
+                    model.addPackage(currentFileName, null, rootMofPackage)
                     // Recursively pre-parse to discover all elements and their IDs
                     discoverElements(node, rootMofPackage)
                 }
@@ -125,12 +118,10 @@ class MofXmiParser(
             if (node is Element) {
                 val xmiId = node.getAttribute("xmi:id")
                 if (xmiId.isEmpty()) continue // Skip elements without an ID if they are not meant to be referenced
-
                 when (node.tagName) {
                     "packagedElement" -> packagedElement(node, currentMofPackage)
                     "packageImport" -> packageImport(node, currentMofPackage)
                 }
-
             }
         }
     }
@@ -143,9 +134,7 @@ class MofXmiParser(
             "uml:Package" -> {
                 if (!hasRef(xmiId)) {
                     val subPackage = MofPackage(model, name, xmiId, parentPackage = currentMofPackage)
-                    model.packageList.add(subPackage)
-                    setRef(xmiId, subPackage)
-                    currentMofPackage.subPackages.add(subPackage)
+                    model.addPackage(currentFileName, currentMofPackage, subPackage)
                     discoverElements(node, subPackage) // Recurse
                 }
             }
@@ -164,9 +153,7 @@ class MofXmiParser(
                             ""
                         }
                     }
-                    model.classList.add(mofClass)
-                    setRef(xmiId, mofClass)
-                    currentMofPackage.classes.add(mofClass)
+                    currentMofPackage.addClass(currentFileName, mofClass)
                     discoverElements(node, currentMofPackage) // Classes can contain nested elements in some UML profiles, but usually not for MOF structure
                 }
             }
@@ -184,9 +171,7 @@ class MofXmiParser(
                             ""
                         }
                     }
-                    model.interfaceList.add(mof)
-                    setRef(xmiId, mof)
-                    currentMofPackage.interfaces.add(mof)
+                    currentMofPackage.addInterface(currentFileName, mof)
                     discoverElements(node, currentMofPackage) // Classes can contain nested elements in some UML profiles, but usually not for MOF structure
                 }
             }
@@ -284,8 +269,8 @@ class MofXmiParser(
                 }
 
                 "ownedAttribute" -> {
-                    val prop = parseProperty(node, mofClass)
-                    mofClass.ownedAttribute.add(prop)
+                    val attr = parseProperty(node, mofClass)
+                    mofClass.addAttribute(currentFileName, attr)
                 }
 
                 "ownedOperation" -> {
@@ -303,7 +288,9 @@ class MofXmiParser(
             // The parent class for an ownedEnd of an association is conceptually the type of the *other* end.
             // This is complex to resolve directly here. For now, parentClass on MofProperty for association ends might be null
             // or determined in a later linking step.
-            memberEnds.add(parseProperty(ownedEndElement, null, mofAssociation.xmiId))
+            val attr = parseProperty(ownedEndElement, null, mofAssociation.xmiId)
+            setRef(attr.xmiId, attr) // Ensure property is also in the global map
+            memberEnds.add(attr)
         }
         // Process 'memberEnd' which are references to properties defined elsewhere (typically on classes)
         associationElement.getAttributeOrNull("memberEnd")?.let {
@@ -340,7 +327,9 @@ class MofXmiParser(
             val otherEnd = memberEnds.firstOrNull { it.xmiId != end.xmiId }
             end.opposite = otherEnd
             when {
-                null == otherEnd -> error("Error, there must be an 'other' end for an association. end=$end, memberEnds = $memberEnds")
+                null == otherEnd -> {
+                    error("Error, there must be an 'other' end for an association. end=$end, memberEnds = $memberEnds")
+                }
                 null == end.parentClass -> otherEnd.typeXmiId?.let { end.parentClass = getRef(it) as? MofClass }
                     ?: otherEnd.typeHref?.let { ExternalReferenceClass(model, it, it.substringAfter("#")) }
 
@@ -389,8 +378,8 @@ class MofXmiParser(
         }
 
         val aggregationKind = when (propertyElement.getAttribute("aggregation")) {
-            "composite" -> MofAggregationKind.COMPOSITE
-            "shared" -> MofAggregationKind.SHARED
+            "composite" -> MofAggregationKind.composite
+            "shared" -> MofAggregationKind.reference
             else -> MofAggregationKind.NONE
         }
 
@@ -418,7 +407,6 @@ class MofXmiParser(
             self.comment = comment
             self.lowerBound = lower
             self.upperBound = upper
-            self.isComposite = propertyElement.getAttributeOrNull("aggregation")?.let { it == "composite" } ?: false
             self.isDerived = propertyElement.getAttribute("isDerived") == "true"
             self.isReadOnly = propertyElement.getAttribute("isReadOnly") == "true" || propertyElement.getAttribute("isLeaf") == "true" // isLeaf implies read-only in some contexts
             self.isUnique = isUnique
@@ -428,8 +416,6 @@ class MofXmiParser(
             redefinedRef?.let { (self.redefinedPropertyRef as MutableSet).add(it) }
             subsettedRef?.let { (self.subsettedPropertyRef as MutableSet).add(it) }
         }
-        prop.parentClass = ownerClass
-        setRef(xmiId, prop) // Ensure property is also in the global map
         return prop
     }
 

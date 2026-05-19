@@ -1,3 +1,19 @@
+/**
+ * Copyright (C) 2026 Dr. David H. Akehurst (http://dr.david.h.akehurst.net)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package generator
 
 import org.gradle.api.DefaultTask
@@ -6,6 +22,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.tasks.*
 import java.io.File
+import net.akehurst.omg._simple_mof_for_xmi.*
 
 @CacheableTask
 abstract class GenerateTask : DefaultTask() {
@@ -79,8 +96,8 @@ abstract class GenerateTask : DefaultTask() {
             logger.error("e: AglFormat file not found at $aglFormatFile")
             throw GradleException("Generate failed")
         }
-
         try {
+            logger.lifecycle("Generating from template file '$aglFormatFile'.")
             val templateText = aglFormatFile.readText()
             logger.lifecycle("Generating to directory: ${outputDir.absolutePath}...")
             val generator = GeneratorFromTemplate(logger, templateText, SimpleMof.types)

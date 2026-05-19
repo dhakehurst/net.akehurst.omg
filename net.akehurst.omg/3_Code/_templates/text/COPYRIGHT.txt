@@ -13,29 +13,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-plugins {
-    `kotlin-dsl`
-}
-
-repositories {
-    mavenLocal {
-        content {
-            includeGroupByRegex("net\\.akehurst.+")
-        }
-    }
-    mavenCentral()
-    gradlePluginPortal()
-}
-
-project.layout.buildDirectory = File(rootProject.projectDir, ".gradle-build/${project.name}")
-
-dependencies {
-    implementation(libs.nal.agl.processor)
-}
-
-sourceSets {
-    main {
-        java.srcDir("../3_Code/_simple-mof-for-xmi/src/jvmMain/kotlin")
-    }
-}

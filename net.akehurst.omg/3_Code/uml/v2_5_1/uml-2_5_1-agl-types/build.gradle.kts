@@ -22,7 +22,8 @@ tasks.named<generator.GenerateTask>("generate") {
     sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/UML_2-5-1_ASM_ptc-18-01-01.xmi"))
     generateDir.set(layout.projectDirectory.dir("../../../_templates/agl-types"))
     parameters = mapOf(
-        "TARGET_PACKAGE" to "net.akehurst.omg.uml.v2_5_1"
+        "TARGET_PACKAGE" to "net.akehurst.omg.uml.v2_5_1",
+        "COPYRIGHT" to file(layout.projectDirectory.dir("../../../_templates/text/COPYRIGHT.txt")).readText()
     )
     referencedTypeMapping = mapOf(
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#String" to "String",
