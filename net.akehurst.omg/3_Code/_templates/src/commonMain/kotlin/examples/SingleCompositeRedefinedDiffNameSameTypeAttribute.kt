@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package net.akehurst.omg.templates.examples
-
-
 
 interface SingleCompositeRedefinedDiffNameSameTypeAttribute : SingleCompositeAttribute {
     /**
-     * prop1: PropType [1] {redefines SingleCompositeAttribute.prop1}
+     * prop1: PropType [1] { redefines SingleCompositeAttribute.prop1 }
      */
     val redefinesProp1: PropType
     fun set_redefinesProp1(value: PropType)
 
     /**
-     * prop2: PropType [0..1]
+     * prop2: PropType [0..1] { redefines SingleCompositeAttribute.prop2 }
      */
     val redefinesProp2: PropType?
     fun set_redefinesProp2(value: PropType?)
 }
 
-data class SingleCompositeRedefinedDiffNameSameTypeAttributeRam(val identifier_: Any): SingleCompositeRedefinedDiffNameSameTypeAttribute {
+data class SingleCompositeRedefinedDiffNameSameTypeAttributeRam(override val identifier_: Any): SingleCompositeRedefinedDiffNameSameTypeAttribute {
 
     // --- SingleCompositeAttribute ---
     override val prop1: PropType get() = redefinesProp1
@@ -41,7 +40,7 @@ data class SingleCompositeRedefinedDiffNameSameTypeAttributeRam(val identifier_:
     override fun set_prop2(value: PropType?) = this.set_redefinesProp2(value)
 
     // --- SingleCompositeRedefinedDiffNameSameTypeAttribute ---
-    override lateinit var redefinesProp1: PropType
+    override var redefinesProp1: PropType = PropTypeRam()
     override fun set_redefinesProp1(value: PropType) {
         this.redefinesProp1 = value
     }

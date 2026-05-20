@@ -61,12 +61,21 @@ object SimpleMof {
                 propertyOf(setOf(DER), "qualifiedName", "String")
                 propertyOf(setOf(DER), "allImport", "List") { typeArgument("String") }
             }
-            interface_("MofType", implementation = MofType::class)
+            interface_("MofType", implementation = MofType::class) {
+                propertyOf(setOf(VAL), "isAbstract", "Boolean", execution = MofType::isAbstract)
+                propertyOf(setOf(VAL), "isPrimitive", "Boolean", execution = MofType::isPrimitive)
+                propertyOf(setOf(VAL), "ownedAttribute", "List", execution = MofType::ownedAttribute){ typeArgument("MofProperty")}
+                propertyOf(setOf(VAL), "allAttributes", "Set", execution = MofType::allAttributes){ typeArgument("MofProperty")}
+                propertyOf(setOf(VAL), "ownedRedefiningAttribute", "List", execution = MofType::ownedRedefiningAttribute){ typeArgument("MofProperty")}
+                propertyOf(setOf(VAL), "superTypes", "Set", execution = MofType::superTypes){ typeArgument("MofType")}
+                propertyOf(setOf(VAL), "allSuperTypes", "Set", execution = MofType::allSuperTypes){ typeArgument("MofType")}
+                propertyOf(setOf(VAL), "concreteSubclasses", "Set", execution = MofType::concreteSubclasses){ typeArgument("MofClass")}
+            }
             data("MofEnum", implementation = MofEnum::class) {
                 supertype("MofType")
             }
             data("MofInterface", implementation = MofInterface::class) {
-
+                supertype("MofType")
             }
             data("MofClass", implementation = MofClass::class) {
                 supertype("MofType")

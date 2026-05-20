@@ -13,35 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package net.akehurst.omg.templates.examples
 
-
-interface PropType {
+interface Element {
     val identifier_:Any
 }
 
-interface SingleCompositeAttribute {
-    /**
-     * prop1: PropType [1] {composite}
-     */
-    val prop1: PropType
-    fun set_prop1(value: PropType)
-
-    /**
-     * prop2: PropType [0..1] {composite}
-     */
-    val prop2: PropType?
-    fun set_prop2(value: PropType?)
+interface Examples {
+    val content: MutableList<Element>
 }
 
-data class SingleCompositeAttributeRam(val identifier_: Any): SingleCompositeAttribute {
-    override lateinit var prop1: PropType
-    override fun set_prop1(value: PropType) {
-        this.prop1 = value
-    }
-
-    override var prop2: PropType? = null
-    override fun set_prop2(value: PropType?) {
-        this.prop2 = value
-    }
+class ExamplesRam(val identifier_: Any) : Examples {
+    override val content: MutableList<Element> = mutableListOf()
 }
+

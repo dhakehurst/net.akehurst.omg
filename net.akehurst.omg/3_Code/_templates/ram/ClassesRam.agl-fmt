@@ -70,9 +70,9 @@ format PropertyBridgingImpl {
 format PropertyImpl {
     MofProperty -> {
         resTypeImpl := when {
-          (1 == upperBound) -> when {
-            (0 == lowerBound) -> '= null'
-            else -> '// [1] must be set before use'
+          isSingle -> when {
+            isOptional -> '= null'
+            else -> ''
           }
           else -> when {
             (false == isUnique) and (false == isOrdered) -> "= mutableCollectionOf()"

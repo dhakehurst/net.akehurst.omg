@@ -193,6 +193,22 @@ class MofEnum(
 
 abstract class MofAbstractType() : MofType{
 
+    var comment: String? = null
+
+    val qualifiedName: String = parentPackage?.let { it.qualifiedName + "." + name } ?: name
+    val generalizations: MutableList<String> = mutableListOf() // Stores xmi:idref of general classes
+    override val ownedAttribute: MutableList<MofProperty> = mutableListOf()
+    val operations: MutableList<MofOperation> = mutableListOf()
+
+    override val superTypes: Set<MofType> get() =
+        generalizations.map { model.findTypeById(it) as MofType }.toSet()
+    override val allSuperTypes: Set<MofType> by lazy { superTypes.transitiveClosure { it.superTypes }.toSet() }
+
+    override val allAttributes get() = (allSuperTypes.flatMap { it.ownedAttribute } + ownedAttribute).toSet()
+
+    override val ownedRedefiningAttribute get() = ownedAttribute.filter { it.isRedefining }
+    val allRedefiningAttribute by lazy { (allSuperTypes.flatMap { it.ownedRedefiningAttribute } + ownedRedefiningAttribute).toSet() }
+
     override val allNormalisedAttribute: Map<MofClass, List<MofProperty>>
             by lazy {
                 // 2. Recursively get the normalized properties from all superclasses
@@ -315,19 +331,9 @@ class MofInterface(
     override val isAbstract: Boolean = true
     override val isPrimitive: Boolean = model.isPrimitive(this)
 
-    var comment: String? = null
     override var parentPackage: MofPackage? = null
-    val generalizations: MutableList<String> = mutableListOf() // Stores xmi:idref of general classes
-    override val ownedAttribute: MutableList<MofProperty> = mutableListOf()
-    override val allAttributes get() = (allSuperTypes.flatMap { it.ownedAttribute } + ownedAttribute).toSet()
-    override val ownedRedefiningAttribute get() = ownedAttribute.filter { it.isRedefining }
 
-    val operations: MutableList<MofOperation> = mutableListOf()
-
-    override val superTypes: Set<MofType> get() = generalizations.map { model.findTypeById(it) as MofType }.toSet()
-    override val allSuperTypes: Set<MofType> by lazy { superTypes.transitiveClosure { it.superTypes }.toSet() }
     override val concreteSubclasses: Set<MofClass> by lazy { model.classList.filter { !it.isAbstract && it.allSuperTypes.contains(this) }.toSet() }
-
 
 }
 
@@ -350,20 +356,6 @@ open class MofClass(
             return potentialSubtype.superTypes.any { isSubtypeOf(it, superType) }
         }
     }
-
-    var comment: String? = null
-    val generalizations: MutableList<String> = mutableListOf() // Stores xmi:idref of general classes
-    override val ownedAttribute: MutableList<MofProperty> = mutableListOf()
-    val operations: MutableList<MofOperation> = mutableListOf()
-
-    val qualifiedName: String = parentPackage?.let { it.qualifiedName + "." + name } ?: name
-    override val superTypes: Set<MofType> get() = generalizations.map { model.findTypeById(it) as MofType }.toSet()
-    override val allSuperTypes: Set<MofType> by lazy { superTypes.transitiveClosure { it.superTypes }.toSet() }
-
-    override val allAttributes get() = (allSuperTypes.flatMap { it.ownedAttribute } + ownedAttribute).toSet()
-
-    override val ownedRedefiningAttribute get() = ownedAttribute.filter { it.isRedefining }
-    val allRedefiningAttribute by lazy { (allSuperTypes.flatMap { it.ownedRedefiningAttribute } + ownedRedefiningAttribute).toSet() }
 
     val allCompositeAttribute: List<MofProperty>
         get() {
@@ -448,8 +440,9 @@ class MofProperty(
 
     val typeName get() = type.name
 
-    val isSingle: Boolean get() = upperBound <= 1
-    val isCollection: Boolean get() = upperBound > 1
+    val isOptional: Boolean get() = 0==lowerBound && 1 == upperBound //possibly empty collections are not treated as optional, just maybe empty
+    val isSingle: Boolean get() = 1 == upperBound
+    val isCollection: Boolean get() = -1 ==upperBound || 1 < upperBound
     val isComposite get() = aggregation == MofAggregationKind.composite || type is MofEnum
     val isReference get() = isComposite.not() && type !is MofEnum
     val isOverride

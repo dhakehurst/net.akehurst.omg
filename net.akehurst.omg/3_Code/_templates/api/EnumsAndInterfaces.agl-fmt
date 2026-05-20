@@ -99,31 +99,31 @@ format ApiPackageFile {
       enum class ${valid(name)} { }
     "
     MofInterface -> {
-        superTypes := when {
-          superClasses.isEmpty -> ''
-          else -> " : $[superClasses.map({it -> valid(it.name)}) sep ',']"
+        supTypes := when {
+          superTypes.isEmpty -> ''
+          else -> " : $[superTypes.map({it -> valid(it.name)}) sep ',']"
         }
         id := when {
-          superClasses.isEmpty -> 'val _identity: Any'
+          superTypes.isEmpty -> 'val _identity: Any'
           else -> ''
         }
         "
           /**
             $comment
            */
-          interface ${valid(name)}$superTypes {
+          interface ${valid(name)}$supTypes {
              $id
              $[ownedAttribute sep $EOL]
           }
         "
     }
     MofClass -> {
-        superTypes := when {
-          superClasses.isEmpty -> ''
-          else -> " : $[superClasses.map({it -> valid(it.name)}) sep ',']"
+        supTypes := when {
+          superTypes.isEmpty -> ''
+          else -> " : $[superTypes.map({it -> valid(it.name)}) sep ',']"
         }
         id := when {
-          superClasses.isEmpty -> 'val _identity: Any'
+          superTypes.isEmpty -> 'val _identity: Any'
           else -> ''
         }
         abs := when {
@@ -135,7 +135,7 @@ format ApiPackageFile {
              $comment
            * ${abs}
            */
-          interface ${valid(name)}$superTypes {
+          interface ${valid(name)}$supTypes {
              $id
              $[ownedAttribute sep $EOL]
           }

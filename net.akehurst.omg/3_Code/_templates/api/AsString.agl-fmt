@@ -46,8 +46,20 @@ format AbstractAsStringFun {
 
 format AppendPropertyComposite {
   MofProperty -> when {
-    (it.type.isPrimitive or it.isSingle) -> "self.${valid(genName)}.let{ sb.append(\"\${indentInc}${valid(name)} \${this.asString${typeName}(it)}\") }"
-    it.isCollection -> "self.${valid(genName)}.forEach{ sb.append(\"\${indentInc}${valid(name)} \${this.asString${typeName}(it)}\") }"
+    type.isPrimitive -> "self.${valid(genName)}?.let{ sb.appendLine(\"\${indentInc}${valid(name)} \$it}\") }"
+    isSingle -> when {
+      isOptional -> "self.${valid(genName)}?.let{ sb.appendLine(\"\${indentInc}${valid(name)} \${this.asString${typeName}(it)}\") }"
+      else -> "self.${valid(genName)}.let{ sb.appendLine(\"\${indentInc}${valid(name)} \${this.asString${typeName}(it)}\") }"
+    }
+    isCollection -> "self.${valid(genName)}.forEach{ sb.appendLine(\"\${indentInc}${valid(name)} \${this.asString${typeName}(it)}\") }"
+    else -> "ERROR"
+  }
+}
+
+format AppendPropertyReference {
+  MofProperty -> when {
+    (type.isPrimitive or isSingle) -> "self.${valid(genName)}?.let{ sb.appendLine(\"\${indentInc}${valid(name)} \$it}\") }"
+    isCollection -> "self.${valid(genName)}.forEach{ sb.appendLine(\"\${indentInc}${valid(name)} \${this.asString${typeName}(it)}\") }"
     else -> "ERROR"
   }
 }
@@ -75,14 +87,11 @@ format ApiPackageFile {
     MofClass -> "
       fun asString${valid(name)}(self: ${valid(name)}, indent:Indent = Indent()): String {
         val sb = StringBuilder()
-        sb.append(self)
+        sb.appendLine(self)
         val indentInc = indent.inc
-        $[allReferenceAttribute sep $EOL]
+        $[allReferenceAttribute sep $EOL via AppendPropertyReference]
         $[allCompositeAttribute sep $EOL via AppendPropertyComposite]
         return sb.toString()
       }
     "
-
-    MofProperty -> "sb.append(\"\${indentInc}${valid(name)} \${self.${valid(genName)}}\")"
-
 }
