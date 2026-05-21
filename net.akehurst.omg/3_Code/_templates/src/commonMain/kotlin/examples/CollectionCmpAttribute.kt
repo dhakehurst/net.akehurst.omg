@@ -21,7 +21,6 @@ import net.akehurst.kotlinx.collections.ManagedOrderedSet
 import net.akehurst.kotlinx.collections.ManagedSet
 import net.akehurst.kotlinx.collections.MutableOrderedSet
 import net.akehurst.kotlinx.collections.OrderedSet
-import net.akehurst.kotlinx.collections.mutableOrderedSetOf
 
 
 interface CollectionCompositeAttribute : Element {

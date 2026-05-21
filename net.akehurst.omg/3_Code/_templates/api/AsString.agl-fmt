@@ -18,26 +18,13 @@ namespace net.akehurst.omg.mof.gen.template
 
 import net.akehurst.omg.mof.gen.simple
 
-fun valid(str:String): String = {
-  keywords := Set( 'as','break','class','continue','do','else','false','for','fun',
-                   'if','in','interface','is','null','object','package','return',
-                   'super','this','throw','true','try','typealias','typeof','val',
-                   'var','when','while'
-              )
-  problematicKotlinTypes := Set('Annotation', 'Function')
-  when {
-    keywords.contains(str) -> (str+'_')
-    problematicKotlinTypes.contains(str) -> (str+'_')
-    else -> str
-  }
-}
 format AbstractAsStringFunOption {
-  MofClass -> "is ${valid(name)} -> asString${valid(name)}(self,indent)"
+  MofClass -> "is ${validName} -> asString${validName}(self,indent)"
 }
 
 format AbstractAsStringFun {
   MofType -> "
-     fun asString${valid(name)}(self: ${valid(name)}, indent:Indent = Indent()): String = when(self) {
+     fun asString${validName}(self: ${validName}, indent:Indent = Indent()): String = when(self) {
         $[concreteSubclasses sep $EOL via AbstractAsStringFunOption]
         else -> error(\"Subtype '\${self::class.simpleName}' of ActivityEdge not handled.\")
      }
@@ -46,26 +33,26 @@ format AbstractAsStringFun {
 
 format AppendPropertyComposite {
   MofProperty -> when {
-    type.isPrimitive -> "self.${valid(genName)}?.let{ sb.appendLine(\"\${indentInc}${valid(name)} \$it}\") }"
+    type.isPrimitive -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it}\") }"
     isSingle -> when {
-      isOptional -> "self.${valid(genName)}?.let{ sb.appendLine(\"\${indentInc}${valid(name)} \${this.asString${typeName}(it)}\") }"
-      else -> "self.${valid(genName)}.let{ sb.appendLine(\"\${indentInc}${valid(name)} \${this.asString${typeName}(it)}\") }"
+      isOptional -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \${this.asString${type.validName}(it)}\") }"
+      else -> "self.${validName}.let{ sb.appendLine(\"\${indentInc}${validName} \${this.asString${type.validName}(it)}\") }"
     }
-    isCollection -> "self.${valid(genName)}.forEach{ sb.appendLine(\"\${indentInc}${valid(name)} \${this.asString${typeName}(it)}\") }"
+    isCollection -> "self.${validName}.forEach{ sb.appendLine(\"\${indentInc}${validName} \${this.asString${type.validName}(it)}\") }"
     else -> "ERROR"
   }
 }
 
 format AppendPropertyReference {
   MofProperty -> when {
-    (type.isPrimitive or isSingle) -> "self.${valid(genName)}?.let{ sb.appendLine(\"\${indentInc}${valid(name)} \$it}\") }"
-    isCollection -> "self.${valid(genName)}.forEach{ sb.appendLine(\"\${indentInc}${valid(name)} \${this.asString${typeName}(it)}\") }"
+    (type.isPrimitive or isSingle) -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it}\") }"
+    isCollection -> "self.${validName}.forEach{ sb.appendLine(\"\${indentInc}${validName} \${this.asString${type.validName}(it)}\") }"
     else -> "ERROR"
   }
 }
 
 format ApiPackageFile {
-    #output: 'MofModel -> "api/${name}AsString.kt"'
+    #output: 'MofModel -> "api/${name}_ModelAsString.kt"'
 
     MofModel -> "
         $COPYRIGHT
@@ -78,14 +65,14 @@ format ApiPackageFile {
         /**
          * Factory covering packages $[packageList.map({it -> it.qualifiedName}) sep ', ']
          */
-        object ${name}AsString {
+        object ${name}_ModelAsString {
           $[allClasses.filter({it -> it.isAbstract}) sep $EOL via AbstractAsStringFun]
           $[allClasses.filter({it -> false == it.isAbstract}) sep $EOL]
         }
     "
 
     MofClass -> "
-      fun asString${valid(name)}(self: ${valid(name)}, indent:Indent = Indent()): String {
+      fun asString${validName}(self: ${validName}, indent:Indent = Indent()): String {
         val sb = StringBuilder()
         sb.appendLine(self)
         val indentInc = indent.inc

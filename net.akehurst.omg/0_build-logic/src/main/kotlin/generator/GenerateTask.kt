@@ -106,7 +106,7 @@ abstract class GenerateTask : DefaultTask() {
         } catch (e: Exception) {
             logger.error("e: An error occurred while generating from template file '$aglFormatFile'.")
             e.printStackTrace()
-            throw GradleException("Generate failed")
+            throw GradleException("Generate failed", e)
         }
     }
 

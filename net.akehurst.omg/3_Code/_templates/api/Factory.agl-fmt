@@ -18,23 +18,37 @@ namespace net.akehurst.omg.mof.gen.template
 
 import net.akehurst.omg.mof.gen.simple
 
-fun valid(str:String): String = {
-  keywords := Set( 'as','break','class','continue','do','else','false','for','fun',
-                   'if','in','interface','is','null','object','package','return',
-                   'super','this','throw','true','try','typealias','typeof','val',
-                   'var','when','while'
-              )
-  problematicKotlinTypes := Set('Annotation', 'Function')
-  when {
-    keywords.contains(str) -> (str+'_')
-    problematicKotlinTypes.contains(str) -> (str+'_')
-    else -> str
-  }
+format SubPackage {
+    MofPackage -> "val $validName : ${name}_Factory"
 }
 
-format ApiPackageFile {
-    #output: 'MofModel -> "api/${name}Factory.kt"'
+format PackageFactoryFile {
+    #output: 'MofPackage -> "api/${qualifiedName}_Factory.kt"'
 
+    MofPackage -> "
+        $COPYRIGHT
+
+        // *** Generated code do NOT manually edit. ***
+        package ${TARGET_PACKAGE}.api
+
+        import net.akehurst.kotlinx.utils.UniqueIdentityGenerator
+
+        /**
+         * Factory for $qualifiedName
+         */
+        interface ${name}_Factory {
+            $[subPackages sep $EOL via SubPackage]
+            $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
+        }
+    "
+
+    MofClass -> "
+      fun create${validName}(identity:Any = UniqueIdentityGenerator.generate(\"$name\")): ${validName}
+    "
+}
+
+format ModelFactoryFile {
+    #output: 'MofModel -> "api/${name}_ModelFactory.kt"'
     MofModel -> "
         $COPYRIGHT
 
@@ -44,16 +58,11 @@ format ApiPackageFile {
         import net.akehurst.kotlinx.utils.UniqueIdentityGenerator
 
         /**
-         * Factory covering packages $[packageList.map({it -> it.qualifiedName}) sep ', ']
+         * Model Factory for name
          */
-        interface ${name}Factory {
-          $[allClasses.filter({it -> false == it.isAbstract}) sep $EOL]
+        interface ${name}_ModelFactory {
+          $[subPackages sep $EOL via SubPackage]
         }
+        ${packageList via PackageFactoryFile}
     "
-
-    MofClass -> "
-      fun create${valid(name)}(identity:Any = UniqueIdentityGenerator.generate(\"$name\")): ${valid(name)}
-    "
-
-
 }

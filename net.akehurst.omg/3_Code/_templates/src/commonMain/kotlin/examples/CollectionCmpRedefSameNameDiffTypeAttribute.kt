@@ -19,7 +19,6 @@ package net.akehurst.omg.templates.examples
 import net.akehurst.kotlinx.collections.ManagedList
 import net.akehurst.kotlinx.collections.ManagedOrderedSet
 import net.akehurst.kotlinx.collections.OrderedSet
-import net.akehurst.kotlinx.collections.mutableOrderedSetOf
 
 
 interface CollectionCompositeRedefinedSameNameDiffTypeAttribute : CollectionCompositeAttribute {

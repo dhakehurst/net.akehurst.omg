@@ -18,51 +18,6 @@ namespace net.akehurst.omg.mof.gen.template
 
 import net.akehurst.omg.mof.gen.simple
 
-fun valid(str:String): String = {
-  keywords := Set( 'as','break','class','continue','do','else','false','for','fun',
-                   'if','in','interface','is','null','object','package','return',
-                   'super','this','throw','true','try','typealias','typeof','val',
-                   'var','when','while'
-              )
-  problematicKotlinTypes := Set('Annotation', 'Function')
-  when {
-    keywords.contains(str) -> (str+'_')
-    problematicKotlinTypes.contains(str) -> (str+'_')
-    else -> str
-  }
-}
-
-fun resultType(prop:MofProperty): String = with(prop) when {
-    (1 == upperBound) -> when {
-        (0 == lowerBound) -> (valid(typeName)+'?')
-        else -> valid(typeName)
-    }
-    else -> when {
-        (false == isUnique) and (false == isOrdered) -> "Collection<${valid(typeName)}>"
-        (true == isUnique) and (false == isOrdered) -> "Set<${valid(typeName)}>"
-        (false == isUnique) and (true == isOrdered) -> "List<${valid(typeName)}>"
-        (true == isUnique) and (true == isOrdered) -> "OrderedSet<${valid(typeName)}>"
-        else -> 'ERROR'
-    }
-}
-
-fun setterArgument(prop:MofProperty): String = with(prop) when {
-    isComposite -> "value: ${resultType($self)}"
-    else -> when {
-        (1 == upperBound) -> when {
-            (0 == lowerBound) -> "ref: Reference<Any, ${valid(typeName)}>?"
-            else -> "ref: Reference<Any, ${valid(typeName)}>"
-        }
-        else -> when {
-            (false == isUnique) and (false == isOrdered) -> "ref: Collection<Reference<Any, ${valid(typeName)}>>"
-            (true == isUnique) and (false == isOrdered) -> "ref: Set<Reference<Any, ${valid(typeName)}>>"
-            (false == isUnique) and (true == isOrdered) -> "ref: List<Reference<Any, ${valid(typeName)}>>"
-            (true == isUnique) and (true == isOrdered) -> "ref: OrderedSet<Reference<Any, ${valid(typeName)}>>"
-            else -> 'ERROR'
-        }
-    }
-}
-
 format PropertyBridgingImpl {
 
 }
@@ -75,10 +30,10 @@ format PropertyImpl {
             else -> ''
           }
           else -> when {
-            (false == isUnique) and (false == isOrdered) -> "= mutableCollectionOf()"
-            (true == isUnique) and (false == isOrdered) -> "= mutableSetOf()"
-            (false == isUnique) and (true == isOrdered) -> "= mutableListOf()"
-            (true == isUnique) and (true == isOrdered) -> "= mutableOrderedSetOf()"
+            (false == isUnique) and (false == isOrdered) -> "= ManagedList(\"${parentClass.validName}.${validName}\",${type.validName}::class)"
+            (true == isUnique) and (false == isOrdered) -> "= ManagedSet(\"${parentClass.validName}.${validName}\",${type.validName}::class)"
+            (false == isUnique) and (true == isOrdered) -> "= ManagedList(\"${parentClass.validName}.${validName}\",${type.validName}::class)"
+            (true == isUnique) and (true == isOrdered) -> "= ManagedOrderedSet(\"${parentClass.validName}.${validName}\",${type.validName}::class)"
             else -> 'ERROR'
           }
         }
@@ -96,9 +51,8 @@ format GetPropertyBridge {
           (1 == upperBound) and (1==lowerBound) -> 'lateinit var'
           else -> 'var'
         }
-        resType := resultType($self)
         impl := "${$self via PropertyImpl}"
-        "override $val_var ${valid(genName)}: $resType $impl "
+        "override $val_var ${validName}: $validTypeName $impl "
     }
 }
 
@@ -106,26 +60,23 @@ format GetProperty {
     Pair<MofClass, List<MofProperty>> -> {
         "
           // --- ${first.name} ---
-          $[second sep $EOL]${$EOL}
+          $[second sep $EOL]
         "
     }
     MofProperty -> {
         val_var := when {
-          (1 == upperBound) and (1==lowerBound) -> 'lateinit var'
-          else -> 'var'
+          isSingle -> 'var'
+          else -> 'val'
         }
-        resType := resultType($self)
         impl := "${$self via PropertyImpl}"
         brdg := when {
-           isRedefining -> $EOL + {
-             redefined := allRedefinedProperty.filter({it -> it.genName != genName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
-             "$[redefined sep $EOL via GetPropertyBridge]"
+           isRedefining -> {
+             redefined := allRedefinedProperty.filter({it -> it.validName != validName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
+             $EOL+"$[redefined sep $EOL via GetPropertyBridge]"
            }
            else -> ''
         }
-        "
-          override $val_var ${valid(genName)}: $resType $impl$brdg
-        "
+        "override $val_var ${validName}: $validTypeName $impl$brdg"
     }
 }
 
@@ -136,32 +87,37 @@ format SetPropertyBridge {
       $second
     "
     MofProperty -> {
-        setterArg := setterArgument($self)
         setterOvr := 'override '
-        setter :=  "
-             ${setterOvr}fun set_${valid(genName)}($setterArg){
+        setter := when {
+         (isSingle and isComposite) -> "
+             ${setterOvr}fun ${validName}_set($setterArg){
              }
            "
+           else -> ''
+        }
         "$setter"
     }
 }
 
 format SetProperty {
-    Pair<MofClass, List<MofProperty>> -> {
-        "
+    Pair<MofClass, List<MofProperty>> -> when {
+        second.isEmpty -> "// --- ${first.name} ---"
+        else -> "
           // --- ${first.name} ---
-          $[second sep $EOL]${$EOL}
+          $[second sep $EOL]
         "
     }
     MofProperty -> {
-        setterArg := setterArgument($self)
-        setter := "
-             override fun set_${valid(genName)}($setterArg){
+        setter := when {
+          (isSingle and isComposite) -> "
+             override fun ${validName}_set(value: $validTypeName){
              }
            "
+           else -> ''
+        }
         brdg := when {
-           isRedefining -> $EOL + {
-             redefined := allRedefinedProperty.filter({it -> it.genName != genName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
+           isRedefining -> {
+             redefined := allRedefinedProperty.filter({it -> it.validName != validName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
              "$[redefined sep $EOL via SetPropertyBridge]"
            }
            else -> ''
@@ -181,7 +137,9 @@ format ApiPackageFile {
         package ${TARGET_PACKAGE}.ram
 
         import net.akehurst.kotlinx.collections.OrderedSet
-        import net.akehurst.kotlinx.collections.mutableOrderedSetOf
+        import net.akehurst.kotlinx.collections.ManagedList
+        import net.akehurst.kotlinx.collections.ManagedOrderedSet
+        import net.akehurst.kotlinx.collections.ManagedSet
         import net.akehurst.kotlinx.utils.Reference
         import ${TARGET_PACKAGE}.api.*
 
@@ -189,7 +147,7 @@ format ApiPackageFile {
     "
     // no need for MofEnum
     MofClass -> "
-        data class ${valid(name)}Ram(override val _identity:Any) : ${valid(name)} {
+        data class ${validName}Ram(override val _identity:Any) : ${validName} {
             $[allNormalisedAttribute sep $EOL via GetProperty]
             $[allNormalisedAttribute2 sep $EOL via SetProperty]
         }

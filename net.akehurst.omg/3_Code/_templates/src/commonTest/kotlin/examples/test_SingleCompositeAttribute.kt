@@ -42,10 +42,10 @@ class test_SingleCompositeAttribute {
 
         val propValue = ExamplesFactoryRam.createPropType()
 
-        obj.set_prop1(propValue)
+        obj.prop1_set(propValue)
         assertEquals(propValue, obj.prop1)
 
-        obj.set_prop2(propValue)
+        obj.prop2_set(propValue)
         assertEquals(propValue, obj.prop2)
     }
 

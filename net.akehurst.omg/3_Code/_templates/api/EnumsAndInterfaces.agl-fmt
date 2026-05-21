@@ -18,34 +18,6 @@ namespace net.akehurst.omg.mof.gen.template
 
 import net.akehurst.omg.mof.gen.simple
 
-fun valid(str:String): String = {
-  keywords := Set( 'as','break','class','continue','do','else','false','for','fun',
-                   'if','in','interface','is','null','object','package','return',
-                   'super','this','throw','true','try','typealias','typeof','val',
-                   'var','when','while'
-              )
-  problematicKotlinTypes := Set('Annotation', 'Function')
-  when {
-    keywords.contains(str) -> (str+'_')
-    problematicKotlinTypes.contains(str) -> (str+'_')
-    else -> str
-  }
-}
-
-fun resultType(prop:MofProperty): String = with(prop) when {
-    (1 == upperBound) -> when {
-        (0 == lowerBound) -> (valid(typeName)+'?')
-        else -> valid(typeName)
-    }
-    else -> when {
-        (false == isUnique) and (false == isOrdered) -> "Collection<${valid(typeName)}>"
-        (true == isUnique) and (false == isOrdered) -> "Set<${valid(typeName)}>"
-        (false == isUnique) and (true == isOrdered) -> "List<${valid(typeName)}>"
-        (true == isUnique) and (true == isOrdered) -> "OrderedSet<${valid(typeName)}>"
-        else -> 'ERROR'
-    }
-}
-
 fun refSetterArgument(prop:MofProperty): String = with(prop) when {
     (1 == upperBound) -> when {
         (0 == lowerBound) -> "ref: Any?"
@@ -68,9 +40,9 @@ format ExtensionFunctionSetter {
           isOverride and false== isTypeRedefined -> 'override '
           else -> ''
         }
-        jvmName := ("@kotlin.jvm.JvmName(\"set_${valid(genName)}_${valid(typeName)}\")"+$EOL)
+        jvmName := ("@kotlin.jvm.JvmName(\"set_${validName}_${validTypeName}\")"+$EOL)
         "
-          ${jvmName}${setterOvr}fun ${valid(parentClass.name)}.set_${valid(genName)}($setterArg) {
+          ${jvmName}${setterOvr}fun ${parentClass.validName}.set_${validName}($setterArg) {
           // TODO
           }
        "
@@ -96,12 +68,12 @@ format ApiPackageFile {
         $[classes sep $EOL]
     "
     MofEnum -> "
-      enum class ${valid(name)} { }
+      enum class ${validName} { }
     "
     MofInterface -> {
         supTypes := when {
           superTypes.isEmpty -> ''
-          else -> " : $[superTypes.map({it -> valid(it.name)}) sep ',']"
+          else -> " : $[superTypes.map({it -> it.validName}) sep ',']"
         }
         id := when {
           superTypes.isEmpty -> 'val _identity: Any'
@@ -111,7 +83,7 @@ format ApiPackageFile {
           /**
             $comment
            */
-          interface ${valid(name)}$supTypes {
+          interface ${validName}$supTypes {
              $id
              $[ownedAttribute sep $EOL]
           }
@@ -120,7 +92,7 @@ format ApiPackageFile {
     MofClass -> {
         supTypes := when {
           superTypes.isEmpty -> ''
-          else -> " : $[superTypes.map({it -> valid(it.name)}) sep ',']"
+          else -> " : $[superTypes.map({it -> it.validName}) sep ',']"
         }
         id := when {
           superTypes.isEmpty -> 'val _identity: Any'
@@ -135,7 +107,7 @@ format ApiPackageFile {
              $comment
            * ${abs}
            */
-          interface ${valid(name)}$supTypes {
+          interface ${validName}$supTypes {
              $id
              $[ownedAttribute sep $EOL]
           }
@@ -144,7 +116,6 @@ format ApiPackageFile {
     }
     // Always use 'val' for properties so that subclasses can override with a subtype
     MofProperty -> {
-        resType := resultType($self)
         agg := when {
           isComposite -> 'composite '
           else -> 'reference '
@@ -176,18 +147,9 @@ format ApiPackageFile {
           isOverride and (false==isTypeRedefined) -> 'override '
           else -> ''
         }
-        comp_setter := when {
-           isTypeRedefined and (false==isGenNameRedefined) -> "// property '${valid(genName)}' is redefining something with a different type, use extension function"
-           else -> "${setterOvr}fun set_${valid(genName)}(value: $resType)"
-        }
-        ref_setter := when {
-           isTypeRedefined and (false==isGenNameRedefined) -> "// property '${valid(genName)}' is redefining something with a different type, use extension function"
-           else -> "${setterOvr}fun set_${valid(genName)}Reference(${refSetterArgument($self)})"
-        }
         setter := when {
-            isComposite -> comp_setter
-            isReference -> comp_setter+$EOL+ref_setter
-            else -> "ERROR"
+           (isSingle and isComposite) -> "${setterOvr}fun ${validName}_set(value: $validTypeName)"
+           else -> ''
         }
         "
           /**
@@ -195,7 +157,7 @@ format ApiPackageFile {
            * $name: $typeName [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}] {$agg$cons$redef$subs}
            * $opp
            */
-          ${ovr}val ${valid(genName)}: $resType
+          ${ovr}val ${validName}: $validTypeName
           ${setter}
         "
     }

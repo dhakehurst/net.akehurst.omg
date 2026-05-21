@@ -23,32 +23,32 @@ interface SingleCompositeRedefinedSameNameDiffTypeAttribute : SingleCompositeAtt
      * prop1: PropType [1] { redefines SingleCompositeAttribute.prop1 }
      */
     override val prop1: PropTypeB
-    fun set_prop1(value: PropTypeB)
+    fun prop1_set(value: PropTypeB)
 
     /**
      * prop2: PropType [0..1] { redefines SingleCompositeAttribute.prop2 }
      */
     override val prop2: PropTypeB?
-    fun set_prop2(value: PropTypeB?)
+    fun prop2_set(value: PropTypeB?)
 }
 
 data class SingleCompositeRedefinedSameNameDiffTypeAttributeRam(override val identifier_: Any): SingleCompositeRedefinedSameNameDiffTypeAttribute {
 
     // --- SingleCompositeAttribute ---
     //override val prop1: PropType REDEFINED
-    override fun set_prop1(value: PropType) = this.set_prop1(value as PropTypeB)
+    override fun prop1_set(value: PropType) = this.prop1_set(value as PropTypeB)
 
     //override val prop2: PropType? REDEFINED
-    override fun set_prop2(value: PropType?) = this.set_prop2(value as PropTypeB?)
+    override fun prop2_set(value: PropType?) = this.prop2_set(value as PropTypeB?)
 
     // --- SingleCompositeRedefinedDiffNameSameTypeAttribute ---
     override var prop1: PropTypeB = PropTypeBRam()
-    override fun set_prop1(value: PropTypeB) {
+    override fun prop1_set(value: PropTypeB) {
         this.prop1 = value
     }
 
     override var prop2: PropTypeB? = null
-    override fun set_prop2(value: PropTypeB?) {
+    override fun prop2_set(value: PropTypeB?) {
         this.prop2 = value
     }
 }

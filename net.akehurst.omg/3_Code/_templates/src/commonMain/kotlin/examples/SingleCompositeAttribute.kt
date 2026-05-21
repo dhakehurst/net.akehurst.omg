@@ -22,23 +22,23 @@ interface SingleCompositeAttribute: Element {
      * prop1: PropType [1] {composite}
      */
     val prop1: PropType
-    fun set_prop1(value: PropType)
+    fun prop1_set(value: PropType)
 
     /**
      * prop2: PropType [0..1] {composite}
      */
     val prop2: PropType?
-    fun set_prop2(value: PropType?)
+    fun prop2_set(value: PropType?)
 }
 
 data class SingleCompositeAttributeRam(override val identifier_: Any): SingleCompositeAttribute {
     override var prop1: PropType = PropTypeRam()
-    override fun set_prop1(value: PropType) {
+    override fun prop1_set(value: PropType) {
         this.prop1 = value
     }
 
     override var prop2: PropType? = null
-    override fun set_prop2(value: PropType?) {
+    override fun prop2_set(value: PropType?) {
         this.prop2 = value
     }
 }

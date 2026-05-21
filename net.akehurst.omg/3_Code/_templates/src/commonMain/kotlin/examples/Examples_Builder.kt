@@ -16,12 +16,8 @@
 
 package net.akehurst.omg.templates.examples
 
-import net.akehurst.kotlinx.collections.OrderedSet
 import net.akehurst.kotlinx.collections.mutableList
 import net.akehurst.kotlinx.collections.mutableOrderedSet
-import net.akehurst.kotlinx.collections.mutableOrderedSetOf
-import net.akehurst.kotlinx.collections.toMutableOrderedSet
-import net.akehurst.kotlinx.collections.toOrderedSet
 import net.akehurst.kotlinx.utils.mutableReference
 
 @DslMarker
@@ -133,8 +129,8 @@ class SingleCompositeAttribute_Builder(
     }
 
     fun build(): SingleCompositeAttribute = factory.createSingleCompositeAttribute(_id).also { self ->
-        _prop1?.let { self.set_prop1(it) }
-        _prop2?.let { self.set_prop2(it) }
+        _prop1?.let { self.prop1_set(it) }
+        _prop2?.let { self.prop2_set(it) }
     }
 }
 

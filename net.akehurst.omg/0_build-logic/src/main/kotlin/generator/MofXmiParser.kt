@@ -75,6 +75,7 @@ class MofXmiParser(
                 val rootMofPackage = preParsePackage(node)
                 if (rootMofPackage != null) {
                     model.addPackage(currentFileName, null, rootMofPackage)
+                    model.subPackages.add(rootMofPackage)
                     // Recursively pre-parse to discover all elements and their IDs
                     discoverElements(node, rootMofPackage)
                 }
@@ -133,7 +134,7 @@ class MofXmiParser(
         when (xmiType) {
             "uml:Package" -> {
                 if (!hasRef(xmiId)) {
-                    val subPackage = MofPackage(model, name, xmiId, parentPackage = currentMofPackage)
+                    val subPackage = MofPackage(model, name, xmiId)
                     model.addPackage(currentFileName, currentMofPackage, subPackage)
                     discoverElements(node, subPackage) // Recurse
                 }
@@ -141,7 +142,7 @@ class MofXmiParser(
 
             "uml:Class", "uml:DataType" -> {
                 if (!hasRef(xmiId)) {
-                    val mofClass = MofClass(model, name, xmiId, parentPackage = currentMofPackage)
+                    val mofClass = MofClass(model, name, xmiId)
                     mofClass.isAbstract = node.getAttribute("isAbstract") == "true"
                     mofClass.comment = getChildrenByTagName(node, "ownedComment").joinToString("\n") {
                         val annotated = getChildrenByTagName(it, "annotatedElement").firstOrNull()?.let {
@@ -160,7 +161,7 @@ class MofXmiParser(
 
             "uml:Interface" -> {
                 if (!hasRef(xmiId)) {
-                    val mof = MofInterface(model, name, xmiId).apply { parentPackage = currentMofPackage }
+                    val mof = MofInterface(model, name, xmiId)
                     mof.comment = getChildrenByTagName(node, "ownedComment").joinToString("\n") {
                         val annotated = getChildrenByTagName(it, "annotatedElement").firstOrNull()?.let {
                             it.getAttribute("xmi:idref")
@@ -189,20 +190,18 @@ class MofXmiParser(
 
             "uml:PrimitiveType" -> {
                 if (!hasRef(xmiId)) {
-                    val mofClass = MofClass(model, name, xmiId, parentPackage = currentMofPackage)
+                    val mofClass = MofClass(model, name, xmiId)
                     mofClass.isAbstract = false
-                    model.classList.add(mofClass)
-                    setRef(xmiId, mofClass)
-                    currentMofPackage.classes.add(mofClass)
+                    currentMofPackage.addClass(currentFileName, mofClass)
                 }
             }
 
             "uml:Enumeration" -> {
                 if (!hasRef(xmiId)) {
-                    val mofEnum = MofEnum(model, name, xmiId, parentPackage = currentMofPackage)
+                    val mofEnum = MofEnum(model, name, xmiId)
                     model.enumList.add(mofEnum)
                     setRef(xmiId, mofEnum)
-                    currentMofPackage.enums.add(mofEnum)
+                    currentMofPackage.addEnum(currentFileName,mofEnum)
                 }
             }
 
@@ -408,6 +407,7 @@ class MofXmiParser(
             self.lowerBound = lower
             self.upperBound = upper
             self.isDerived = propertyElement.getAttribute("isDerived") == "true"
+            self.isDerivedUnion = propertyElement.getAttribute("isDerivedUnion") == "true"
             self.isReadOnly = propertyElement.getAttribute("isReadOnly") == "true" || propertyElement.getAttribute("isLeaf") == "true" // isLeaf implies read-only in some contexts
             self.isUnique = isUnique
             self.isOrdered = isOrdered

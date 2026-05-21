@@ -26,6 +26,7 @@ object SimpleMof {
                 constructor_ {
                     parameter(setOf(REF, VAL), "name", "String", propertyExecution = MofModel::name)
                 }
+                propertyOf(setOf(CMP,VAL), "subPackages", "List", execution = MofModel::subPackages) { typeArgument("MofPackage") }
                 propertyOf(setOf(CMP,VAL), "packageList", "List", execution = MofModel::packageList) { typeArgument("MofPackage") }
                 propertyOf(setOf(CMP,VAL), "classeList", "List", execution = MofModel::classList) { typeArgument("MofEnum") }
                 propertyOf(setOf(CMP,VAL), "enumList", "List", execution = MofModel::enumList) { typeArgument("MofClass") }
@@ -47,9 +48,6 @@ object SimpleMof {
                     parameter(setOf(CMP, VAL), "classes", "List", propertyExecution = MofPackage::classes) {
                         typeArgument("MofClass")
                     }
-                    parameter(setOf(CMP, VAL), "subPackages", "List", propertyExecution = MofPackage::subPackages) {
-                        typeArgument("MofPackage")
-                    }
                     parameter(setOf(CMP, VAL), "associations", "List", propertyExecution = MofPackage::associations) {
                         typeArgument("MofAssociation")
                     }
@@ -60,6 +58,7 @@ object SimpleMof {
                 }
                 propertyOf(setOf(DER), "qualifiedName", "String")
                 propertyOf(setOf(DER), "allImport", "List") { typeArgument("String") }
+                propertyOf(setOf(CMP,VAL), "subPackages", "List", execution = MofPackage::subPackages) { typeArgument("MofPackage") }
             }
             interface_("MofType", implementation = MofType::class) {
                 propertyOf(setOf(VAL), "isAbstract", "Boolean", execution = MofType::isAbstract)
