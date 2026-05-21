@@ -37,7 +37,7 @@ format PackageFactoryFile {
         /**
          * Ram Factory for $qualifiedName
          */
-        object ${name}_FactoryRam : ${name}_Factory {
+        class ${name}_FactoryRam : ${name}_Factory {
             val refs = ReferenceStoreByHashMap<Any>()
 
             $[subPackages sep $EOL via SubPackage]
@@ -64,7 +64,7 @@ format ModelFactoryFile {
         /**
          * Model Ram Factory for name
          */
-        object ${name}_ModelFactoryRam : ${name}_ModelFactory {
+        class ${name}_ModelFactoryRam : ${name}_ModelFactory {
           $[subPackages sep $EOL via SubPackage]
         }
         ${packageList via PackageFactoryFile}

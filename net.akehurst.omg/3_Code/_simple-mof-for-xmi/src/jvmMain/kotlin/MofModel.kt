@@ -84,7 +84,7 @@ class MofModel(
     }
 
     fun isPrimitive(type: MofType): Boolean {
-        val primitives = setOf("String", "Boolean", "Real", "Integer", "UnlimitedInteger")
+        val primitives = setOf("String", "Boolean", "Real", "Integer", "UnlimitedNatural")
         return type is MofEnum || primitives.contains(type.name)
     }
 
