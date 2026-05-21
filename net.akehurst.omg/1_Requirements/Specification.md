@@ -1,5 +1,5 @@
 The purpose of this specification is to define how to
-generate kotlin multiplatform/common code from OMG MOF XMI files.
+generate Kotlin multiplatform/common code from OMG MOF XMI files.
 
 # Model
 - The model, defined by the (main) XMI file
@@ -27,13 +27,15 @@ generate kotlin multiplatform/common code from OMG MOF XMI files.
 
 # Classes
 - each class is mapped to:
-    - interface: with kotlin valid interface name
-    - an in memory (Ram) based implementation (kotlin name validation not needed as 'Ram' appended to name)
-    - Ram implementation is 'flat' it implements allAttributes (owned and from super classes)
+    - interface: with Kotlin-valid interface name
+    - an in memory (Ram) based implementation (Kotlin name validation not needed as 'Ram' appended to name)
+    - Ram implementation is 'flat'; it implements allAttributes (owned and from super classes)
     - Every generated class interface MUST declare `val _identity: Any` property if it is a root type (has no supertypes).
         - Subtypes inherit this property from their supertypes.
         - This property is immutable and set at object construction time.
-        - The value MUST be unique and stable for the lifetime of the object.
+        - `_identity` MUST be non-null.
+        - `_identity` values MUST be unique per Factory instance at runtime.
+        - `_identity` stability is for the lifetime of the object.
     - the attributes to implement are resolved using these rules in order:
         1. Collect all attributes from the class `ownedAttribute` list and all attributes inherited from supertypes.
         2. For each attribute `A` that redefines another attribute `B` (via `redefinedProperty`):
@@ -48,39 +50,39 @@ generate kotlin multiplatform/common code from OMG MOF XMI files.
 # Associations
 - Association owned ends are not navigable
 - Class owned member ends are implemented as Attributes
-    - setting of the opposite end must be implemented
-    - During mutable collection mutations (add/remove), automatically set opposite ends (reduces boilerplate in common case).
+    - setting of the opposite end MUST be implemented
+    - During mutable collection mutations (add/remove), opposite ends MUST be set automatically (reduces boilerplate in common case).
 
 # Attributes
 
-- 'isID' is not supported, all objects are identified by the '_identity' property
-- Every object MUST have an `_identity` property that serves as a unique, stable identifier for the lifetime of the object.
+- `isID` is not supported; all objects are identified by the `_identity` property.
+- Every object MUST have an `_identity` property that serves as a non-null, unique (per Factory instance), stable identifier for the lifetime of the object.
 - The `_identity` is set at construction time and is IMMUTABLE.
-- Its value can be any hashable Kotlin object (typically a String or UUID).
-- The `_identity` participates in reference resolution and equality checks.
+- `_identity` type is `Any` (not nullable).
 
-- 'isReadOnly' is not supported (all attributes are potentially writable)
-- if property is not writable, values can never be given except in a constructor
+- `isReadOnly` MUST not be supported in generated code.
+- `isReadOnly` values in source models MUST be ignored by the generator.
+- The generator MUST NOT emit warnings or diagnostics for ignored `isReadOnly` values.
 - Every generated class MUST accept only `_identity: Any` in its constructor.
 - All other properties MUST be mutable and set to their default values (null for single optional properties, empty for collections, default value for primitives).
 - Attribute values are set via the builder DSL or explicit `_set()` mutators AFTER construction, not in the constructor.
 
-- isDerived is currently not supported, code generation for derived properties not currently supported.
-- attributes marked with isDerived=true (but isDerivedUnion=false) SHALL be ignored; no interface property or realisation field is generated.
+- `isDerived` is currently not supported; code generation for derived properties is not supported.
+- attributes marked with `isDerived=true` (but `isDerivedUnion=false`) MUST be ignored; no interface property or realisation field is generated.
 
-- isDerivedUnion
-    - attributes marked with isDerivedUnion=true generate a read-only computed getter that returns the union of all subsetting properties at query time.
-    - no mutator is generated for isDerivedUnion properties.
+- `isDerivedUnion`
+    - attributes marked with `isDerivedUnion=true` MUST generate a read-only computed getter that returns the union of all subsetting properties at query time.
+    - no mutator is generated for `isDerivedUnion` properties.
 
 - subsetting
-    - If property p subsets q, runtime MUST enforce p ⊆ q.
-    - On add/set into subset p, implementation MUST ensure element exists in q (auto-add if missing).
-    - On remove/unset from superset q, implementation MUST reject operation if it would violate p ⊆ q.
+    - If property `p` subsets `q`, runtime MUST enforce `p ⊆ q`.
+    - On add/set into subset `p`, implementation MUST ensure element exists in `q` (auto-add if missing).
+    - On remove/unset from superset `q`, implementation MUST reject operation if it would violate `p ⊆ q`.
     - For single-valued subset/superset:
-        -  setting p = x MUST set q = x if q is null;
-        - if q != x, operation MUST fail unless replacement is explicitly allowed.
-    - For collection-valued properties, enforcement occurs on each mutation (add, remove, clear, bulk ops).
-    - Violations MUST throw a deterministic domain exception (not generic IllegalStateException).
+        - setting `p = x` MUST set `q = x` if `q` is null;
+        - if `q != x`, operation MUST fail unless replacement is explicitly allowed.
+    - For collection-valued properties, enforcement MUST occur on each mutation (add, remove, clear, bulk ops).
+    - Violations MUST throw `IllegalStateException`.
 
 - A reference attribute of type T generates two properties:
     - A resolved-value accessor (type `T`, `T?`, or a collection of `T`) — see Interface Accessor section.
@@ -101,8 +103,8 @@ The reference type hierarchy is:
     - Used exclusively in the Ram implementation; the interface only exposes `Reference<Any, T>`.
 
 For single required references (lowerBound=1, upperBound=1):
-- The resolved-value getter MUST throw an exception if `.resolved` is null (not yet resolved).
-- Example in interface: `val prop1: T get() = prop1Reference.resolved ?: error("prop1 not resolved")`
+- The resolved-value getter MUST throw `IllegalStateException` if `.resolved` is null (not yet resolved).
+- Example in interface: `val prop1: T get() = prop1Reference.resolved ?: throw IllegalStateException("prop1 not resolved")`
 
 For optional references (lowerBound=0, upperBound=1):
 - The resolved-value getter returns `prop1Reference.resolved` directly (may be null).
@@ -111,11 +113,11 @@ For collections of references:
 - The resolved-value property is a collection of `T`; resolution populates the collection in place.
 
 Challenges:
-1. The concept of aggregation does not exist in current OO programing languages such as Kotlin.
+1. The concept of aggregation does not exist in current OO programming languages such as Kotlin.
     - properties simply reference another object
     - no differentiation between composite & reference
 2. Opposite ends need to be set
-3. The MOF/UML concept of redefinition does not exist in current OO programing languages such as Kotlin.
+3. The MOF/UML concept of redefinition does not exist in current OO programming languages such as Kotlin.
    a. a subtype can 'override' a property, but not redefine it
    b. override can narrow the property type to a subtype if getter only
    c. cannot change name with an override
@@ -133,9 +135,9 @@ Challenges:
 
 Solutions:
 - attributes with primitive type or enum type are always considered composite
-- (3.a, 3.b) class interface (and realisation) only contain getter
+- (3.a, 3.b) class interface (and implementation) only contain getter
 - (3.d) attributes with collection type have the collection type name appended to their name
-- (1) a kotlin 'Reference' implementation is used for reference aggregation
+- (1) a Kotlin `Reference` implementation is used for reference aggregation
     - can be resolved against a ReferenceStore - i.e. the Factory which stores reference to each object created
     - (3.b) 'Managed' collection types are used as mutable collection implementation
         - (3.b) they perform runtime type checking when element is added
@@ -155,7 +157,7 @@ Solutions:
     - Attribute.isOptional := 0==lowerBound && isSingle // collections are not treated as optional, all can be empty
     - Attribute.genType := when
         - isSingle -> when
-            - isOptional -> "${type}?" //nulable
+            - isOptional -> "${type}?" // nullable
             - else -> "$type" // not nullable
         - isCollection -> The generated type is one of:
             - `Collection<${type.validName}>` if `isUnique=false` and `isOrdered=false` (unordered, non-unique; UML calls this Bag)
@@ -180,7 +182,7 @@ Solutions:
 - the type of the accessor is:
     - For composite attributes: `genType` (the class type, nullable or not, single or collection).
     - For reference attributes (aggregation=reference) we generate 2 accessors:
-        - One for the resolved value: type `T` (required) or `T?` (optional); throws or returns null if unresolved.
+        - One for the resolved value: type `T` (required) or `T?` (optional); MUST throw `IllegalStateException` for unresolved required references and MUST return null for unresolved optional references.
         - One reference-holder: named `${propertyName}Reference`, of type `Reference<Any, T>` in the interface.
 
 - if attribute `A` redefines another attribute `B` (via `redefinedProperty`) AND `A` and `B` have the same `validName`, then use Kotlin `override` keyword (only redefinitions with name/type compatibility reach this point, per the attribute resolution rules in the Classes section).
@@ -191,7 +193,7 @@ Solutions:
 - Mutators (setters) are NOT member functions of the interface; they are provided as top-level Kotlin extension functions defined in the same file as the class implementation (e.g. the Ram file).
     - Interface accessors use read-only `val` covariance to allow subtype narrowing in overrides; matching setters would require parameter typing that cannot be safely expressed as interface overrides, so mutation behaviour is implementation-specific.
 - Extension function naming: `fun ${className}.${propertyName}_set(value: ${genType}) { ... }`
-- No mutator is generated for attributes with isDerived=true or isDerivedUnion=true.
+- No mutator is generated for attributes with `isDerived=true` or `isDerivedUnion=true`.
 
 
 ## Realisation Accessor
@@ -206,13 +208,13 @@ Solutions:
 - **isDerivedUnion=true properties:** Backed by a computed getter (no backing field) that returns the union of all subsetting properties. No mutator is generated.
 
 ## Realisation Mutator
-- if attribute isDerivedUnion=true then realisation MUST NOT have a generated mutator (getter only).
+- if attribute `isDerivedUnion=true` then realisation MUST NOT have a generated mutator (getter only).
 
 - Mutator functions are generated only for single composite properties:
     - Single composite: `fun ${className}.${propertyName}_set(value: ${genType}) { ... }` — extension function to set the property.
     - Single reference: No `_set()` mutator needed; the property is a `ManagedReference<Any, T>` which is mutable in-place (`.reference` and `.resolved` are mutable) and automatically handles opposite-end setting via its callback.
     - Collections (composite or reference): No direct mutator; the property getter returns a mutable collection object (Managed*Collection or equivalent), so mutation is done via `.add()`, `.remove()`, etc. on the collection itself. If an immutable view is exposed elsewhere, `.mutable${CollectionType}()` extension functions can be provided to convert to mutable form.
-    - use a pattern `${name}_set(value: ${genType})` for single composite mutators so that its name does not clash with the kotlin setter
+    - use a pattern `${name}_set(value: ${genType})` for single composite mutators so that its name does not clash with the Kotlin setter
 
 - If an attribute redefines another but has a different type AND a different name, the mutator is generated as a distinct extension function (not attempting to override the redefined mutator). Example:
    ```kotlin
@@ -223,27 +225,20 @@ Solutions:
    ```
   This avoids JVM type erasure issues that would arise if both were named `prop1_set(Any)`.
 
-Each mutator extension function MUST be implemented in the RAM class:
+Each mutator extension function MUST be implemented as a top-level Kotlin extension function in generated RAM code:
 - **Single composite properties:**
   ```kotlin
-  override fun ${propertyName}_set(value: ${genType}) {
-      _${propertyName} = value
-      // TODO: set opposite end if this is part of a bidirectional association
+  fun ${className}.${propertyName}_set(value: ${genType}) {
+      // assign backing state in RAM implementation
+      // maintain runtime invariants
   }
   ```
-- **Single reference properties:** No override mutator needed; the property returns a `ManagedReference<Any, T>` which is mutable in-place.
+- **Single reference properties:** No extension mutator needed; the property returns a `ManagedReference<Any, T>` which is mutable in-place.
 - **Collections:** No mutator needed; the collection is mutable in-place.
 
-**Opposite End Setting:** When a composite single-valued property is set, the mutator SHOULD invoke the opposite end's mutator (if an opposite is defined) to maintain bidirectional consistency. Example:
-   ```kotlin
-   override fun parent_set(value: Parent?) {
-       _parent = value
-       value?.children_set(this)  // or via Managed collection callback
-   }
-   ```
-(See Associations section for detailed semantics.)
+**Opposite End Setting:** When a composite single-valued property is set, the mutator MUST invoke opposite-end update logic (direct mutator call and/or managed callback) when an opposite is defined, to maintain bidirectional consistency.
 
-**Derived/Derived Union:** If the property is derived or derived union, no mutator is generated. If a mutator is accidentally called, it MUST raise `NotImplementedError` or perform a no-op.
+**Derived/Derived Union:** If the property is derived or derived union, no mutator is generated. Any attempted mutation path for these properties MUST fail with `IllegalStateException`.
 
 
 
