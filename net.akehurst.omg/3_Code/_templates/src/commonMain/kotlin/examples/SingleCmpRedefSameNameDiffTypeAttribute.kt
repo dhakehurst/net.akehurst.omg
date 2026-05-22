@@ -16,39 +16,28 @@
 
 package net.akehurst.omg.templates.examples
 
+import net.akehurst.kotlinx.utils.ManagedValue
+import net.akehurst.kotlinx.utils.Value
 
 
 interface SingleCmpRedefSameNameDiffTypeAttribute : SingleCmpAttribute {
     /**
-     * prop1: PropType [1] { redefines SingleCompositeAttribute.prop1 }
+     * prop1: PropTypeB [1] { redefines SingleCompositeAttribute.prop1 }
      */
     override val prop1: PropTypeB
-    fun prop1_set(value: PropTypeB)
+    override val prop1Value: Value<PropTypeB>
 
     /**
-     * prop2: PropType [0..1] { redefines SingleCompositeAttribute.prop2 }
+     * prop2: PropTypeB [0..1] { redefines SingleCompositeAttribute.prop2 }
      */
     override val prop2: PropTypeB?
-    fun prop2_set(value: PropTypeB?)
+    override val prop2Value: Value<PropTypeB?>
 }
 
-data class SingleCmpRedefSameNameDiffTypeAttributeRam(override val identifier_: Any): SingleCmpRedefSameNameDiffTypeAttribute {
+data class SingleCmpRedefSameNameDiffTypeAttributeRam(override val _identity: Any) : SingleCmpRedefSameNameDiffTypeAttribute {
+    override val prop1Value: Value<PropTypeB> = ManagedValue(PropTypeBRam())
+    override val prop1: PropTypeB get() = prop1Value.get()
 
-    // --- SingleCompositeAttribute ---
-    //override val prop1: PropType REDEFINED
-    override fun prop1_set(value: PropType) = this.prop1_set(value as PropTypeB)
-
-    //override val prop2: PropType? REDEFINED
-    override fun prop2_set(value: PropType?) = this.prop2_set(value as PropTypeB?)
-
-    // --- SingleCompositeRedefinedDiffNameSameTypeAttribute ---
-    override var prop1: PropTypeB = PropTypeBRam()
-    override fun prop1_set(value: PropTypeB) {
-        this.prop1 = value
-    }
-
-    override var prop2: PropTypeB? = null
-    override fun prop2_set(value: PropTypeB?) {
-        this.prop2 = value
-    }
+    override val prop2Value: Value<PropTypeB?> = ManagedValue(null)
+    override val prop2: PropTypeB? get() = prop2Value.get()
 }

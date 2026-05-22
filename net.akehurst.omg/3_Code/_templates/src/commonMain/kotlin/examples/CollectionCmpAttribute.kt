@@ -32,23 +32,22 @@ interface CollectionCmpAttribute : Element {
     /**
      * prop2: PropType [0..*] {composite nonunique ordered}
      */
-    val prop2: List<PropType>
+    val prop2List: List<PropType>
 
     /**
      * prop3: PropType [0..*] {composite unique unordered}
      */
-    val prop3: Set<PropType>
+    val prop3Set: Set<PropType>
 
     /**
      * prop4: PropType [0..*] {composite nonunique unordered}
      */
-    val prop4: Collection<PropType>
+    val prop4Collection: Collection<PropType>
 }
-fun CollectionCmpAttribute.prop1OrderedSet_mutable(): MutableOrderedSet<PropType> = this.prop1OrderedSet as MutableOrderedSet
 
-data class CollectionCmpAttributeRam(override val identifier_: Any) : CollectionCmpAttribute {
-    override var prop1OrderedSet = ManagedOrderedSet<PropType>("CollectionCompositeAttribute.prop1",PropType::class)
-    override val prop2 = ManagedList<PropType>("CollectionCompositeAttribute.prop2",PropType::class)
-    override val prop3 = ManagedSet<PropType>("CollectionCompositeAttribute.prop3",PropType::class)
-    override val prop4 = ManagedList<PropType>("CollectionCompositeAttribute.prop4",PropType::class)
+data class CollectionCmpAttributeRam(override val _identity: Any) : CollectionCmpAttribute {
+    override val prop1OrderedSet = ManagedOrderedSet<PropType>("CollectionCompositeAttribute.prop1", PropType::class)
+    override val prop2List = ManagedList<PropType>("CollectionCompositeAttribute.prop2", PropType::class)
+    override val prop3Set = ManagedSet<PropType>("CollectionCompositeAttribute.prop3", PropType::class)
+    override val prop4Collection = ManagedList<PropType>("CollectionCompositeAttribute.prop4", PropType::class)
 }

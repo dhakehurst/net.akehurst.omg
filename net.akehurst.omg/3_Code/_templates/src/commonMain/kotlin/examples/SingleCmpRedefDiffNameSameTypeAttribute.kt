@@ -16,38 +16,31 @@
 
 package net.akehurst.omg.templates.examples
 
+import net.akehurst.kotlinx.utils.ManagedValue
+import net.akehurst.kotlinx.utils.Value
+
 interface SingleCmpRedefDiffNameSameTypeAttribute : SingleCmpAttribute {
     /**
      * prop1: PropType [1] { redefines SingleCompositeAttribute.prop1 }
      */
     val redefinesProp1: PropType
-    fun redefinesProp1_set(value: PropType)
+    val redefinesProp1Value: Value<PropType>
 
     /**
      * prop2: PropType [0..1] { redefines SingleCompositeAttribute.prop2 }
      */
     val redefinesProp2: PropType?
-    fun redefinesProp2_set(value: PropType?)
+    val redefinesProp2Value: Value<PropType?>
 }
 
-data class SingleCmpRedefDiffNameSameTypeAttributeRam(override val identifier_: Any): SingleCmpRedefDiffNameSameTypeAttribute {
+data class SingleCmpRedefDiffNameSameTypeAttributeRam(override val _identity: Any) : SingleCmpRedefDiffNameSameTypeAttribute {
+    override val redefinesProp1Value: Value<PropType> = ManagedValue(PropTypeRam())
+    override val redefinesProp1: PropType get() = redefinesProp1Value.get()
+    override val prop1Value: Value<PropType> get() = redefinesProp1Value
+    override val prop1: PropType get() = prop1Value.get()
 
-    // --- SingleCompositeAttribute ---
-    override val prop1: PropType get() = redefinesProp1
-    override fun prop1_set(value: PropType) = this.redefinesProp1_set(value)
-
-    override val prop2: PropType? get() = redefinesProp2
-    override fun prop2_set(value: PropType?) = this.redefinesProp2_set(value)
-
-    // --- SingleCompositeRedefinedDiffNameSameTypeAttribute ---
-    override var redefinesProp1: PropType = PropTypeRam()
-    override fun redefinesProp1_set(value: PropType) {
-        this.redefinesProp1 = value
-    }
-
-    override var redefinesProp2: PropType? = null
-
-    override fun redefinesProp2_set(value: PropType?) {
-        this.redefinesProp2 = value
-    }
+    override val redefinesProp2Value: Value<PropType?> = ManagedValue(null)
+    override val redefinesProp2: PropType? get() = redefinesProp2Value.get()
+    override val prop2Value: Value<PropType?> get() = redefinesProp2Value
+    override val prop2: PropType? get() = prop2Value.get()
 }

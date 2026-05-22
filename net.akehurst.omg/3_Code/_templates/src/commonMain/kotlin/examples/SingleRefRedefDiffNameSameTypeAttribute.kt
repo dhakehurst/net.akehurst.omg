@@ -16,7 +16,8 @@
 package net.akehurst.omg.templates.examples
 
 
-import net.akehurst.kotlinx.utils.MutableReferenceDefault
+import net.akehurst.kotlinx.utils.ManagedReference
+import net.akehurst.kotlinx.utils.Reference
 
 
 interface SingleRefRedefDiffNameSameTypeAttribute : SingleRefAttribute {
@@ -24,43 +25,27 @@ interface SingleRefRedefDiffNameSameTypeAttribute : SingleRefAttribute {
      * prop1: PropType [1] { redefines SingleReferenceAttribute.prop1 }
      */
     val redefinesProp1: PropType
-    val redefinesProp1Reference: MutableReferenceDefault<Any, PropType>
-    fun redefinesProp1_set(value: PropType?)
+    val redefinesProp1Reference: Reference<Any, PropType>
 
     /**
      * prop2: PropType [0..1] { redefines SingleReferenceAttribute.prop2 }
      */
     val redefinesProp2: PropType?
-    val redefinesProp2Reference: MutableReferenceDefault<Any, PropType>
-    fun redefinesProp2_set(value: PropType?)
+    val redefinesProp2Reference: Reference<Any, PropType>
 }
 
-data class SingleRefRedefDiffNameSameTypeAttributeRam(override val identifier_: Any) : SingleRefRedefDiffNameSameTypeAttribute {
+data class SingleRefRedefDiffNameSameTypeAttributeRam(override val _identity: Any) : SingleRefRedefDiffNameSameTypeAttribute {
 
-    // --- SingleCompositeAttribute ---
     override val prop1: PropType get() = redefinesProp1
-    override val prop1Reference: MutableReferenceDefault<Any, PropType> get() = redefinesProp1Reference
-    override fun prop1_set(value: PropType) {
-        TODO("not implemented")
-    }
+    override val prop1Reference: Reference<Any, PropType> get() = redefinesProp1Reference
 
     override val prop2: PropType? get() = redefinesProp2
-    override val prop2Reference: MutableReferenceDefault<Any, PropType> get() = redefinesProp2Reference
-    override fun prop2_set(value: PropType?) {
-        TODO("not implemented")
-    }
+    override val prop2Reference: Reference<Any, PropType> get() = redefinesProp2Reference
 
-    // --- SingleCompositeRedefinedDiffNameSameTypeAttribute ---
     override val redefinesProp1: PropType get() = redefinesProp1Reference.resolved ?: error("prop1 not resolved")
-    override val redefinesProp1Reference = MutableReferenceDefault<Any, PropType>(null)
-    override fun redefinesProp1_set(value: PropType?) {
-        TODO("not implemented")
-    }
+    override val redefinesProp1Reference = ManagedReference<Any, PropType>(null)
 
     override val redefinesProp2: PropType? get() = redefinesProp2Reference.resolved
-    override val redefinesProp2Reference = MutableReferenceDefault<Any, PropType>(null)
-    override fun redefinesProp2_set(value: PropType?) {
-        TODO("not implemented")
-    }
+    override val redefinesProp2Reference = ManagedReference<Any, PropType>(null)
 
 }

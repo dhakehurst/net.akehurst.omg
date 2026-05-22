@@ -16,9 +16,11 @@
 
 package net.akehurst.omg.templates.examples
 
+import net.akehurst.kotlinx.collections.mutableCollection
 import net.akehurst.kotlinx.collections.mutableList
 import net.akehurst.kotlinx.collections.mutableOrderedSet
 import net.akehurst.kotlinx.utils.mutableReference
+import net.akehurst.kotlinx.utils.mutableValue
 
 @DslMarker
 annotation class ExamplesDslMarker
@@ -47,7 +49,7 @@ class Examples_Builder(
     }
 
     fun build(): Examples = factory.createExamples(id).also { self ->
-        _content?.let { self.content.addAll(it) }
+        _content?.let { self.content.mutableCollection.addAll(it) }
     }
 }
 
@@ -129,8 +131,8 @@ class SingleCompositeAttribute_Builder(
     }
 
     fun build(): SingleCmpAttribute = factory.createSingleCompositeAttribute(_id).also { self ->
-        _prop1?.let { self.prop1_set(it) }
-        _prop2?.let { self.prop2_set(it) }
+        _prop1?.let { self.prop1Value.mutableValue.set(it) }
+        _prop2?.let { self.prop2Value.mutableValue.set(it) }
     }
 }
 
@@ -178,6 +180,6 @@ class CollectionCompositeAttribute_Builder(
 
     fun build(): CollectionCmpAttribute = factory.createCollectionCompositeAttribute(_id).also { self ->
         _prop1?.let { self.prop1OrderedSet.mutableOrderedSet.addAll(it) }
-        _prop2?.let { self.prop2.mutableList.addAll(it) }
+        _prop2?.let { self.prop2List.mutableList.addAll(it) }
     }
 }

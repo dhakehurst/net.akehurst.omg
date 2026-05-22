@@ -16,15 +16,19 @@
 
 package net.akehurst.omg.templates.examples
 
+import net.akehurst.kotlinx.collections.ManagedList
+
 interface Element {
-    val identifier_:Any
+    val _identity: Any
 }
 
-interface Examples {
-    val content: MutableList<Element>
+interface Examples : Element {
+    val content: List<Element>
 }
 
-class ExamplesRam(val identifier_: Any) : Examples {
-    override val content: MutableList<Element> = mutableListOf()
+class ExamplesRam(override val _identity: Any) : Examples {
+    override val content: List<Element> = ManagedList("Examples.content", Element::class)
 }
+
+
 

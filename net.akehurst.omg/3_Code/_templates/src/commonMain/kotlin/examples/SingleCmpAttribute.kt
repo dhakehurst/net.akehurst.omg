@@ -16,29 +16,31 @@
 
 package net.akehurst.omg.templates.examples
 
+import net.akehurst.kotlinx.utils.ManagedValue
+import net.akehurst.kotlinx.utils.Value
 
-interface SingleCmpAttribute: Element {
+
+interface SingleCmpAttribute : Element {
     /**
      * prop1: PropType [1] {composite}
      */
     val prop1: PropType
-    fun prop1_set(value: PropType)
+    val prop1Value: Value<PropType>
 
     /**
      * prop2: PropType [0..1] {composite}
      */
     val prop2: PropType?
-    fun prop2_set(value: PropType?)
+    val prop2Value: Value<PropType?>
 }
 
-data class SingleCmpAttributeRam(override val identifier_: Any): SingleCmpAttribute {
-    override var prop1: PropType = PropTypeRam()
-    override fun prop1_set(value: PropType) {
-        this.prop1 = value
-    }
 
-    override var prop2: PropType? = null
-    override fun prop2_set(value: PropType?) {
-        this.prop2 = value
-    }
+
+data class SingleCmpAttributeRam(override val _identity: Any) : SingleCmpAttribute {
+    override val prop1Value: Value<PropType> = ManagedValue(PropTypeRam())
+    override val prop1: PropType get() = prop1Value.get()
+
+    override val prop2Value: Value<PropType?> = ManagedValue(null)
+    override val prop2: PropType? get() = prop2Value.get()
 }
+

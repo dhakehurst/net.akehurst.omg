@@ -15,7 +15,7 @@
  */
 package net.akehurst.omg.templates.examples
 
-import net.akehurst.kotlinx.utils.MutableReferenceDefault
+import net.akehurst.kotlinx.utils.ManagedReference
 import net.akehurst.kotlinx.utils.Reference
 
 interface SingleRefAttribute: Element {
@@ -24,29 +24,19 @@ interface SingleRefAttribute: Element {
      */
     val prop1: PropType
     val prop1Reference: Reference<Any, PropType>
-    fun prop1_set(value: PropType)
 
     /**
      * prop2: PropType [0..1] {reference}
      */
     val prop2: PropType?
     val prop2Reference: Reference<Any, PropType>
-    fun prop2_set(value: PropType?)
 }
 
-data class SingleRefAttributeRam(override val identifier_: Any) : SingleRefAttribute {
+data class SingleRefAttributeRam(override val _identity: Any) : SingleRefAttribute {
 
     override val prop1: PropType get() = prop1Reference.resolved ?: error("prop1 not resolved")
-    override val prop1Reference = MutableReferenceDefault<Any, PropType>(null)
-    override fun prop1_set(value: PropType) {
-        this.prop1Reference.clear()
-        this.prop1Reference.set(value.identifier_, value)
-    }
+    override val prop1Reference = ManagedReference<Any, PropType>(null)
 
     override val prop2: PropType? get() = prop2Reference.resolved
-    override val prop2Reference = MutableReferenceDefault<Any, PropType>(null)
-    override fun prop2_set(value: PropType?) {
-        this.prop2Reference.clear()
-        value?.let { this.prop2Reference.set(value.identifier_, value) }
-    }
+    override val prop2Reference = ManagedReference<Any, PropType>(null)
 }

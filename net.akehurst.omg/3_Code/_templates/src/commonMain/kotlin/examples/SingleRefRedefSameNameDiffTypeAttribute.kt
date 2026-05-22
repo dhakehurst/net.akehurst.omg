@@ -16,7 +16,7 @@
 
 package net.akehurst.omg.templates.examples
 
-import net.akehurst.kotlinx.utils.MutableReferenceDefault
+import net.akehurst.kotlinx.utils.ManagedReference
 import net.akehurst.kotlinx.utils.Reference
 
 interface SingleRefRedefSameNameDiffTypeAttribute : SingleRefAttribute {
@@ -25,37 +25,18 @@ interface SingleRefRedefSameNameDiffTypeAttribute : SingleRefAttribute {
      */
     override val prop1: PropTypeB
     override val prop1Reference: Reference<Any, PropTypeB>
-    fun prop1_set(value: PropTypeB)
 
     /**
      * prop2: PropType [0..1] { redefines SingleReferenceAttribute.prop1 }
      */
     override val prop2: PropTypeB?
     override val prop2Reference: Reference<Any, PropTypeB>
-    fun prop2_set(value: PropTypeB?)
 }
 
-data class SingleRefRedefSameNameDiffTypeAttributeRam(override val identifier_: Any): SingleRefRedefSameNameDiffTypeAttribute {
-
-    // --- SingleCompositeAttribute ---
-    //override val prop1: PropTypeB REDEFINED
-    override fun prop1_set(value: PropType) = this.prop1_set(value as PropTypeB)
-
-    //override val prop2: PropTypeB? REDEFINED
-    override fun prop2_set(value: PropType?) = this.prop2_set(value as PropTypeB?)
-
-    // --- SingleCompositeRedefinedDiffNameSameTypeAttribute ---
+data class SingleRefRedefSameNameDiffTypeAttributeRam(override val _identity: Any): SingleRefRedefSameNameDiffTypeAttribute {
     override val prop1: PropTypeB get() = prop1Reference.resolved ?: error("prop1 not resolved")
-    override val prop1Reference = MutableReferenceDefault<Any, PropTypeB>(null)
-    override fun prop1_set(value: PropTypeB) {
-        this.prop1Reference.clear()
-        this.prop1Reference.set(value.identifier_, value)
-    }
+    override val prop1Reference = ManagedReference<Any, PropTypeB>(null)
 
     override val prop2: PropTypeB? get() = prop2Reference.resolved
-    override val prop2Reference = MutableReferenceDefault<Any, PropTypeB>(null)
-    override fun prop2_set(value: PropTypeB?) {
-        this.prop2Reference.clear()
-        value?.let { this.prop2Reference.set(value.identifier_, value) }
-    }
+    override val prop2Reference = ManagedReference<Any, PropTypeB>(null)
 }

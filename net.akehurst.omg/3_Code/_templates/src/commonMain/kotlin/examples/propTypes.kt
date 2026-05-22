@@ -25,5 +25,6 @@ interface PropType: Element {
 interface PropTypeB : PropType {
 
 }
-data class PropTypeRam(override val identifier_: Any = UniqueIdentityGenerator.generate("PropType")) : PropType
-data class PropTypeBRam(override val identifier_:Any = UniqueIdentityGenerator.generate("PropTypeB")) : PropTypeB
+
+data class PropTypeRam(override val _identity: Any = UniqueIdentityGenerator.generate("PropType")) : PropType
+data class PropTypeBRam(override val _identity: Any = UniqueIdentityGenerator.generate("PropTypeB")) : PropTypeB

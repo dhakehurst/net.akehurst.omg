@@ -50,8 +50,8 @@ class Examples_Resolver(val store: ReferenceStore<Any>) {
 
     fun resolveCollectionCompositeAttribute(obj: CollectionCmpAttribute) {
         obj.prop1OrderedSet.forEach { resolvePropType(it) }
-        obj.prop2.forEach { resolvePropType(it) }
-        obj.prop3.forEach { resolvePropType(it) }
-        obj.prop4.forEach { resolvePropType(it) }
+        obj.prop2List.forEach { resolvePropType(it) }
+        obj.prop3Set.forEach { resolvePropType(it) }
+        obj.prop4Collection.forEach { resolvePropType(it) }
     }
 }

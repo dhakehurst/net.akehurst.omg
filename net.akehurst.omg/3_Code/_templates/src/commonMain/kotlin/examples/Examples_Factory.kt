@@ -23,30 +23,30 @@ import net.akehurst.kotlinx.utils.UniqueIdentityGenerator
 import kotlin.reflect.KClass
 
 interface Examples_Factory : ReferenceStore<Any> {
-    fun createExamples(identifier_: Any = UniqueIdentityGenerator.generate("Examples")): Examples
+    fun createExamples(_identity: Any = UniqueIdentityGenerator.generate("Examples")): Examples
 
-    fun createPropType(identifier_: Any = UniqueIdentityGenerator.generate("PropType")): PropType
-    fun createPropTypeB(identifier_: Any = UniqueIdentityGenerator.generate("PropTypeB")): PropTypeB
+    fun createPropType(_identity: Any = UniqueIdentityGenerator.generate("PropType")): PropType
+    fun createPropTypeB(_identity: Any = UniqueIdentityGenerator.generate("PropTypeB")): PropTypeB
 
-    fun createSingleCompositeAttribute(identifier_: Any = UniqueIdentityGenerator.generate("SingleCompositeAttribute")): SingleCmpAttribute
-    fun createSingleReferenceAttribute(identifier_: Any = UniqueIdentityGenerator.generate("SingleReferenceAttribute")): SingleRefAttribute
-    fun createCollectionCompositeAttribute(identifier_: Any = UniqueIdentityGenerator.generate("CollectionCompositeAttribute")): CollectionCmpAttribute
+    fun createSingleCompositeAttribute(_identity: Any = UniqueIdentityGenerator.generate("SingleCompositeAttribute")): SingleCmpAttribute
+    fun createSingleReferenceAttribute(_identity: Any = UniqueIdentityGenerator.generate("SingleReferenceAttribute")): SingleRefAttribute
+    fun createCollectionCompositeAttribute(_identity: Any = UniqueIdentityGenerator.generate("CollectionCompositeAttribute")): CollectionCmpAttribute
 }
 
 object ExamplesFactoryRam : Examples_Factory {
     val references: MutableMapNotNull<KClass<*>, MutableMap<Any, Any?>> by lazyMutableMapNotNull { mutableMapOf() }
-    override fun <TO : Any> get(clazz: KClass<TO>, reference: Any): TO? = references[clazz][reference] as? TO
-    override fun <TO : Any> set(clazz: KClass<TO>, reference: Any, value: TO?) {
+    override fun <T : Any> get(clazz: KClass<T>, reference: Any): T? = references[clazz][reference] as? T
+    override fun <T : Any> set(clazz: KClass<T>, reference: Any, value: T?) {
         references[clazz][reference] = value
     }
 
-    override fun createExamples(identifier_: Any): Examples = ExamplesRam(identifier_).also { this[Examples::class, identifier_] = it }
-    override fun createPropType(identifier_: Any): PropType = PropTypeRam(identifier_).also { this[PropType::class, identifier_] = it }
-    override fun createPropTypeB(identifier_: Any): PropTypeB = PropTypeBRam(identifier_).also { this[PropTypeB::class, identifier_] = it }
+    override fun createExamples(_identity: Any): Examples = ExamplesRam(_identity).also { this[Examples::class, _identity] = it }
+    override fun createPropType(_identity: Any): PropType = PropTypeRam(_identity).also { this[PropType::class, _identity] = it }
+    override fun createPropTypeB(_identity: Any): PropTypeB = PropTypeBRam(_identity).also { this[PropTypeB::class, _identity] = it }
 
-    override fun createSingleCompositeAttribute(identifier_: Any): SingleCmpAttribute = SingleCmpAttributeRam(identifier_).also { this[SingleCmpAttribute::class, identifier_] = it }
-    override fun createSingleReferenceAttribute(identifier_: Any): SingleRefAttribute = SingleRefAttributeRam(identifier_).also { this[SingleRefAttribute::class, identifier_] = it }
-    override fun createCollectionCompositeAttribute(identifier_: Any): CollectionCmpAttribute =
-        CollectionCmpAttributeRam(identifier_).also { this[CollectionCmpAttribute::class, identifier_] = it }
+    override fun createSingleCompositeAttribute(_identity: Any): SingleCmpAttribute = SingleCmpAttributeRam(_identity).also { this[SingleCmpAttribute::class, _identity] = it }
+    override fun createSingleReferenceAttribute(_identity: Any): SingleRefAttribute = SingleRefAttributeRam(_identity).also { this[SingleRefAttribute::class, _identity] = it }
+    override fun createCollectionCompositeAttribute(_identity: Any): CollectionCmpAttribute =
+        CollectionCmpAttributeRam(_identity).also { this[CollectionCmpAttribute::class, _identity] = it }
 
 }
