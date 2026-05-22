@@ -22,14 +22,14 @@ import net.akehurst.kotlinx.utils.resolve
 class Examples_Resolver(val store: ReferenceStore<Any>) {
 
     fun resolveExamples(obj: Examples) {
-        obj.content.forEach { resolveElement(it) }
+        obj.contentList.forEach { resolveElement(it) }
     }
 
     fun resolveElement(obj: Element) = when (obj) {
         is SingleCmpAttribute -> resolveSingleCompositeAttribute(obj)
         is SingleRefAttribute -> resolveSingleReferenceAttribute(obj)
         is CollectionCmpAttribute -> resolveCollectionCompositeAttribute(obj)
-        else -> error("")
+        else -> error("Subtype of Element not handled.")
     }
 
     fun resolvePropType(obj: PropType) {

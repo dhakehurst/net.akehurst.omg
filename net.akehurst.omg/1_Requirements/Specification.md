@@ -112,6 +112,13 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
   - [REQ-1.7.8.3] Extraction occurs on each getter invocation (lazy evaluation).
   - [REQ-1.7.8.4] Implementations MAY cache extracted results, but only if reference store mutations are tracked and cache is invalidated on change.
 
+- [REQ-1.7.9] Composite value-holder contract (API): For every single-valued composite attribute of type `T` the API SHALL expose both a resolved-value accessor and a read-only value-holder accessor.
+  - [REQ-1.7.9.1] A resolved-value accessor SHALL be generated (`val {name}: T` for required, `val {name}: T?` for optional).
+  - [REQ-1.7.9.2] A value-holder accessor SHALL be generated with the name `{name}Value` and type `Value<{genType}>` (e.g., `Value<T>` for required, `Value<T?>` for optional).
+  - [REQ-1.7.9.3] The API-level `Value` contract SHALL be read-only (no mutator methods) and SHALL provide access to the stored value; implementations MAY provide `MutableValue`/`ManagedValue` in realisations.
+  - [REQ-1.7.9.4] The resolved-value accessor SHALL obtain its result from the `{name}Value` holder and SHALL throw `IllegalStateException` for required composites when the holder is empty.
+  - [REQ-1.7.9.5] The generated `{name}Value` holder name SHALL be considered during name-collision detection and is subject to the same collision rules as reference holders and collection suffixes (see REQ-1.5.1.7).
+
 ### 1.8 API accessor shape
 - [REQ-1.8.1] API accessors SHALL be read-only `val` and support covariant override.
 - [REQ-1.8.2] If redefining attribute `A` and redefined `B` share `validName`, Kotlin `override` SHALL be used.
@@ -121,6 +128,7 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
 - [REQ-1.8.5] Single reference attributes SHALL expose `Reference<Any, T>` in the API (immutable contract).
   - [REQ-1.8.5.1] No `MutableReference` type SHALL appear in API; only `Reference<Any, T>`.
 - [REQ-1.8.6] API SHALL NOT include mutator extension functions; mutation is the responsibility of the realisation via extensions.
+ - [REQ-1.8.7] API SHALL be permitted to include read-only `Value<*>` holder properties for single-valued composite attributes (see REQ-1.7.9). These holder properties are part of the API contract but do not expose mutators; mutability is a realisation concern.
 
 ### 1.9 Resolver API contract
 - [REQ-1.9.1] For each mapped model, a top-level Resolver entrypoint SHALL be generated.
@@ -156,24 +164,20 @@ and generation-time derived values independent of any specific implementation pr
   - [REQ-2.3.2.1] Optional fields SHALL initialize to `null`.
   - [REQ-2.3.2.2] Required fields SHALL be initialized by generated construction paths before first observable read.
   - [REQ-2.3.2.3] If a required field is read before initialization, the getter SHALL throw `IllegalStateException`.
+  - [REQ-2.3.2.4] For single-valued composite attributes the API SHALL include a read-only `Value<{genType}>` holder property named `{name}Value` (see REQ-1.7.9). Realisation classes SHALL provide a mutable backing implementation (e.g., `MutableValue<{genType}>` or `ManagedValue<{genType}>`) for this holder.
+  - [REQ-2.3.2.5] Realisation implementations SHALL ensure the resolved-value getter (`{name}`) delegates to the corresponding `{name}Value` holder and enforces required/optional semantics (throwing `IllegalStateException` for uninitialized required values).
+  - [REQ-2.3.2.6] RAM realisations that need to maintain opposite-end consistency SHALL use `ManagedValue` (or an equivalent implementation) as the backing `MutableValue` so that changes to composite holders can invoke callbacks and run opposite-end update logic.
 - [REQ-2.3.3] Composite and reference collections SHALL be backed by mutable implementation collections and exposed via immutable `override val` getters returning API types.
 - [REQ-2.3.4] Single references SHALL be backed by mutable reference holders (e.g., `MutableReference<Any, T>` in realisation) and exposed via immutable `Reference<Any, T>` API accessors.
 - [REQ-2.3.5] For reference collections, implementation SHALL use mutable collections of mutable reference holders internally, exposed as immutable `Collection<Reference<Any, T>>` (or appropriate collection kind) in the API.
 
 ### 2.4 Mutator behavior and opposite-end consistency
 
-**Note:** Mutation in the realisation layer occurs through extension functions generated as part of the realisation profile. 
-The API contract exposes only immutable accessor types. The realisation backing store is mutable, but access to mutation 
-mechanics is provided via extensions (e.g., `${property}_set()` for composite attributes, collection `.add()/.remove()` via 
-casting or wrapper extensions, or direct `MutableReference` access in the realisation implementation).
-
-- [REQ-2.4.1] Realisation profiles MAY generate mutator extension functions for single composite attributes only.
-  - [REQ-2.4.1.1] Extension functions SHALL be named `fun ${className}.${propertyName}_set(value: ${genType})`.
-  - [REQ-2.4.1.2] Extension functions are generation-time conveniences provided by the realisation, not required by the API contract.
-  - [REQ-2.4.1.3] No mutator extension functions SHALL be generated for:
-    - Single reference attributes (realisation may expose `MutableReference` internally for mutation).
-    - Collection attributes (mutation occurs via realisation-level casting or wrapper extensions).
-    - Attributes with `isDerived=true` or `isDerivedUnion=true`.
+**Note:** Mutation in the realisation layer is a realisation concern. The API contract exposes only immutable accessor types. The
+realisation backing store is mutable and mutation SHALL occur via the realisation's mutable holders and APIs (for example
+`MutableValue`/`ManagedValue` for composites, `MutableReference`/`ManagedReference` for references, or mutable backing
+collections exposed via wrapper APIs). Generator implementations SHALL NOT emit a standard set of top-level mutator extension
+functions as part of the generated output; any convenience mutators are an implementation detail of a realisation and optional.
 - [REQ-2.4.2] Collection mutation SHALL occur through realisation-provided extensions or direct casting to the mutable backing type.
 - [REQ-2.4.3] Single reference mutation SHALL occur through realisation-level access to `MutableReference` properties (not exposed in API).
 - [REQ-2.4.4] Redefinition mutators with different type and name MAY be generated as distinct extension functions (if REQ-2.4.1 applies).
@@ -199,6 +203,7 @@ casting or wrapper extensions, or direct `MutableReference` access in the realis
     - [REQ-2.5.1.6.6] `OrderedSet<${type.validName}>` for unique/ordered.
   - [REQ-2.5.1.7] Resulting names SHALL be validated against Kotlin keywords and problematic types.
   - [REQ-2.5.1.6] Resulting names SHALL be validated against Kotlin keywords and problematic types.
+  - [REQ-2.5.1.8] For single-valued composite attributes, generators SHALL precompute the value-holder name `{name}Value` and its type `Value<{genType}>` (where `{genType}` follows the rules in [REQ-2.5.1.6]). The computed holder name SHALL be included in name-collision detection (see REQ-1.5.1.7).
 
 ## 3. RAM Realisation Requirements
 
@@ -220,7 +225,8 @@ callback behavior, and generated mutator conventions.
 - [REQ-3.3.3] `ManagedReference` SHALL invoke callbacks when `.resolved` changes.
 - [REQ-3.3.4] Managed collections SHALL invoke callbacks on add/remove.
 - [REQ-3.3.5] Combined managed reference/collection callback lifecycle SHALL maintain opposite-end consistency.
+ - [REQ-3.3.6] Ram single composite holders SHALL use `ManagedValue<T>` (or equivalent) to back API `Value<T>` holders. `ManagedValue` SHALL invoke callbacks when the stored value changes so that opposite-end update logic and subsetting invariants can be enforced by the RAM realisation.
 
 ### 3.4 RAM mutator realization
-- [REQ-3.4.1] Ram generated mutators SHALL be top-level Kotlin extension functions in generated Ram code.
-- [REQ-3.4.2] Ram mutators SHALL follow `${name}_set(value: ${genType})` naming to avoid Kotlin setter clashes.
+- [REQ-3.4.1] Generator implementations SHALL NOT emit a mandatory set of top-level mutator extension functions for RAM realisations. Mutation in RAM shall be achieved via mutable backing holders (e.g., `ManagedValue`, `ManagedReference`, managed collections) and realisation-specific APIs that enforce opposite-end consistency and invariants.
+  

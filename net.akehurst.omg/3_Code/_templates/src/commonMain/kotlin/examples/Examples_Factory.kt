@@ -40,13 +40,13 @@ object ExamplesFactoryRam : Examples_Factory {
         references[clazz][reference] = value
     }
 
-    override fun createExamples(_identity: Any): Examples = ExamplesRam(_identity).also { this[Examples::class, _identity] = it }
-    override fun createPropType(_identity: Any): PropType = PropTypeRam(_identity).also { this[PropType::class, _identity] = it }
-    override fun createPropTypeB(_identity: Any): PropTypeB = PropTypeBRam(_identity).also { this[PropTypeB::class, _identity] = it }
+    override fun createExamples(_identity: Any): Examples = ExamplesRam(this, _identity).also { this[Examples::class, _identity] = it }
+    override fun createPropType(_identity: Any): PropType = PropTypeRam(this, _identity).also { this[PropType::class, _identity] = it }
+    override fun createPropTypeB(_identity: Any): PropTypeB = PropTypeBRam(this, _identity).also { this[PropTypeB::class, _identity] = it }
 
-    override fun createSingleCompositeAttribute(_identity: Any): SingleCmpAttribute = SingleCmpAttributeRam(_identity).also { this[SingleCmpAttribute::class, _identity] = it }
-    override fun createSingleReferenceAttribute(_identity: Any): SingleRefAttribute = SingleRefAttributeRam(_identity).also { this[SingleRefAttribute::class, _identity] = it }
+    override fun createSingleCompositeAttribute(_identity: Any): SingleCmpAttribute = SingleCmpAttributeRam(this, _identity).also { this[SingleCmpAttribute::class, _identity] = it }
+    override fun createSingleReferenceAttribute(_identity: Any): SingleRefAttribute = SingleRefAttributeRam(this, _identity).also { this[SingleRefAttribute::class, _identity] = it }
     override fun createCollectionCompositeAttribute(_identity: Any): CollectionCmpAttribute =
-        CollectionCmpAttributeRam(_identity).also { this[CollectionCmpAttribute::class, _identity] = it }
+        CollectionCmpAttributeRam(this, _identity).also { this[CollectionCmpAttribute::class, _identity] = it }
 
 }

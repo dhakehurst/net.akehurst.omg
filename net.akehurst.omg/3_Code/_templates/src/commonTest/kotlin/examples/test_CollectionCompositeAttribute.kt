@@ -44,8 +44,8 @@ class test_CollectionCompositeAttribute {
         obj.prop1OrderedSet.mutableOrderedSet.add(propValue)
         assertEquals(orderedSetOf(propValue), obj.prop1OrderedSet)
 
-        obj.prop2.mutableList.add(propValue)
-        assertEquals(listOf(propValue), obj.prop2)
+        obj.prop2List.mutableList.add(propValue)
+        assertEquals(listOf(propValue), obj.prop2List)
     }
 
     @Test
@@ -68,9 +68,9 @@ class test_CollectionCompositeAttribute {
 
         assertNotNull(actual)
         assertEquals(1, actual.content.size)
-        assertEquals("obj", actual.content[0].identifier_)
+        assertEquals("obj", actual.content[0]._identity)
         assertTrue(actual.content[0] is CollectionCmpAttribute)
         assertEquals(2, actual.content[0].cast<CollectionCmpAttribute>().prop1OrderedSet.size)
-        assertEquals(3, actual.content[0].cast<CollectionCmpAttribute>().prop2.size)
+        assertEquals(3, actual.content[0].cast<CollectionCmpAttribute>().prop2List.size)
     }
 }

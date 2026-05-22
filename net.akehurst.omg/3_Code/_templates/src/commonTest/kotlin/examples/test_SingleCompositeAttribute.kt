@@ -17,6 +17,7 @@
 package net.akehurst.omg.templates.examples
 
 import net.akehurst.kotlinx.utils.cast
+import net.akehurst.kotlinx.utils.mutableValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -42,10 +43,10 @@ class test_SingleCompositeAttribute {
 
         val propValue = ExamplesFactoryRam.createPropType()
 
-        obj.prop1_set(propValue)
+        obj.prop1Value.mutableValue.set(propValue)
         assertEquals(propValue, obj.prop1)
 
-        obj.prop2_set(propValue)
+        obj.prop2Value.mutableValue.set(propValue)
         assertEquals(propValue, obj.prop2)
     }
 
@@ -62,9 +63,9 @@ class test_SingleCompositeAttribute {
 
         assertNotNull(actual)
         assertEquals(1, actual.content.size)
-        assertEquals("obj", actual.content[0].identifier_)
+        assertEquals("obj", actual.content[0]._identity)
         assertTrue( actual.content[0] is SingleCmpAttribute)
-        assertEquals("p1", actual.content[0].cast<SingleCmpAttribute>().prop1.identifier_)
-        assertEquals("p2", actual.content[0].cast<SingleCmpAttribute>().prop2?.identifier_)
+        assertEquals("p1", actual.content[0].cast<SingleCmpAttribute>().prop1._identity)
+        assertEquals("p2", actual.content[0].cast<SingleCmpAttribute>().prop2?._identity)
     }
 }

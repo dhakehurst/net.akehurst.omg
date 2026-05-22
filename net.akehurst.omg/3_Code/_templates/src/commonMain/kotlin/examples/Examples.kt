@@ -23,11 +23,11 @@ interface Element {
 }
 
 interface Examples : Element {
-    val content: List<Element>
+    val contentList: List<Element>
 }
 
-class ExamplesRam(override val _identity: Any) : Examples {
-    override val content: List<Element> = ManagedList("Examples.content", Element::class)
+class ExamplesRam(val _factory: Examples_Factory, override val _identity: Any) : Examples {
+    override val contentList: List<Element> = ManagedList("Examples.contentList", Element::class)
 }
 
 

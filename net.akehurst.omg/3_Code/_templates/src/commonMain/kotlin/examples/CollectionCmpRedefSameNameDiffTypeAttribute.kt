@@ -34,7 +34,7 @@ interface CollectionCmpRedefSameNameDiffTypeAttribute : CollectionCmpAttribute {
     override val prop2List: List<PropTypeB>
 }
 
-data class CollectionCmpRedefSameNameDiffTypeAttributeRam(override val _identity: Any): CollectionCmpRedefSameNameDiffTypeAttribute {
+data class CollectionCmpRedefSameNameDiffTypeAttributeRam(val _factory: Examples_Factory, override val _identity: Any): CollectionCmpRedefSameNameDiffTypeAttribute {
 
     // --- CollectionCompositeAttribute ---
     //override var prop1Collection  REDEFINED

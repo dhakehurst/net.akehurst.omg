@@ -45,7 +45,7 @@ interface CollectionCmpAttribute : Element {
     val prop4Collection: Collection<PropType>
 }
 
-data class CollectionCmpAttributeRam(override val _identity: Any) : CollectionCmpAttribute {
+data class CollectionCmpAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : CollectionCmpAttribute {
     override val prop1OrderedSet = ManagedOrderedSet<PropType>("CollectionCompositeAttribute.prop1", PropType::class)
     override val prop2List = ManagedList<PropType>("CollectionCompositeAttribute.prop2", PropType::class)
     override val prop3Set = ManagedSet<PropType>("CollectionCompositeAttribute.prop3", PropType::class)

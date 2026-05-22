@@ -34,7 +34,7 @@ interface SingleRefRedefDiffNameSameTypeAttribute : SingleRefAttribute {
     val redefinesProp2Reference: Reference<Any, PropType>
 }
 
-data class SingleRefRedefDiffNameSameTypeAttributeRam(override val _identity: Any) : SingleRefRedefDiffNameSameTypeAttribute {
+data class SingleRefRedefDiffNameSameTypeAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : SingleRefRedefDiffNameSameTypeAttribute {
 
     override val prop1: PropType get() = redefinesProp1
     override val prop1Reference: Reference<Any, PropType> get() = redefinesProp1Reference

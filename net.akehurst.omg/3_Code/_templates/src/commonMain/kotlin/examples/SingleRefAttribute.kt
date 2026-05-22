@@ -32,7 +32,7 @@ interface SingleRefAttribute: Element {
     val prop2Reference: Reference<Any, PropType>
 }
 
-data class SingleRefAttributeRam(override val _identity: Any) : SingleRefAttribute {
+data class SingleRefAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : SingleRefAttribute {
 
     override val prop1: PropType get() = prop1Reference.resolved ?: error("prop1 not resolved")
     override val prop1Reference = ManagedReference<Any, PropType>(null)

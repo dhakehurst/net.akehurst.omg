@@ -40,7 +40,7 @@ class Examples_Builder(
 ) {
     private var _content: Collection<Element>? = null
 
-    fun content(init: Element_ContentBuilder.() -> Unit): Collection<Any> {
+    fun content(init: Element_ContentBuilder.() -> Unit): Collection<Element> {
         val b = Element_ContentBuilder(factory)
         b.init()
         val obj = b.build()
@@ -49,7 +49,7 @@ class Examples_Builder(
     }
 
     fun build(): Examples = factory.createExamples(id).also { self ->
-        _content?.let { self.content.mutableCollection.addAll(it) }
+        _content?.let { self.contentList.mutableCollection.addAll(it) }
     }
 }
 
