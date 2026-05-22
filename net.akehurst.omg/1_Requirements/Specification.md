@@ -1,23 +1,34 @@
+# Requirement Specification
+
 The purpose of this specification is to define how to
 generate Kotlin multiplatform/common code from OMG MOF XMI files.
 
-# Model
-- The model, defined by the (main) XMI file
+## Generator customisation
+- The generator shall have the following configurable parameters
+  - TARGET_PACKAGE - the prefix for all kotlin package
+  - COPYRIGHT - copyright text for the top of each file
+  - external types
+    - a map URL to type name
+    - type mapping for types that are referenced by URL in the XMI as coming from outside the XMI file
+
+## MOF Model
+- The MOF model is defined by the (main) XMI file
 - E.g. UML, SysML, DD, etc
-- Provides:
-    - A top level builder function
-    - A top level Factory referencing sub-package factories (if any)
+- A MOF model shall map to kotlin:
+    - Top level builder function
+    - Top level Factory referencing sub-package factories (if any)
 
-# Package
-- Provides:
-    - a Factory interface
-    - a Builder, to enable construction via a Kotlin builder DSL
-    - a Resolver, to resolve reference properties in a complete structure
-    - an 'AsString' object for creating a string representation of instances, covering each class in the package
-    - a 'Ram' Factory implementation, that also stores a reference to each created object.
-        - factory stores all references until it is garbage collected.
+## MOF Package
+- A MOF Package shall map to kotlin:
+    - Factory interface
+    - Builder, to enable construction via a Kotlin builder DSL
+    - Resolver, to resolve reference properties in a complete structure
+    - AsString object for creating a string representation of instances, covering each class in the package
+    - 'Ram' Factory implementation, that also stores a reference to each created object.
+      - factory stores all references until it is garbage collected.
+- 
 
-# Primitive Types
+## MOF Primitive Types
 - UML.String -> kotlin.String
 - UML.Integer -> kotlin.Long
 - UML.Boolean -> kotlin.Boolean
@@ -25,7 +36,17 @@ generate Kotlin multiplatform/common code from OMG MOF XMI files.
 - UML.UnlimitedNatural -> kotlin.Long
 - Enums are considered to be primitive types
 
-# Classes
+## MOF Enums
+
+- Enums SHALL be put into the kotlin api module
+- Enums SHALL be mapped directly to kotlin enums 
+
+## MOF Interfaces
+
+- Interfaces SHALL be put into the kotlin api module
+- Interfaces SHALL be mapped directly to kotlin enums
+
+## MOF Classes
 - each class is mapped to:
     - interface: with Kotlin-valid interface name
     - an in memory (Ram) based implementation (Kotlin name validation not needed as 'Ram' appended to name)
@@ -47,13 +68,13 @@ generate Kotlin multiplatform/common code from OMG MOF XMI files.
         5. The final set of attributes to generate MUST be deduplicated by `validName` and grouped by originating parent class for documentation.
 
 
-# Associations
+## MOF Associations
 - Association owned ends are not navigable
 - Class owned member ends are implemented as Attributes
     - setting of the opposite end MUST be implemented
     - During mutable collection mutations (add/remove), opposite ends MUST be set automatically (reduces boilerplate in common case).
 
-# Attributes
+## MOF Attributes
 
 - `isID` is not supported; all objects are identified by the `_identity` property.
 - Every object MUST have an `_identity` property that serves as a non-null, unique (per Factory instance), stable identifier for the lifetime of the object.
