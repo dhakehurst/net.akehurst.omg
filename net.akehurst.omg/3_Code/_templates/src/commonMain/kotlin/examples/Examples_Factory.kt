@@ -28,9 +28,9 @@ interface Examples_Factory : ReferenceStore<Any> {
     fun createPropType(identifier_: Any = UniqueIdentityGenerator.generate("PropType")): PropType
     fun createPropTypeB(identifier_: Any = UniqueIdentityGenerator.generate("PropTypeB")): PropTypeB
 
-    fun createSingleCompositeAttribute(identifier_: Any = UniqueIdentityGenerator.generate("SingleCompositeAttribute")): SingleCompositeAttribute
-    fun createSingleReferenceAttribute(identifier_: Any = UniqueIdentityGenerator.generate("SingleReferenceAttribute")): SingleReferenceAttribute
-    fun createCollectionCompositeAttribute(identifier_: Any = UniqueIdentityGenerator.generate("CollectionCompositeAttribute")): CollectionCompositeAttribute
+    fun createSingleCompositeAttribute(identifier_: Any = UniqueIdentityGenerator.generate("SingleCompositeAttribute")): SingleCmpAttribute
+    fun createSingleReferenceAttribute(identifier_: Any = UniqueIdentityGenerator.generate("SingleReferenceAttribute")): SingleRefAttribute
+    fun createCollectionCompositeAttribute(identifier_: Any = UniqueIdentityGenerator.generate("CollectionCompositeAttribute")): CollectionCmpAttribute
 }
 
 object ExamplesFactoryRam : Examples_Factory {
@@ -44,9 +44,9 @@ object ExamplesFactoryRam : Examples_Factory {
     override fun createPropType(identifier_: Any): PropType = PropTypeRam(identifier_).also { this[PropType::class, identifier_] = it }
     override fun createPropTypeB(identifier_: Any): PropTypeB = PropTypeBRam(identifier_).also { this[PropTypeB::class, identifier_] = it }
 
-    override fun createSingleCompositeAttribute(identifier_: Any): SingleCompositeAttribute = SingleCompositeAttributeRam(identifier_).also { this[SingleCompositeAttribute::class, identifier_] = it }
-    override fun createSingleReferenceAttribute(identifier_: Any): SingleReferenceAttribute = SingleReferenceAttributeRam(identifier_).also { this[SingleReferenceAttribute::class, identifier_] = it }
-    override fun createCollectionCompositeAttribute(identifier_: Any): CollectionCompositeAttribute =
-        CollectionCompositeAttributeRam(identifier_).also { this[CollectionCompositeAttribute::class, identifier_] = it }
+    override fun createSingleCompositeAttribute(identifier_: Any): SingleCmpAttribute = SingleCmpAttributeRam(identifier_).also { this[SingleCmpAttribute::class, identifier_] = it }
+    override fun createSingleReferenceAttribute(identifier_: Any): SingleRefAttribute = SingleRefAttributeRam(identifier_).also { this[SingleRefAttribute::class, identifier_] = it }
+    override fun createCollectionCompositeAttribute(identifier_: Any): CollectionCmpAttribute =
+        CollectionCmpAttributeRam(identifier_).also { this[CollectionCmpAttribute::class, identifier_] = it }
 
 }

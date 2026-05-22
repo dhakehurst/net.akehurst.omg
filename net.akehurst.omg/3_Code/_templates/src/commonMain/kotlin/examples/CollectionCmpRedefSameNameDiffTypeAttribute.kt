@@ -21,7 +21,7 @@ import net.akehurst.kotlinx.collections.ManagedOrderedSet
 import net.akehurst.kotlinx.collections.OrderedSet
 
 
-interface CollectionCompositeRedefinedSameNameDiffTypeAttribute : CollectionCompositeAttribute {
+interface CollectionCmpRedefSameNameDiffTypeAttribute : CollectionCmpAttribute {
     /**
      * prop1: PropType [1] { composite unique ordered redefines CollectionCompositeAttribute.prop1 }
      */
@@ -33,15 +33,15 @@ interface CollectionCompositeRedefinedSameNameDiffTypeAttribute : CollectionComp
     override val prop2: List<PropTypeB>
 }
 
-data class CollectionCompositeRedefinedSameNameDiffTypeAttributeRam(override val identifier_: Any): CollectionCompositeRedefinedSameNameDiffTypeAttribute {
+data class CollectionCmpRedefSameNameDiffTypeAttributeRam(override val identifier_: Any): CollectionCmpRedefSameNameDiffTypeAttribute {
 
     // --- CollectionCompositeAttribute ---
     //override var prop1Collection  REDEFINED
     //override val prop2: PropType? REDEFINED
 
     // --- CollectionCompositeRedefinedSameNameDiffTypeAttribute ---
-    override val prop1OrderedSet = ManagedOrderedSet<PropTypeB>("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop1",CollectionCompositeRedefinedSameNameDiffTypeAttribute::class)
-    override val prop2: List<PropTypeB> = ManagedList<PropTypeB>("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop2", CollectionCompositeRedefinedSameNameDiffTypeAttribute::class)
+    override val prop1OrderedSet = ManagedOrderedSet<PropTypeB>("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop1",CollectionCmpRedefSameNameDiffTypeAttribute::class)
+    override val prop2: List<PropTypeB> = ManagedList<PropTypeB>("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop2", CollectionCmpRedefSameNameDiffTypeAttribute::class)
     override val prop3: Set<PropType>  get() = TODO("not implemented")
-    override val prop4: Collection<PropType> = ManagedList<PropTypeB>("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop4",CollectionCompositeRedefinedSameNameDiffTypeAttribute::class)
+    override val prop4: Collection<PropType> = ManagedList<PropTypeB>("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop4",CollectionCmpRedefSameNameDiffTypeAttribute::class)
 }

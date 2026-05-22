@@ -26,9 +26,9 @@ class Examples_Resolver(val store: ReferenceStore<Any>) {
     }
 
     fun resolveElement(obj: Element) = when (obj) {
-        is SingleCompositeAttribute -> resolveSingleCompositeAttribute(obj)
-        is SingleReferenceAttribute -> resolveSingleReferenceAttribute(obj)
-        is CollectionCompositeAttribute -> resolveCollectionCompositeAttribute(obj)
+        is SingleCmpAttribute -> resolveSingleCompositeAttribute(obj)
+        is SingleRefAttribute -> resolveSingleReferenceAttribute(obj)
+        is CollectionCmpAttribute -> resolveCollectionCompositeAttribute(obj)
         else -> error("")
     }
 
@@ -38,17 +38,17 @@ class Examples_Resolver(val store: ReferenceStore<Any>) {
     fun resolvePropTypeB(obj: PropTypeB)  {
     }
 
-    fun resolveSingleCompositeAttribute(obj: SingleCompositeAttribute) {
+    fun resolveSingleCompositeAttribute(obj: SingleCmpAttribute) {
         resolvePropType(obj.prop1)
         obj.prop2?.let { resolvePropType(it) }
     }
 
-    fun resolveSingleReferenceAttribute(obj: SingleReferenceAttribute) {
+    fun resolveSingleReferenceAttribute(obj: SingleRefAttribute) {
         store.resolve(obj.prop1Reference)
         store.resolve(obj.prop2Reference)
     }
 
-    fun resolveCollectionCompositeAttribute(obj: CollectionCompositeAttribute) {
+    fun resolveCollectionCompositeAttribute(obj: CollectionCmpAttribute) {
         obj.prop1OrderedSet.forEach { resolvePropType(it) }
         obj.prop2.forEach { resolvePropType(it) }
         obj.prop3.forEach { resolvePropType(it) }

@@ -69,8 +69,8 @@ class test_CollectionCompositeAttribute {
         assertNotNull(actual)
         assertEquals(1, actual.content.size)
         assertEquals("obj", actual.content[0].identifier_)
-        assertTrue(actual.content[0] is CollectionCompositeAttribute)
-        assertEquals(2, actual.content[0].cast<CollectionCompositeAttribute>().prop1OrderedSet.size)
-        assertEquals(3, actual.content[0].cast<CollectionCompositeAttribute>().prop2.size)
+        assertTrue(actual.content[0] is CollectionCmpAttribute)
+        assertEquals(2, actual.content[0].cast<CollectionCmpAttribute>().prop1OrderedSet.size)
+        assertEquals(3, actual.content[0].cast<CollectionCmpAttribute>().prop2.size)
     }
 }

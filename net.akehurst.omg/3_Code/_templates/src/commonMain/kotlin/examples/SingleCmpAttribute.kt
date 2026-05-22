@@ -17,7 +17,7 @@
 package net.akehurst.omg.templates.examples
 
 
-interface SingleCompositeAttribute: Element {
+interface SingleCmpAttribute: Element {
     /**
      * prop1: PropType [1] {composite}
      */
@@ -31,7 +31,7 @@ interface SingleCompositeAttribute: Element {
     fun prop2_set(value: PropType?)
 }
 
-data class SingleCompositeAttributeRam(override val identifier_: Any): SingleCompositeAttribute {
+data class SingleCmpAttributeRam(override val identifier_: Any): SingleCmpAttribute {
     override var prop1: PropType = PropTypeRam()
     override fun prop1_set(value: PropType) {
         this.prop1 = value

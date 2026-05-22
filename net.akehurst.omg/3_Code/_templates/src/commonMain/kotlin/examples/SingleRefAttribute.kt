@@ -15,11 +15,10 @@
  */
 package net.akehurst.omg.templates.examples
 
-import net.akehurst.kotlinx.utils.MutableReference
 import net.akehurst.kotlinx.utils.MutableReferenceDefault
 import net.akehurst.kotlinx.utils.Reference
 
-interface SingleReferenceAttribute: Element {
+interface SingleRefAttribute: Element {
     /**
      * prop1: PropType [1] {reference}
      */
@@ -35,7 +34,7 @@ interface SingleReferenceAttribute: Element {
     fun prop2_set(value: PropType?)
 }
 
-data class SingleReferenceAttributeRam(override val identifier_: Any) : SingleReferenceAttribute {
+data class SingleRefAttributeRam(override val identifier_: Any) : SingleRefAttribute {
 
     override val prop1: PropType get() = prop1Reference.resolved ?: error("prop1 not resolved")
     override val prop1Reference = MutableReferenceDefault<Any, PropType>(null)

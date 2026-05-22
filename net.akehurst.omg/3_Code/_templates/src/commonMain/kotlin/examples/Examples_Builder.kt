@@ -59,7 +59,7 @@ class Element_ContentBuilder(
 
     fun PropType(id: Any): PropType = factory.createPropType(id)
 
-    fun SingleCompositeAttribute(id: Any, init: SingleCompositeAttribute_Builder.() -> Unit = {}): SingleCompositeAttribute {
+    fun SingleCompositeAttribute(id: Any, init: SingleCompositeAttribute_Builder.() -> Unit = {}): SingleCmpAttribute {
         val b = SingleCompositeAttribute_Builder(factory, id)
         b.init()
         val obj = b.build()
@@ -67,7 +67,7 @@ class Element_ContentBuilder(
         return obj
     }
 
-    fun SingleReferenceAttribute(id: Any, init: SingleReferenceAttribute_Builder.() -> Unit = {}): SingleReferenceAttribute {
+    fun SingleReferenceAttribute(id: Any, init: SingleReferenceAttribute_Builder.() -> Unit = {}): SingleRefAttribute {
         val b = SingleReferenceAttribute_Builder(factory, id)
         b.init()
         val obj = b.build()
@@ -75,7 +75,7 @@ class Element_ContentBuilder(
         return obj
     }
 
-    fun CollectionCompositeAttribute(id: Any, init: CollectionCompositeAttribute_Builder.() -> Unit = {}): CollectionCompositeAttribute {
+    fun CollectionCompositeAttribute(id: Any, init: CollectionCompositeAttribute_Builder.() -> Unit = {}): CollectionCmpAttribute {
         val b = CollectionCompositeAttribute_Builder(factory, id)
         b.init()
         val obj = b.build()
@@ -128,7 +128,7 @@ class SingleCompositeAttribute_Builder(
         return obj
     }
 
-    fun build(): SingleCompositeAttribute = factory.createSingleCompositeAttribute(_id).also { self ->
+    fun build(): SingleCmpAttribute = factory.createSingleCompositeAttribute(_id).also { self ->
         _prop1?.let { self.prop1_set(it) }
         _prop2?.let { self.prop2_set(it) }
     }
@@ -149,7 +149,7 @@ class SingleReferenceAttribute_Builder(
         _prop2 = reference_
     }
 
-    fun build(): SingleReferenceAttribute = factory.createSingleReferenceAttribute(_id).also { self ->
+    fun build(): SingleRefAttribute = factory.createSingleReferenceAttribute(_id).also { self ->
         _prop1?.let { self.prop1Reference.mutableReference.reference = it }
         _prop2?.let { self.prop2Reference.mutableReference.reference = it }
     }
@@ -176,7 +176,7 @@ class CollectionCompositeAttribute_Builder(
         _prop2 = obj
     }
 
-    fun build(): CollectionCompositeAttribute = factory.createCollectionCompositeAttribute(_id).also { self ->
+    fun build(): CollectionCmpAttribute = factory.createCollectionCompositeAttribute(_id).also { self ->
         _prop1?.let { self.prop1OrderedSet.mutableOrderedSet.addAll(it) }
         _prop2?.let { self.prop2.mutableList.addAll(it) }
     }

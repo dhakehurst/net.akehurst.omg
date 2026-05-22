@@ -19,7 +19,7 @@ package net.akehurst.omg.templates.examples
 import net.akehurst.kotlinx.utils.MutableReferenceDefault
 
 
-interface SingleReferenceRedefinedDiffNameSameTypeAttribute : SingleReferenceAttribute {
+interface SingleRefRedefDiffNameSameTypeAttribute : SingleRefAttribute {
     /**
      * prop1: PropType [1] { redefines SingleReferenceAttribute.prop1 }
      */
@@ -35,7 +35,7 @@ interface SingleReferenceRedefinedDiffNameSameTypeAttribute : SingleReferenceAtt
     fun redefinesProp2_set(value: PropType?)
 }
 
-data class SingleReferenceRedefinedDiffNameSameTypeAttributeRam(override val identifier_: Any) : SingleReferenceRedefinedDiffNameSameTypeAttribute {
+data class SingleRefRedefDiffNameSameTypeAttributeRam(override val identifier_: Any) : SingleRefRedefDiffNameSameTypeAttribute {
 
     // --- SingleCompositeAttribute ---
     override val prop1: PropType get() = redefinesProp1

@@ -23,7 +23,7 @@ import net.akehurst.kotlinx.collections.MutableOrderedSet
 import net.akehurst.kotlinx.collections.OrderedSet
 
 
-interface CollectionCompositeAttribute : Element {
+interface CollectionCmpAttribute : Element {
     /**
      * prop1: PropType [0..*] {composite unique ordered}
      */
@@ -44,9 +44,9 @@ interface CollectionCompositeAttribute : Element {
      */
     val prop4: Collection<PropType>
 }
-fun CollectionCompositeAttribute.prop1OrderedSet_mutable(): MutableOrderedSet<PropType> = this.prop1OrderedSet as MutableOrderedSet
+fun CollectionCmpAttribute.prop1OrderedSet_mutable(): MutableOrderedSet<PropType> = this.prop1OrderedSet as MutableOrderedSet
 
-data class CollectionCompositeAttributeRam(override val identifier_: Any) : CollectionCompositeAttribute {
+data class CollectionCmpAttributeRam(override val identifier_: Any) : CollectionCmpAttribute {
     override var prop1OrderedSet = ManagedOrderedSet<PropType>("CollectionCompositeAttribute.prop1",PropType::class)
     override val prop2 = ManagedList<PropType>("CollectionCompositeAttribute.prop2",PropType::class)
     override val prop3 = ManagedSet<PropType>("CollectionCompositeAttribute.prop3",PropType::class)

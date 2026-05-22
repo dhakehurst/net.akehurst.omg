@@ -16,39 +16,38 @@
 
 package net.akehurst.omg.templates.examples
 
-
-
-interface SingleCompositeRedefinedSameNameDiffTypeAttribute : SingleCompositeAttribute {
+interface SingleCmpRedefDiffNameSameTypeAttribute : SingleCmpAttribute {
     /**
      * prop1: PropType [1] { redefines SingleCompositeAttribute.prop1 }
      */
-    override val prop1: PropTypeB
-    fun prop1_set(value: PropTypeB)
+    val redefinesProp1: PropType
+    fun redefinesProp1_set(value: PropType)
 
     /**
      * prop2: PropType [0..1] { redefines SingleCompositeAttribute.prop2 }
      */
-    override val prop2: PropTypeB?
-    fun prop2_set(value: PropTypeB?)
+    val redefinesProp2: PropType?
+    fun redefinesProp2_set(value: PropType?)
 }
 
-data class SingleCompositeRedefinedSameNameDiffTypeAttributeRam(override val identifier_: Any): SingleCompositeRedefinedSameNameDiffTypeAttribute {
+data class SingleCmpRedefDiffNameSameTypeAttributeRam(override val identifier_: Any): SingleCmpRedefDiffNameSameTypeAttribute {
 
     // --- SingleCompositeAttribute ---
-    //override val prop1: PropType REDEFINED
-    override fun prop1_set(value: PropType) = this.prop1_set(value as PropTypeB)
+    override val prop1: PropType get() = redefinesProp1
+    override fun prop1_set(value: PropType) = this.redefinesProp1_set(value)
 
-    //override val prop2: PropType? REDEFINED
-    override fun prop2_set(value: PropType?) = this.prop2_set(value as PropTypeB?)
+    override val prop2: PropType? get() = redefinesProp2
+    override fun prop2_set(value: PropType?) = this.redefinesProp2_set(value)
 
     // --- SingleCompositeRedefinedDiffNameSameTypeAttribute ---
-    override var prop1: PropTypeB = PropTypeBRam()
-    override fun prop1_set(value: PropTypeB) {
-        this.prop1 = value
+    override var redefinesProp1: PropType = PropTypeRam()
+    override fun redefinesProp1_set(value: PropType) {
+        this.redefinesProp1 = value
     }
 
-    override var prop2: PropTypeB? = null
-    override fun prop2_set(value: PropTypeB?) {
-        this.prop2 = value
+    override var redefinesProp2: PropType? = null
+
+    override fun redefinesProp2_set(value: PropType?) {
+        this.redefinesProp2 = value
     }
 }

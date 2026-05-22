@@ -90,8 +90,8 @@ class test_SingleReferenceAttribute {
         assertNotNull(actual)
         assertEquals(1, actual.content.size)
         assertEquals("obj", actual.content[0].identifier_)
-        assertTrue( actual.content[0] is SingleReferenceAttribute)
-        assertEquals("p1", actual.content[0].cast<SingleReferenceAttribute>().prop1.identifier_)
-        assertEquals("p2", actual.content[0].cast<SingleReferenceAttribute>().prop2?.identifier_)
+        assertTrue( actual.content[0] is SingleRefAttribute)
+        assertEquals("p1", actual.content[0].cast<SingleRefAttribute>().prop1.identifier_)
+        assertEquals("p2", actual.content[0].cast<SingleRefAttribute>().prop2?.identifier_)
     }
 }

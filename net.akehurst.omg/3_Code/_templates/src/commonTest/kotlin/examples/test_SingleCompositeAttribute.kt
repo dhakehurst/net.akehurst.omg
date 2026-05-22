@@ -63,8 +63,8 @@ class test_SingleCompositeAttribute {
         assertNotNull(actual)
         assertEquals(1, actual.content.size)
         assertEquals("obj", actual.content[0].identifier_)
-        assertTrue( actual.content[0] is SingleCompositeAttribute)
-        assertEquals("p1", actual.content[0].cast<SingleCompositeAttribute>().prop1.identifier_)
-        assertEquals("p2", actual.content[0].cast<SingleCompositeAttribute>().prop2?.identifier_)
+        assertTrue( actual.content[0] is SingleCmpAttribute)
+        assertEquals("p1", actual.content[0].cast<SingleCmpAttribute>().prop1.identifier_)
+        assertEquals("p2", actual.content[0].cast<SingleCmpAttribute>().prop2?.identifier_)
     }
 }
