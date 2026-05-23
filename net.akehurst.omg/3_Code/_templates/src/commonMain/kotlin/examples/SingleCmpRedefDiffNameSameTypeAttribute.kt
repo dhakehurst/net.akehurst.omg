@@ -34,13 +34,15 @@ interface SingleCmpRedefDiffNameSameTypeAttribute : SingleCmpAttribute {
 }
 
 data class SingleCmpRedefDiffNameSameTypeAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : SingleCmpRedefDiffNameSameTypeAttribute {
-    override val redefinesProp1Value: Value<PropType> = ManagedValue(_factory.createPropType())
+    override val redefinesProp1Value: Value<PropType> = ManagedValue(_factory.createPropType(),"SingleCmpRedefDiffNameSameTypeAttributeRam.redefinesProp1", PropType::class)
     override val redefinesProp1: PropType get() = redefinesProp1Value.get()
     override val prop1Value: Value<PropType> get() = redefinesProp1Value
     override val prop1: PropType get() = prop1Value.get()
 
-    override val redefinesProp2Value: Value<PropType?> = ManagedValue(null)
+    override val redefinesProp2Value: Value<PropType?> = ManagedValue(null,"SingleCmpRedefDiffNameSameTypeAttributeRam.redefinesProp2", PropType::class)
     override val redefinesProp2: PropType? get() = redefinesProp2Value.get()
     override val prop2Value: Value<PropType?> get() = redefinesProp2Value
     override val prop2: PropType? get() = prop2Value.get()
+
+    override fun toString(): String = "SingleCmpRedefDiffNameSameTypeAttribute('${_factory._identity}','$_identity')"
 }

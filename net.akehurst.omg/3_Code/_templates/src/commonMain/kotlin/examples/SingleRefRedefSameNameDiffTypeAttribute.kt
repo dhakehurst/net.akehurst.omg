@@ -35,8 +35,10 @@ interface SingleRefRedefSameNameDiffTypeAttribute : SingleRefAttribute {
 
 data class SingleRefRedefSameNameDiffTypeAttributeRam(val _factory: Examples_Factory, override val _identity: Any): SingleRefRedefSameNameDiffTypeAttribute {
     override val prop1: PropTypeB get() = prop1Reference.resolved ?: error("prop1 not resolved")
-    override val prop1Reference = ManagedReference<Any, PropTypeB>(null)
+    override val prop1Reference = ManagedReference<Any, PropTypeB>(null, "SingleRefRedefSameNameDiffTypeAttributeRam.prop1", PropTypeB::class)
 
     override val prop2: PropTypeB? get() = prop2Reference.resolved
-    override val prop2Reference = ManagedReference<Any, PropTypeB>(null)
+    override val prop2Reference = ManagedReference<Any, PropTypeB>(null, "SingleRefRedefSameNameDiffTypeAttributeRam.prop2", PropTypeB::class)
+
+    override fun toString(): String = "SingleRefRedefSameNameDiffTypeAttribute('${_factory._identity}','$_identity')"
 }

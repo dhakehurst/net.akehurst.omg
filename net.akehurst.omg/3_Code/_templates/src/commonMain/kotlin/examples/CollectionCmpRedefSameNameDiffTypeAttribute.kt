@@ -45,4 +45,6 @@ data class CollectionCmpRedefSameNameDiffTypeAttributeRam(val _factory: Examples
     override val prop2List: List<PropTypeB> = ManagedList<PropTypeB>("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop2", CollectionCmpRedefSameNameDiffTypeAttribute::class)
     override val prop3Set: Set<PropType> = ManagedSet<PropType>("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop3", CollectionCmpRedefSameNameDiffTypeAttribute::class)
     override val prop4Collection: Collection<PropType> = ManagedList<PropType>("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop4", CollectionCmpRedefSameNameDiffTypeAttribute::class)
+
+    override fun toString(): String = "CollectionCmpRedefSameNameDiffTypeAttribute('${_factory._identity}','$_identity')"
 }

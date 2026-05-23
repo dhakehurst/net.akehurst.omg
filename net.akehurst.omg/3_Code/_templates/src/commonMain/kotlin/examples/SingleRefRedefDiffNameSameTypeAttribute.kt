@@ -43,9 +43,10 @@ data class SingleRefRedefDiffNameSameTypeAttributeRam(val _factory: Examples_Fac
     override val prop2Reference: Reference<Any, PropType> get() = redefinesProp2Reference
 
     override val redefinesProp1: PropType get() = redefinesProp1Reference.resolved ?: error("prop1 not resolved")
-    override val redefinesProp1Reference = ManagedReference<Any, PropType>(null)
+    override val redefinesProp1Reference = ManagedReference<Any, PropType>(null, "SingleRefRedefDiffNameSameTypeAttributeRam.redefinesProp1", PropType::class)
 
     override val redefinesProp2: PropType? get() = redefinesProp2Reference.resolved
-    override val redefinesProp2Reference = ManagedReference<Any, PropType>(null)
+    override val redefinesProp2Reference = ManagedReference<Any, PropType>(null, "SingleRefRedefDiffNameSameTypeAttributeRam.redefinesProp2", PropType::class)
 
+    override fun toString(): String = "SingleRefRedefDiffNameSameTypeAttributeRam('${_factory._identity}','$_identity')"
 }

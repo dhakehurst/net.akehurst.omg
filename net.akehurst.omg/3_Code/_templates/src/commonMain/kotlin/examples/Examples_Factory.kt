@@ -23,6 +23,8 @@ import net.akehurst.kotlinx.utils.UniqueIdentityGenerator
 import kotlin.reflect.KClass
 
 interface Examples_Factory : ReferenceStore<Any> {
+    val _identity: Any
+
     fun createExamples(_identity: Any = UniqueIdentityGenerator.generate("Examples")): Examples
 
     fun createPropType(_identity: Any = UniqueIdentityGenerator.generate("PropType")): PropType
@@ -31,9 +33,16 @@ interface Examples_Factory : ReferenceStore<Any> {
     fun createSingleCompositeAttribute(_identity: Any = UniqueIdentityGenerator.generate("SingleCompositeAttribute")): SingleCmpAttribute
     fun createSingleReferenceAttribute(_identity: Any = UniqueIdentityGenerator.generate("SingleReferenceAttribute")): SingleRefAttribute
     fun createCollectionCompositeAttribute(_identity: Any = UniqueIdentityGenerator.generate("CollectionCompositeAttribute")): CollectionCmpAttribute
+    fun createSingleCmpRedefSameNameDiffTypeAttribute(_identity: Any = UniqueIdentityGenerator.generate("SingleCmpRedefSameNameDiffTypeAttribute")): SingleCmpRedefSameNameDiffTypeAttribute
+    fun createSingleCmpRedefDiffNameSameTypeAttribute(_identity: Any = UniqueIdentityGenerator.generate("SingleCmpRedefDiffNameSameTypeAttribute")): SingleCmpRedefDiffNameSameTypeAttribute
+    fun createCollectionCmpRedefSameNameDiffTypeAttribute(_identity: Any = UniqueIdentityGenerator.generate("CollectionCmpRedefSameNameDiffTypeAttribute")): CollectionCmpRedefSameNameDiffTypeAttribute
+    fun createSingleRefRedefSameNameDiffTypeAttribute(_identity: Any = UniqueIdentityGenerator.generate("SingleRefRedefSameNameDiffTypeAttribute")): SingleRefRedefSameNameDiffTypeAttribute
+    fun createSingleRefRedefDiffNameSameTypeAttribute(_identity: Any = UniqueIdentityGenerator.generate("SingleRefRedefDiffNameSameTypeAttribute")): SingleRefRedefDiffNameSameTypeAttribute
 }
 
-object ExamplesFactoryRam : Examples_Factory {
+data class ExamplesFactoryRam(
+    override val _identity: Any = UniqueIdentityGenerator.generate("ExamplesFactoryRam"),
+) : Examples_Factory {
     val references: MutableMapNotNull<KClass<*>, MutableMap<Any, Any?>> by lazyMutableMapNotNull { mutableMapOf() }
     override fun <T : Any> get(clazz: KClass<T>, reference: Any): T? = references[clazz][reference] as? T
     override fun <T : Any> set(clazz: KClass<T>, reference: Any, value: T?) {
@@ -49,4 +58,11 @@ object ExamplesFactoryRam : Examples_Factory {
     override fun createCollectionCompositeAttribute(_identity: Any): CollectionCmpAttribute =
         CollectionCmpAttributeRam(this, _identity).also { this[CollectionCmpAttribute::class, _identity] = it }
 
+    override fun createSingleCmpRedefSameNameDiffTypeAttribute(_identity: Any): SingleCmpRedefSameNameDiffTypeAttribute = SingleCmpRedefSameNameDiffTypeAttributeRam(this, _identity).also { this[SingleCmpRedefSameNameDiffTypeAttribute::class, _identity] = it }
+    override fun createSingleCmpRedefDiffNameSameTypeAttribute(_identity: Any): SingleCmpRedefDiffNameSameTypeAttribute = SingleCmpRedefDiffNameSameTypeAttributeRam(this, _identity).also { this[SingleCmpRedefDiffNameSameTypeAttribute::class, _identity] = it }
+    override fun createCollectionCmpRedefSameNameDiffTypeAttribute(_identity: Any): CollectionCmpRedefSameNameDiffTypeAttribute = CollectionCmpRedefSameNameDiffTypeAttributeRam(this, _identity).also { this[CollectionCmpRedefSameNameDiffTypeAttribute::class, _identity] = it }
+    override fun createSingleRefRedefSameNameDiffTypeAttribute(_identity: Any): SingleRefRedefSameNameDiffTypeAttribute = SingleRefRedefSameNameDiffTypeAttributeRam(this, _identity).also { this[SingleRefRedefSameNameDiffTypeAttribute::class, _identity] = it }
+    override fun createSingleRefRedefDiffNameSameTypeAttribute(_identity: Any): SingleRefRedefDiffNameSameTypeAttribute = SingleRefRedefDiffNameSameTypeAttributeRam(this, _identity).also { this[SingleRefRedefDiffNameSameTypeAttribute::class, _identity] = it }
+
+    override fun toString(): String = "ExamplesFactoryRam(${_identity})"
 }

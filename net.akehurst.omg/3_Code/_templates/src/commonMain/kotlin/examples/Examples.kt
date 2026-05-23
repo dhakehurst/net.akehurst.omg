@@ -26,8 +26,13 @@ interface Examples : Element {
     val contentList: List<Element>
 }
 
-class ExamplesRam(val _factory: Examples_Factory, override val _identity: Any) : Examples {
+data class ExamplesRam(
+    val _factory: Examples_Factory,
+    override val _identity: Any
+) : Examples {
     override val contentList: List<Element> = ManagedList("Examples.contentList", Element::class)
+
+    override fun toString(): String = "Examples('${_factory._identity}.$_identity')"
 }
 
 

@@ -50,4 +50,6 @@ data class CollectionCmpAttributeRam(val _factory: Examples_Factory, override va
     override val prop2List = ManagedList<PropType>("CollectionCompositeAttribute.prop2", PropType::class)
     override val prop3Set = ManagedSet<PropType>("CollectionCompositeAttribute.prop3", PropType::class)
     override val prop4Collection = ManagedList<PropType>("CollectionCompositeAttribute.prop4", PropType::class)
+
+    override fun toString(): String = "CollectionCmpAttribute('${_factory._identity}','$_identity')"
 }
