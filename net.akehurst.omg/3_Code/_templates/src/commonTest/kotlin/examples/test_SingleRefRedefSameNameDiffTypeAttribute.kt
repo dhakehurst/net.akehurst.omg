@@ -26,7 +26,7 @@ class test_SingleRefRedefSameNameDiffTypeAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleRefRedefSameNameDiffTypeAttribute()
+        val obj = factory.SingleRefRedefSameNameDiffTypeAttribute_construct()
         assertNotNull(obj)
         try {
             obj.prop1
@@ -50,7 +50,7 @@ class test_SingleRefRedefSameNameDiffTypeAttribute {
                 }
             }
         }
-        val obj = model.contentList[0].cast<SingleRefRedefSameNameDiffTypeAttribute>()
+        val obj = model.contentList[2].cast<SingleRefRedefSameNameDiffTypeAttribute>()
         assertEquals("p1", obj.prop1._identity)
         assertEquals("p2", obj.prop2?._identity)
     }
@@ -58,8 +58,8 @@ class test_SingleRefRedefSameNameDiffTypeAttribute {
     @Test
     fun property_by_reference_and_builder() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleRefRedefSameNameDiffTypeAttribute()
-        val p1 = factory.createPropTypeB("p1")
+        val obj = factory.SingleRefRedefSameNameDiffTypeAttribute_construct()
+        val p1 = factory.PropTypeB_construct("p1")
 
         obj.prop1Reference.mutable.reference = "p1"
         factory.resolve(obj.prop1Reference)
@@ -73,34 +73,46 @@ class test_SingleRefRedefSameNameDiffTypeAttribute {
                 }
             }
         }
-        val inst = actual.contentList[0].cast<SingleRefRedefSameNameDiffTypeAttribute>()
+        val inst = actual.contentList[1].cast<SingleRefRedefSameNameDiffTypeAttribute>()
         assertEquals("b1", inst.prop1._identity)
     }
 
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.createSingleRefRedefSameNameDiffTypeAttribute()
-        val b = factory.createSingleRefRedefSameNameDiffTypeAttribute()
+        val a = factory.SingleRefRedefSameNameDiffTypeAttribute_construct()
+        val b = factory.SingleRefRedefSameNameDiffTypeAttribute_construct()
         // identities are non-null by contract; assert they differ
         assertTrue(a._identity != b._identity)
     }
 
     @Test
-    fun asString_contains_properties() {
+    fun asString() {
         val factory = ExamplesFactoryRam()
-        val actual = Examples(factory, "Test") {
+        val model = Examples(factory, "Test") {
             content {
-                PropTypeB("as1")
+                PropTypeB("p1")
+                PropTypeB("p2")
                 SingleRefRedefSameNameDiffTypeAttribute("obj") {
-                    prop1("as1")
+                    prop1("p1")
+                    prop2("p2")
                 }
             }
         }
-        val obj = actual.contentList[0].cast<SingleRefRedefSameNameDiffTypeAttribute>()
-        val s = Examples_ModelAsString.asStringSingleRefRedefSameNameDiffTypeAttribute(obj)
-        assertTrue(s.contains("prop1"))
-        assertTrue(s.contains("as1"))
+
+        val actual = Examples_ModelAsString.Examples_asString(model)
+        val expected = """
+            Examples 'ExamplesFactoryRam0.Test'
+              content = List [
+                PropTypeB 'ExamplesFactoryRam0.p1'
+                PropTypeB 'ExamplesFactoryRam0.p2'
+                SingleRefRedefSameNameDiffTypeAttribute 'ExamplesFactoryRam0.obj'
+                  prop1 PropTypeB 'ExamplesFactoryRam0.p1'
+                  prop2 PropTypeB 'ExamplesFactoryRam0.p2'
+              ]
+        """.trimIndent()
+
+        assertEquals(expected, actual)
     }
 }
 

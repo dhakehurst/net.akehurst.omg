@@ -40,5 +40,5 @@ data class SingleRefAttributeRam(val _factory: Examples_Factory, override val _i
     override val prop2: PropType? get() = prop2Reference.resolved
     override val prop2Reference = ManagedReference<Any, PropType>(null, "SingleRefAttributeRam.prop2", PropType::class)
 
-    override fun toString(): String = "SingleRefAttribute('${_factory._identity}.$_identity')"
+    override fun toString(): String = "SingleRefAttribute '${_factory._identity}.$_identity' "
 }

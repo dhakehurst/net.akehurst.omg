@@ -26,8 +26,7 @@ object Examples_ModelAsString {
             val sb = StringBuilder()
             sb.appendLine("[")
             val indentItem = indent.inc
-            self.forEach { item -> sb.append(this.Element_asString(item, indentItem)) }
-            sb.appendLine()
+            self.forEach { item -> sb.appendLine(this.Element_asString(item, indentItem)) }
             sb.append("${indent}]")
             sb.toString()
         }
@@ -52,10 +51,10 @@ object Examples_ModelAsString {
         is SingleCmpRedefSameNameDiffTypeAttribute -> SingleCmpRedefSameNameDiffTypeAttribute_asString(self, indent)
         is SingleCmpRedefDiffNameSameTypeAttribute -> SingleCmpRedefDiffNameSameTypeAttribute_asString(self, indent)
         is CollectionCmpAttribute -> CollectionCmpAttribute_asString(self, indent)
-        is CollectionCmpRedefSameNameDiffTypeAttribute -> asStringCollectionCmpRedefSameNameDiffTypeAttribute(self, indent)
-        is SingleRefAttribute -> asStringSingleRefAttribute(self, indent)
-        is SingleRefRedefSameNameDiffTypeAttribute -> asStringSingleRefRedefSameNameDiffTypeAttribute(self, indent)
-        is SingleRefRedefDiffNameSameTypeAttribute -> asStringSingleRefRedefDiffNameSameTypeAttribute(self, indent)
+        is CollectionCmpRedefSameNameDiffTypeAttribute -> CollectionCmpRedefSameNameDiffTypeAttribute_asString(self, indent)
+        is SingleRefAttribute -> SingleRefAttribute_asString(self, indent)
+        is SingleRefRedefSameNameDiffTypeAttribute -> SingleRefRedefSameNameDiffTypeAttribute_asString(self, indent)
+        is SingleRefRedefDiffNameSameTypeAttribute -> SingleRefRedefDiffNameSameTypeAttribute_asString(self, indent)
         is PropType -> PropType_asString(self, indent)
         else -> error("Element subtype '${self::class.simpleName}' not handled.")
     }
@@ -85,7 +84,7 @@ object Examples_ModelAsString {
 
     fun PropTypeB_asString(self: PropTypeB, indent: Indent = Indent()): String {
         val sb = StringBuilder()
-        sb.append(self)
+        sb.append("$indent$self")
         return sb.toString()
     }
 
@@ -111,10 +110,15 @@ object Examples_ModelAsString {
         sb.append("$indent$self")
         val indentInc = indent.inc
         // prop1: PropTypeB [1] { redefines SingleCompositeAttribute.prop1 }
-        sb.appendLine()
-        sb.append("${indentInc}prop1 ${this.PropTypeB_asString(self.prop1)}")
+        self.prop1.let {
+            sb.appendLine()
+            sb.append("${indentInc}prop1 ${this.PropTypeB_asString(it)}")
+        }
         // prop2: PropTypeB [0..1] { redefines SingleCompositeAttribute.prop2 }
-        self.prop2?.let { sb.appendLine(); sb.append("${indentInc}prop2 ${this.PropTypeB_asString(it)}") }
+        self.prop2?.let {
+            sb.appendLine()
+            sb.append("${indentInc}prop2 ${this.PropTypeB_asString(it)}")
+        }
         return sb.toString()
     }
 
@@ -122,9 +126,14 @@ object Examples_ModelAsString {
         val sb = StringBuilder()
         sb.append("$indent$self")
         val indentInc = indent.inc
-        sb.appendLine()
-        sb.append("${indentInc}redefinesProp1 ${this.PropType_asString(self.redefinesProp1)}")
-        self.redefinesProp2?.let { sb.appendLine(); sb.append("${indentInc}redefinesProp2 ${this.PropType_asString(it)}") }
+        self.redefinesProp1.let {
+            sb.appendLine()
+            sb.append("${indentInc}redefinesProp1 ${this.PropType_asString(it)}")
+        }
+        self.redefinesProp2?.let {
+            sb.appendLine()
+            sb.append("${indentInc}redefinesProp2 ${this.PropType_asString(it)}")
+        }
         return sb.toString()
     }
 
@@ -155,7 +164,7 @@ object Examples_ModelAsString {
         return sb.toString()
     }
 
-    fun asStringCollectionCmpRedefSameNameDiffTypeAttribute(self: CollectionCmpRedefSameNameDiffTypeAttribute, indent: Indent = Indent()): String {
+    fun CollectionCmpRedefSameNameDiffTypeAttribute_asString(self: CollectionCmpRedefSameNameDiffTypeAttribute, indent: Indent = Indent()): String {
         val sb = StringBuilder()
         sb.append("$indent$self")
         val indentInc = indent.inc
@@ -167,7 +176,7 @@ object Examples_ModelAsString {
         return sb.toString()
     }
 
-    fun asStringSingleRefAttribute(self: SingleRefAttribute, indent: Indent = Indent()): String {
+    fun SingleRefAttribute_asString(self: SingleRefAttribute, indent: Indent = Indent()): String {
         val sb = StringBuilder()
         sb.append("$indent$self")
         val indentInc = indent.inc
@@ -179,7 +188,7 @@ object Examples_ModelAsString {
         return sb.toString()
     }
 
-    fun asStringSingleRefRedefSameNameDiffTypeAttribute(self: SingleRefRedefSameNameDiffTypeAttribute, indent: Indent = Indent()): String {
+    fun SingleRefRedefSameNameDiffTypeAttribute_asString(self: SingleRefRedefSameNameDiffTypeAttribute, indent: Indent = Indent()): String {
         val sb = StringBuilder()
         sb.append("$indent$self")
         val indentInc = indent.inc
@@ -189,7 +198,7 @@ object Examples_ModelAsString {
         return sb.toString()
     }
 
-    fun asStringSingleRefRedefDiffNameSameTypeAttribute(self: SingleRefRedefDiffNameSameTypeAttribute, indent: Indent = Indent()): String {
+    fun SingleRefRedefDiffNameSameTypeAttribute_asString(self: SingleRefRedefDiffNameSameTypeAttribute, indent: Indent = Indent()): String {
         val sb = StringBuilder()
         sb.append("$indent$self")
         val indentInc = indent.inc

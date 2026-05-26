@@ -31,7 +31,7 @@ class test_CollectionCmpAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createCollectionCompositeAttribute()
+        val obj = factory.CollectionCmpAttribute_construct()
         assertNotNull(obj)
         assertNotNull(obj.prop1OrderedSet)
         assertTrue(obj.prop1OrderedSet.isEmpty())
@@ -40,9 +40,9 @@ class test_CollectionCmpAttribute {
     @Test
     fun property() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createCollectionCompositeAttribute()
+        val obj = factory.CollectionCmpAttribute_construct()
 
-        val propValue = factory.createPropType()
+        val propValue = factory.PropType_construct()
 
         obj.prop1OrderedSet.mutable.add(propValue)
         assertEquals(orderedSetOf(propValue), obj.prop1OrderedSet)
@@ -81,8 +81,8 @@ class test_CollectionCmpAttribute {
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.createCollectionCompositeAttribute()
-        val b = factory.createCollectionCompositeAttribute()
+        val a = factory.CollectionCmpAttribute_construct()
+        val b = factory.CollectionCmpAttribute_construct()
 
         assertNotNull(a._identity)
         assertNotNull(b._identity)
@@ -95,9 +95,9 @@ class test_CollectionCmpAttribute {
     @Test
     fun collection_holder_add_remove_reflected() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createCollectionCompositeAttribute()
-        val p1 = factory.createPropType("c1")
-        val p2 = factory.createPropType("c2")
+        val obj = factory.CollectionCmpAttribute_construct()
+        val p1 = factory.PropType_construct("c1")
+        val p2 = factory.PropType_construct("c2")
 
         // add to ordered set
         obj.prop1OrderedSet.mutable.add(p1)
@@ -138,7 +138,7 @@ class test_CollectionCmpAttribute {
     }
 
     @Test
-    fun asString_contains_elements() {
+    fun asString() {
         val factory = ExamplesFactoryRam()
         val model = Examples(factory, "Test") {
             content {
@@ -158,17 +158,21 @@ class test_CollectionCmpAttribute {
 
         val actual = Examples_ModelAsString.Examples_asString(model)
         val expected = """
-            Examples('ExamplesFactoryRam0.Examples0') {
+            Examples 'ExamplesFactoryRam0.Test'
               content = List [
-                CollectionCmpAttribute('ExamplesFactoryRam0.obj')
+                CollectionCmpAttribute 'ExamplesFactoryRam0.obj'
                   prop1 = OrderedSet [
-                     PropType('ExamplesFactoryRam0.p1')
+                    PropType 'ExamplesFactoryRam0.p1.1'
+                    PropType 'ExamplesFactoryRam0.p1.2'
                   ]
                   prop2 = List [
-                    PropType('ExamplesFactoryRam0.p2')
+                    PropType 'ExamplesFactoryRam0.p2.1'
+                    PropType 'ExamplesFactoryRam0.p2.2'
+                    PropType 'ExamplesFactoryRam0.p2.3'
                   ]
+                  prop3 = Set []
+                  prop4 = Collection []
               ]
-            }    
         """.trimIndent()
         assertEquals(expected, actual)
     }

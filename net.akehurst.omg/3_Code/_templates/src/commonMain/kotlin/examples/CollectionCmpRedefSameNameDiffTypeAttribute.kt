@@ -24,27 +24,39 @@ import net.akehurst.kotlinx.collections.OrderedSet
 
 interface CollectionCmpRedefSameNameDiffTypeAttribute : CollectionCmpAttribute {
     /**
-     * prop1: PropType [1] { composite unique ordered redefines CollectionCompositeAttribute.prop1 }
+     * prop1: PropType [0..*] { composite unique ordered redefines CollectionCompositeAttribute.prop1 }
      */
     override val prop1OrderedSet: OrderedSet<PropTypeB>
 
     /**
-     * prop2: PropType [0..1] { composite nonunique ordered redefines CollectionCompositeAttribute.prop2 }
+     * prop2: PropType [0..*] { composite nonunique ordered redefines CollectionCompositeAttribute.prop2 }
      */
     override val prop2List: List<PropTypeB>
+
+    /**
+     * prop3: PropType [0..*] {composite unique unordered redefines CollectionCompositeAttribute.prop3 }
+     */
+    override val prop3Set: Set<PropTypeB>
+
+    /**
+     * prop4: PropType [0..*] {composite nonunique unordered redefines CollectionCompositeAttribute.prop4 }
+     */
+    override val prop4Collection: Collection<PropTypeB>
 }
 
 data class CollectionCmpRedefSameNameDiffTypeAttributeRam(val _factory: Examples_Factory, override val _identity: Any): CollectionCmpRedefSameNameDiffTypeAttribute {
 
     // --- CollectionCompositeAttribute ---
-    //override var prop1Collection  REDEFINED
-    //override val prop2: PropType? REDEFINED
+    //override var prop1Collection: PropType  REDEFINED
+    //override val prop2List: PropType REDEFINED
+    //override val prop3Set: PropType REDEFINED
+    //override val prop4Collection: PropType REDEFINED
 
     // --- CollectionCompositeRedefinedSameNameDiffTypeAttribute ---
-    override val prop1OrderedSet = ManagedOrderedSet<PropTypeB>("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop1",CollectionCmpRedefSameNameDiffTypeAttribute::class)
-    override val prop2List: List<PropTypeB> = ManagedList<PropTypeB>("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop2", CollectionCmpRedefSameNameDiffTypeAttribute::class)
-    override val prop3Set: Set<PropType> = ManagedSet<PropType>("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop3", CollectionCmpRedefSameNameDiffTypeAttribute::class)
-    override val prop4Collection: Collection<PropType> = ManagedList<PropType>("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop4", CollectionCmpRedefSameNameDiffTypeAttribute::class)
+    override val prop1OrderedSet: OrderedSet<PropTypeB> = ManagedOrderedSet("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop1",PropTypeB::class)
+    override val prop2List: List<PropTypeB> = ManagedList("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop2", PropTypeB::class)
+    override val prop3Set: Set<PropTypeB> = ManagedSet("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop3", PropTypeB::class)
+    override val prop4Collection: Collection<PropTypeB> = ManagedList("CollectionCompositeRedefinedSameNameDiffTypeAttribute.prop4", PropTypeB::class)
 
-    override fun toString(): String = "CollectionCmpRedefSameNameDiffTypeAttribute('${_factory._identity}','$_identity')"
+    override fun toString(): String = "CollectionCmpRedefSameNameDiffTypeAttribute '${_factory._identity}.$_identity'"
 }

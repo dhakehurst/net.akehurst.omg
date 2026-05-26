@@ -37,12 +37,12 @@ interface SingleCmpAttribute : Element {
 
 
 data class SingleCmpAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : SingleCmpAttribute {
-    override val prop1Value: Value<PropType> = ManagedValue(_factory.createPropType(), "SingleCmpAttributeRam.prop1", PropType::class)
+    override val prop1Value: Value<PropType> = ManagedValue(_factory.PropType_construct(), "SingleCmpAttributeRam.prop1", PropType::class)
     override val prop1: PropType get() = prop1Value.get()
 
     override val prop2Value: Value<PropType?> = ManagedValue(null,"SingleCmpAttributeRam.prop2", PropType::class)
     override val prop2: PropType? get() = prop2Value.get()
 
-    override fun toString(): String = "SingleCmpAttribute('${_factory._identity}.${_identity}')"
+    override fun toString(): String = "SingleCmpAttribute '${_factory._identity}.${_identity}'"
 }
 

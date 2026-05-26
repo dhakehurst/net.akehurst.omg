@@ -25,7 +25,7 @@ class test_SingleCmpRedefDiffNameSameTypeAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleCmpRedefDiffNameSameTypeAttribute()
+        val obj = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct()
         assertNotNull(obj)
         assertNotNull(obj.redefinesProp1)
         assertNull(obj.redefinesProp2)
@@ -34,13 +34,13 @@ class test_SingleCmpRedefDiffNameSameTypeAttribute {
     @Test
     fun property() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleCmpRedefDiffNameSameTypeAttribute()
+        val obj = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct()
 
-        val pv = factory.createPropType()
+        val pv = factory.PropType_construct()
         obj.redefinesProp1Value.mutable.set(pv)
         assertEquals(pv, obj.redefinesProp1)
 
-        val pv2 = factory.createPropType()
+        val pv2 = factory.PropType_construct()
         obj.redefinesProp2Value.mutable.set(pv2)
         assertEquals(pv2, obj.redefinesProp2)
     }
@@ -67,23 +67,36 @@ class test_SingleCmpRedefDiffNameSameTypeAttribute {
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.createSingleCmpRedefDiffNameSameTypeAttribute()
-        val b = factory.createSingleCmpRedefDiffNameSameTypeAttribute()
+        val a = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct()
+        val b = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct()
         assertNotNull(a._identity)
         assertNotNull(b._identity)
         assertNotEquals(a._identity, b._identity)
     }
 
     @Test
-    fun asString_contains_properties() {
+    fun asString() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleCmpRedefDiffNameSameTypeAttribute()
-        val p = factory.createPropType("as1")
-        obj.redefinesProp1Value.mutable.set(p)
+        val model = Examples(factory, "Test") {
+            content {
+                SingleCmpRedefDiffNameSameTypeAttribute("obj") {
+                    redefinesProp1("p1") {}
+                    redefinesProp2("pb2") {}
+                }
+            }
+        }
 
-        val s = Examples_ModelAsString.SingleCmpRedefDiffNameSameTypeAttribute_asString(obj)
-        assertTrue(s.contains("redefinesProp1"))
-        assertTrue(s.contains(p._identity.toString()))
+        val actual = Examples_ModelAsString.Examples_asString(model)
+        val expected = """
+            Examples 'ExamplesFactoryRam0.Test'
+              content = List [
+                SingleCmpRedefDiffNameSameTypeAttribute 'ExamplesFactoryRam0.obj'
+                  prop1 PropType 'ExamplesFactoryRam0.p1'
+                  prop2 PropType 'ExamplesFactoryRam0.pb2'
+              ]
+        """.trimIndent()
+
+        assertEquals(expected, actual)
     }
 }
 

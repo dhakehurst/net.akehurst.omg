@@ -27,8 +27,8 @@ interface PropTypeB : PropType {
 }
 
 data class PropTypeRam(val _factory: Examples_Factory, override val _identity: Any) : PropType {
-	override fun toString(): String = "PropType('${_factory._identity}.$_identity')"
+	override fun toString(): String = "PropType '${_factory._identity}.$_identity'"
 }
 data class PropTypeBRam(val _factory: Examples_Factory, override val _identity: Any) : PropTypeB {
-	override fun toString(): String = "PropTypeB('${_factory._identity}.$_identity')"
+	override fun toString(): String = "PropTypeB '${_factory._identity}.$_identity'"
 }

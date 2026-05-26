@@ -26,7 +26,7 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleRefRedefDiffNameSameTypeAttribute()
+        val obj = factory.SingleRefRedefDiffNameSameTypeAttribute_construct()
         assertNotNull(obj)
         try {
             obj.redefinesProp1
@@ -40,10 +40,10 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
     @Test
     fun property_by_value_and_reference() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleRefRedefDiffNameSameTypeAttribute()
+        val obj = factory.SingleRefRedefDiffNameSameTypeAttribute_construct()
 
-        val p1 = factory.createPropType("p1")
-        val p2 = factory.createPropType("p2")
+        val p1 = factory.PropType_construct("p1")
+        val p2 = factory.PropType_construct("p2")
 
         obj.redefinesProp1Reference.mutable.set(p1._identity, p1)
         assertEquals(p1, obj.redefinesProp1)
@@ -52,8 +52,8 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
         assertEquals(p2, obj.redefinesProp2)
 
         // by reference id and resolve
-        val obj2 = factory.createSingleRefRedefDiffNameSameTypeAttribute()
-        val pv1 = factory.createPropType("rv1")
+        val obj2 = factory.SingleRefRedefDiffNameSameTypeAttribute_construct()
+        val pv1 = factory.PropType_construct("rv1")
         obj2.redefinesProp1Reference.mutable.reference = "rv1"
         factory.resolve(obj2.redefinesProp1Reference)
         assertEquals(pv1, obj2.redefinesProp1)
@@ -74,8 +74,8 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
         }
 
         assertNotNull(actual)
-        assertEquals(1, actual.contentList.size)
-        val inst = actual.contentList[0].cast<SingleRefRedefDiffNameSameTypeAttribute>()
+        assertEquals(3, actual.contentList.size)
+        val inst = actual.contentList[2].cast<SingleRefRedefDiffNameSameTypeAttribute>()
         assertEquals("p1", inst.redefinesProp1._identity)
         assertEquals("p2", inst.redefinesProp2?._identity)
     }
@@ -83,23 +83,36 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.createSingleRefRedefDiffNameSameTypeAttribute()
-        val b = factory.createSingleRefRedefDiffNameSameTypeAttribute()
+        val a = factory.SingleRefRedefDiffNameSameTypeAttribute_construct()
+        val b = factory.SingleRefRedefDiffNameSameTypeAttribute_construct()
         assertNotNull(a._identity)
         assertNotNull(b._identity)
         assertNotEquals(a._identity, b._identity)
     }
 
     @Test
-    fun asString_contains_properties() {
+    fun asString() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleRefRedefDiffNameSameTypeAttribute()
-        val p = factory.createPropType("as1")
-        obj.redefinesProp1Reference.mutable.set(p._identity, p)
+        val model = Examples(factory, "Test") {
+            content {
+                PropType("p1")
+                SingleRefRedefDiffNameSameTypeAttribute("obj") {
+                    redefinesProp1("p1")
+                }
+            }
+        }
 
-        val s = Examples_ModelAsString.asStringSingleRefRedefDiffNameSameTypeAttribute(obj)
-        assertTrue(s.contains("redefinesProp1"))
-        assertTrue(s.contains(p._identity.toString()))
+        val actual = Examples_ModelAsString.Examples_asString(model)
+        val expected = """
+            Examples 'ExamplesFactoryRam0.Test'
+              content = List [
+                PropType 'ExamplesFactoryRam0.p1'
+                SingleRefRedefDiffNameSameTypeAttributeRam 'ExamplesFactoryRam0.obj'
+                  prop1 PropType 'ExamplesFactoryRam0.p1'
+              ]
+        """.trimIndent()
+
+        assertEquals(expected, actual)
     }
 }
 

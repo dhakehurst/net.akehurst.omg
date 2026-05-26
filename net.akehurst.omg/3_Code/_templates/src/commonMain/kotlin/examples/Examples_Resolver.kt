@@ -21,37 +21,46 @@ import net.akehurst.kotlinx.utils.resolve
 
 class Examples_Resolver(val store: ReferenceStore<Any>) {
 
-    fun resolveExamples(obj: Examples) {
+    fun Examples_resolve(obj: Examples) {
         obj.contentList.forEach { resolveElement(it) }
     }
 
     fun resolveElement(obj: Element) = when (obj) {
-        is SingleCmpAttribute -> resolveSingleCompositeAttribute(obj)
-        is SingleRefAttribute -> resolveSingleReferenceAttribute(obj)
-        is CollectionCmpAttribute -> resolveCollectionCompositeAttribute(obj)
-        else -> error("Subtype of Element not handled.")
+        is PropTypeB -> PropTypeB_resolve(obj)
+        is PropType -> PropType_resolve(obj)
+        is SingleCmpAttribute -> SingleCmpAttribute_resolve(obj)
+        is SingleRefRedefSameNameDiffTypeAttribute -> SingleRefRedefSameNameDiffTypeAttribute_resolve(obj)
+        is SingleRefAttribute -> SingleRefAttribute_resolve(obj)
+        is CollectionCmpAttribute -> CollectionCmpAttribute_resolve(obj)
+ //       is CollectionRefAttribute -> CollectionRefAttribute_resolve(obj)
+        else -> error("Subtype '${obj::class.simpleName}' of Element not handled.")
     }
 
-    fun resolvePropType(obj: PropType) {
+    fun PropType_resolve(obj: PropType) {
     }
 
-    fun resolvePropTypeB(obj: PropTypeB)  {
+    fun PropTypeB_resolve(obj: PropTypeB)  {
     }
 
-    fun resolveSingleCompositeAttribute(obj: SingleCmpAttribute) {
-        resolvePropType(obj.prop1)
-        obj.prop2?.let { resolvePropType(it) }
+    fun SingleCmpAttribute_resolve(obj: SingleCmpAttribute) {
+        PropType_resolve(obj.prop1)
+        obj.prop2?.let { PropType_resolve(it) }
     }
 
-    fun resolveSingleReferenceAttribute(obj: SingleRefAttribute) {
+    fun SingleRefAttribute_resolve(obj: SingleRefAttribute) {
         store.resolve(obj.prop1Reference)
         store.resolve(obj.prop2Reference)
     }
 
-    fun resolveCollectionCompositeAttribute(obj: CollectionCmpAttribute) {
-        obj.prop1OrderedSet.forEach { resolvePropType(it) }
-        obj.prop2List.forEach { resolvePropType(it) }
-        obj.prop3Set.forEach { resolvePropType(it) }
-        obj.prop4Collection.forEach { resolvePropType(it) }
+    fun CollectionCmpAttribute_resolve(obj: CollectionCmpAttribute) {
+        obj.prop1OrderedSet.forEach { PropType_resolve(it) }
+        obj.prop2List.forEach { PropType_resolve(it) }
+        obj.prop3Set.forEach { PropType_resolve(it) }
+        obj.prop4Collection.forEach { PropType_resolve(it) }
+    }
+
+    fun SingleRefRedefSameNameDiffTypeAttribute_resolve(obj: SingleRefRedefSameNameDiffTypeAttribute) {
+        store.resolve(obj.prop1Reference)
+        store.resolve(obj.prop2Reference)
     }
 }

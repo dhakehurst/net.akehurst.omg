@@ -26,7 +26,7 @@ class test_SingleRefAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleReferenceAttribute()
+        val obj = factory.SingleRefAttribute_construct()
         assertNotNull(obj)
         try {
             obj.prop1
@@ -41,9 +41,9 @@ class test_SingleRefAttribute {
     fun property_by_value() {
         val factory = ExamplesFactoryRam()
 
-        val obj = factory.createSingleReferenceAttribute()
+        val obj = factory.SingleRefAttribute_construct()
 
-        val propValue = factory.createPropType()
+        val propValue = factory.PropType_construct()
 
         obj.prop1Reference.mutable.set(propValue._identity, propValue)
         assertEquals(propValue, obj.prop1)
@@ -57,10 +57,10 @@ class test_SingleRefAttribute {
     fun property_by_reference() {
         val factory = ExamplesFactoryRam()
 
-        val obj = factory.createSingleReferenceAttribute()
+        val obj = factory.SingleRefAttribute_construct()
 
-        val propValue1 = factory.createPropType("p1")
-        val propValue2 = factory.createPropType("p2")
+        val propValue1 = factory.PropType_construct("p1")
+        val propValue2 = factory.PropType_construct("p2")
 
         obj.prop1Reference.mutable.reference = "p1"
         factory.resolve(obj.prop1Reference)
@@ -87,18 +87,18 @@ class test_SingleRefAttribute {
         }
 
         assertNotNull(actual)
-        assertEquals(1, actual.contentList.size)
-        assertEquals("obj", actual.contentList[0]._identity)
-        assertTrue(actual.contentList[0] is SingleRefAttribute)
-        assertEquals("p1", actual.contentList[0].cast<SingleRefAttribute>().prop1._identity)
-        assertEquals("p2", actual.contentList[0].cast<SingleRefAttribute>().prop2?._identity)
+        assertEquals(3, actual.contentList.size)
+        assertEquals("obj", actual.contentList[2]._identity)
+        assertTrue(actual.contentList[2] is SingleRefAttribute)
+        assertEquals("p1", actual.contentList[2].cast<SingleRefAttribute>().prop1._identity)
+        assertEquals("p2", actual.contentList[2].cast<SingleRefAttribute>().prop2?._identity)
     }
 
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.createSingleReferenceAttribute()
-        val b = factory.createSingleReferenceAttribute()
+        val a = factory.SingleRefAttribute_construct()
+        val b = factory.SingleRefAttribute_construct()
 
         assertNotNull(a._identity)
         assertNotNull(b._identity)
@@ -111,9 +111,9 @@ class test_SingleRefAttribute {
     @Test
     fun reference_holder_updates_are_reflected() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleReferenceAttribute()
-        val pv1 = factory.createPropType("rv1")
-        val pv2 = factory.createPropType("rv2")
+        val obj = factory.SingleRefAttribute_construct()
+        val pv1 = factory.PropType_construct("rv1")
+        val pv2 = factory.PropType_construct("rv2")
 
         // set required reference by value
         obj.prop1Reference.mutable.set(pv1._identity, pv1)
@@ -138,8 +138,8 @@ class test_SingleRefAttribute {
         }
 
         assertNotNull(actual)
-        assertEquals(1, actual.contentList.size)
-        val inst = actual.contentList[0].cast<SingleRefAttribute>()
+        assertEquals(2, actual.contentList.size)
+        val inst = actual.contentList[1].cast<SingleRefAttribute>()
         assertEquals("p1OnlyRef", inst.prop1._identity)
         assertNull(inst.prop2)
     }
@@ -147,9 +147,9 @@ class test_SingleRefAttribute {
     @Test
     fun resolver_idempotence_and_re_resolve() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleReferenceAttribute()
-        val p1 = factory.createPropType("r1")
-        val p2 = factory.createPropType("r2")
+        val obj = factory.SingleRefAttribute_construct()
+        val p1 = factory.PropType_construct("r1")
+        val p2 = factory.PropType_construct("r2")
 
         // resolve by reference id r1
         obj.prop1Reference.mutable.reference = "r1"
@@ -167,7 +167,7 @@ class test_SingleRefAttribute {
     }
 
     @Test
-    fun asString_contains_properties() {
+    fun asString() {
         val factory = ExamplesFactoryRam()
         val model = Examples(factory, "Test") {
             content {
@@ -182,11 +182,14 @@ class test_SingleRefAttribute {
 
         val actual = Examples_ModelAsString.Examples_asString(model)
         val expected = """
-            Examples('ExamplesFactoryRam0','Test')
-              contentList
-                SingleRefAttribute('ExamplesFactoryRam0','obj')
-                  prop1 PropType('ExamplesFactoryRam0','p1')
-                  prop2 PropType('ExamplesFactoryRam0','p2')
+            Examples 'ExamplesFactoryRam0.Test'
+              content = List [
+                PropType 'ExamplesFactoryRam0.p1'
+                PropType 'ExamplesFactoryRam0.p2'
+                SingleRefAttribute 'ExamplesFactoryRam0.obj' 
+                  prop1 PropType 'ExamplesFactoryRam0.p1'
+                  prop2 PropType 'ExamplesFactoryRam0.p2'
+              ]
         """.trimIndent()
 
         assertEquals(expected, actual)

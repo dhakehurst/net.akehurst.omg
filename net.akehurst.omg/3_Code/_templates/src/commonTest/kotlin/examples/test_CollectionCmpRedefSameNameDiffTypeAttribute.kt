@@ -27,7 +27,7 @@ class test_CollectionCmpRedefSameNameDiffTypeAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createCollectionCmpRedefSameNameDiffTypeAttribute()
+        val obj = factory.CollectionCmpRedefSameNameDiffTypeAttribute_construct()
         assertNotNull(obj)
         assertNotNull(obj.prop1OrderedSet)
         assertTrue(obj.prop1OrderedSet.isEmpty())
@@ -36,9 +36,9 @@ class test_CollectionCmpRedefSameNameDiffTypeAttribute {
     @Test
     fun property() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createCollectionCmpRedefSameNameDiffTypeAttribute()
+        val obj = factory.CollectionCmpRedefSameNameDiffTypeAttribute_construct()
 
-        val propValue = factory.createPropTypeB()
+        val propValue = factory.PropTypeB_construct()
 
         obj.prop1OrderedSet.mutable.add(propValue)
         assertEquals(orderedSetOf(propValue), obj.prop1OrderedSet)
@@ -76,8 +76,8 @@ class test_CollectionCmpRedefSameNameDiffTypeAttribute {
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.createCollectionCmpRedefSameNameDiffTypeAttribute()
-        val b = factory.createCollectionCmpRedefSameNameDiffTypeAttribute()
+        val a = factory.CollectionCmpRedefSameNameDiffTypeAttribute_construct()
+        val b = factory.CollectionCmpRedefSameNameDiffTypeAttribute_construct()
 
         assertNotNull(a._identity)
         assertNotNull(b._identity)
@@ -85,18 +85,38 @@ class test_CollectionCmpRedefSameNameDiffTypeAttribute {
     }
 
     @Test
-    fun asString_contains_elements() {
+    fun asString() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createCollectionCmpRedefSameNameDiffTypeAttribute()
-        val p1 = factory.createPropTypeB("as1")
-        val p2 = factory.createPropTypeB("as2")
+        val model = Examples(factory, "Test") {
+            content {
+                CollectionCmpRedefSameNameDiffTypeAttribute("obj") {
+                    prop1 {
+                        PropTypeB("pb1")
+                    }
+                    prop2 {
+                        PropTypeB("pb2")
+                    }
+                }
+            }
+        }
 
-        obj.prop1OrderedSet.mutable.add(p1)
-        obj.prop2List.mutable.add(p2)
+        val actual = Examples_ModelAsString.Examples_asString(model)
+        val expected = """
+        Examples 'ExamplesFactoryRam0.Test'
+          content = List [
+            CollectionCmpRedefSameNameDiffTypeAttribute 'ExamplesFactoryRam0.obj'
+              prop1 = OrderedSet [
+                PropTypeB 'ExamplesFactoryRam0.pb1'
+              ]
+              prop2 = List [
+                PropTypeB 'ExamplesFactoryRam0.pb2'
+              ]
+              prop3 = Set []
+              prop4 = Collection []
+          ]
+        """.trimIndent()
 
-        val s = Examples_ModelAsString.asStringCollectionCmpRedefSameNameDiffTypeAttribute(obj)
-        assertTrue(s.contains(p1._identity.toString()))
-        assertTrue(s.contains(p2._identity.toString()))
+        assertEquals(expected, actual)
     }
 }
 

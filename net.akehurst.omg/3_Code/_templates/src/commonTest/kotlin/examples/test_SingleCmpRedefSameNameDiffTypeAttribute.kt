@@ -25,7 +25,7 @@ class test_SingleCmpRedefSameNameDiffTypeAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleCmpRedefSameNameDiffTypeAttribute()
+        val obj = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct()
         assertNotNull(obj)
         assertNotNull(obj.prop1)
         assertNull(obj.prop2)
@@ -34,13 +34,13 @@ class test_SingleCmpRedefSameNameDiffTypeAttribute {
     @Test
     fun property() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleCmpRedefSameNameDiffTypeAttribute()
+        val obj = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct()
 
-        val v1 = factory.createPropTypeB()
+        val v1 = factory.PropTypeB_construct()
         obj.prop1Value.mutable.set(v1)
         assertEquals(v1, obj.prop1)
 
-        val v2 = factory.createPropTypeB()
+        val v2 = factory.PropTypeB_construct()
         obj.prop2Value.mutable.set(v2)
         assertEquals(v2, obj.prop2)
     }
@@ -67,18 +67,18 @@ class test_SingleCmpRedefSameNameDiffTypeAttribute {
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.createSingleCmpRedefSameNameDiffTypeAttribute()
-        val b = factory.createSingleCmpRedefSameNameDiffTypeAttribute()
+        val a = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct()
+        val b = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct()
         assertNotNull(a._identity)
         assertNotNull(b._identity)
         assertNotEquals(a._identity, b._identity)
     }
 
     @Test
-    fun asString_contains_properties() {
+    fun asString() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.createSingleCmpRedefSameNameDiffTypeAttribute()
-        val p = factory.createPropTypeB("as1")
+        val obj = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct()
+        val p = factory.PropTypeB_construct("as1")
         obj.prop1Value.mutable.set(p)
 
         val s = Examples_ModelAsString.SingleCmpRedefSameNameDiffTypeAttribute_asString(obj)
