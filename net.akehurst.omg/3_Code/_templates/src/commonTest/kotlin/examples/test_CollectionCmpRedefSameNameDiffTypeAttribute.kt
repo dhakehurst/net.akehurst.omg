@@ -27,7 +27,7 @@ class test_CollectionCmpRedefSameNameDiffTypeAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.CollectionCmpRedefSameNameDiffTypeAttribute_construct()
+        val obj = factory.CollectionCmpRedefSameNameDiffTypeAttribute_construct("obj")
         assertNotNull(obj)
         assertNotNull(obj.prop1OrderedSet)
         assertTrue(obj.prop1OrderedSet.isEmpty())
@@ -36,9 +36,9 @@ class test_CollectionCmpRedefSameNameDiffTypeAttribute {
     @Test
     fun property() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.CollectionCmpRedefSameNameDiffTypeAttribute_construct()
+        val obj = factory.CollectionCmpRedefSameNameDiffTypeAttribute_construct("obj")
 
-        val propValue = factory.PropTypeB_construct()
+        val propValue = factory.PropTypeB_construct("p1")
 
         obj.prop1OrderedSet.mutable.add(propValue)
         assertEquals(orderedSetOf(propValue), obj.prop1OrderedSet)
@@ -76,8 +76,8 @@ class test_CollectionCmpRedefSameNameDiffTypeAttribute {
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.CollectionCmpRedefSameNameDiffTypeAttribute_construct()
-        val b = factory.CollectionCmpRedefSameNameDiffTypeAttribute_construct()
+        val a = factory.CollectionCmpRedefSameNameDiffTypeAttribute_construct("a")
+        val b = factory.CollectionCmpRedefSameNameDiffTypeAttribute_construct("b")
 
         assertNotNull(a._identity)
         assertNotNull(b._identity)

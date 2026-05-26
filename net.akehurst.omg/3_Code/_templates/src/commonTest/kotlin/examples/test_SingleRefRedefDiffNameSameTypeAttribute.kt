@@ -26,7 +26,7 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefRedefDiffNameSameTypeAttribute_construct()
+        val obj = factory.SingleRefRedefDiffNameSameTypeAttribute_construct("obj")
         assertNotNull(obj)
         try {
             obj.redefinesProp1
@@ -40,7 +40,7 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
     @Test
     fun property_by_value_and_reference() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefRedefDiffNameSameTypeAttribute_construct()
+        val obj = factory.SingleRefRedefDiffNameSameTypeAttribute_construct("obj")
 
         val p1 = factory.PropType_construct("p1")
         val p2 = factory.PropType_construct("p2")
@@ -52,7 +52,7 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
         assertEquals(p2, obj.redefinesProp2)
 
         // by reference id and resolve
-        val obj2 = factory.SingleRefRedefDiffNameSameTypeAttribute_construct()
+        val obj2 = factory.SingleRefRedefDiffNameSameTypeAttribute_construct("obj2")
         val pv1 = factory.PropType_construct("rv1")
         obj2.redefinesProp1Reference.mutable.reference = "rv1"
         factory.resolve(obj2.redefinesProp1Reference)
@@ -83,8 +83,8 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.SingleRefRedefDiffNameSameTypeAttribute_construct()
-        val b = factory.SingleRefRedefDiffNameSameTypeAttribute_construct()
+        val a = factory.SingleRefRedefDiffNameSameTypeAttribute_construct("a")
+        val b = factory.SingleRefRedefDiffNameSameTypeAttribute_construct("b")
         assertNotNull(a._identity)
         assertNotNull(b._identity)
         assertNotEquals(a._identity, b._identity)

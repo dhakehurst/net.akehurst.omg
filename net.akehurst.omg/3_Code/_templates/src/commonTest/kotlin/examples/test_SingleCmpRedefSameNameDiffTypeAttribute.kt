@@ -25,7 +25,7 @@ class test_SingleCmpRedefSameNameDiffTypeAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct()
+        val obj = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct("obj")
         assertNotNull(obj)
         assertNotNull(obj.prop1)
         assertNull(obj.prop2)
@@ -34,13 +34,13 @@ class test_SingleCmpRedefSameNameDiffTypeAttribute {
     @Test
     fun property() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct()
+        val obj = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct("obj")
 
-        val v1 = factory.PropTypeB_construct()
+        val v1 = factory.PropTypeB_construct("p1")
         obj.prop1Value.mutable.set(v1)
         assertEquals(v1, obj.prop1)
 
-        val v2 = factory.PropTypeB_construct()
+        val v2 = factory.PropTypeB_construct("p2")
         obj.prop2Value.mutable.set(v2)
         assertEquals(v2, obj.prop2)
     }
@@ -67,8 +67,8 @@ class test_SingleCmpRedefSameNameDiffTypeAttribute {
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct()
-        val b = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct()
+        val a = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct("a")
+        val b = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct("b")
         assertNotNull(a._identity)
         assertNotNull(b._identity)
         assertNotEquals(a._identity, b._identity)
@@ -77,7 +77,7 @@ class test_SingleCmpRedefSameNameDiffTypeAttribute {
     @Test
     fun asString() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct()
+        val obj = factory.SingleCmpRedefSameNameDiffTypeAttribute_construct("obj")
         val p = factory.PropTypeB_construct("as1")
         obj.prop1Value.mutable.set(p)
 

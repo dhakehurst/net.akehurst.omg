@@ -25,7 +25,7 @@ class test_SingleCmpRedefDiffNameSameTypeAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct()
+        val obj = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct("obj")
         assertNotNull(obj)
         assertNotNull(obj.redefinesProp1)
         assertNull(obj.redefinesProp2)
@@ -34,13 +34,13 @@ class test_SingleCmpRedefDiffNameSameTypeAttribute {
     @Test
     fun property() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct()
+        val obj = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct("obj")
 
-        val pv = factory.PropType_construct()
+        val pv = factory.PropType_construct("p1")
         obj.redefinesProp1Value.mutable.set(pv)
         assertEquals(pv, obj.redefinesProp1)
 
-        val pv2 = factory.PropType_construct()
+        val pv2 = factory.PropType_construct("p2")
         obj.redefinesProp2Value.mutable.set(pv2)
         assertEquals(pv2, obj.redefinesProp2)
     }
@@ -67,8 +67,8 @@ class test_SingleCmpRedefDiffNameSameTypeAttribute {
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct()
-        val b = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct()
+        val a = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct("a")
+        val b = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct("b")
         assertNotNull(a._identity)
         assertNotNull(b._identity)
         assertNotEquals(a._identity, b._identity)

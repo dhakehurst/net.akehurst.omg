@@ -26,7 +26,7 @@ class test_SingleRefAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefAttribute_construct()
+        val obj = factory.SingleRefAttribute_construct("obj")
         assertNotNull(obj)
         try {
             obj.prop1
@@ -41,9 +41,9 @@ class test_SingleRefAttribute {
     fun property_by_value() {
         val factory = ExamplesFactoryRam()
 
-        val obj = factory.SingleRefAttribute_construct()
+        val obj = factory.SingleRefAttribute_construct("obj")
 
-        val propValue = factory.PropType_construct()
+        val propValue = factory.PropType_construct("p1")
 
         obj.prop1Reference.mutable.set(propValue._identity, propValue)
         assertEquals(propValue, obj.prop1)
@@ -57,7 +57,7 @@ class test_SingleRefAttribute {
     fun property_by_reference() {
         val factory = ExamplesFactoryRam()
 
-        val obj = factory.SingleRefAttribute_construct()
+        val obj = factory.SingleRefAttribute_construct("obj")
 
         val propValue1 = factory.PropType_construct("p1")
         val propValue2 = factory.PropType_construct("p2")
@@ -97,8 +97,8 @@ class test_SingleRefAttribute {
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.SingleRefAttribute_construct()
-        val b = factory.SingleRefAttribute_construct()
+        val a = factory.SingleRefAttribute_construct("a")
+        val b = factory.SingleRefAttribute_construct("b")
 
         assertNotNull(a._identity)
         assertNotNull(b._identity)
@@ -111,7 +111,7 @@ class test_SingleRefAttribute {
     @Test
     fun reference_holder_updates_are_reflected() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefAttribute_construct()
+        val obj = factory.SingleRefAttribute_construct("obj")
         val pv1 = factory.PropType_construct("rv1")
         val pv2 = factory.PropType_construct("rv2")
 
@@ -147,7 +147,7 @@ class test_SingleRefAttribute {
     @Test
     fun resolver_idempotence_and_re_resolve() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefAttribute_construct()
+        val obj = factory.SingleRefAttribute_construct("obj")
         val p1 = factory.PropType_construct("r1")
         val p2 = factory.PropType_construct("r2")
 

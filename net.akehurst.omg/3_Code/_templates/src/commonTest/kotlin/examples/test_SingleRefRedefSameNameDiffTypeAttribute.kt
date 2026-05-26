@@ -26,7 +26,7 @@ class test_SingleRefRedefSameNameDiffTypeAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefRedefSameNameDiffTypeAttribute_construct()
+        val obj = factory.SingleRefRedefSameNameDiffTypeAttribute_construct("obj")
         assertNotNull(obj)
         try {
             obj.prop1
@@ -58,7 +58,7 @@ class test_SingleRefRedefSameNameDiffTypeAttribute {
     @Test
     fun property_by_reference_and_builder() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefRedefSameNameDiffTypeAttribute_construct()
+        val obj = factory.SingleRefRedefSameNameDiffTypeAttribute_construct("obj")
         val p1 = factory.PropTypeB_construct("p1")
 
         obj.prop1Reference.mutable.reference = "p1"
@@ -80,8 +80,8 @@ class test_SingleRefRedefSameNameDiffTypeAttribute {
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.SingleRefRedefSameNameDiffTypeAttribute_construct()
-        val b = factory.SingleRefRedefSameNameDiffTypeAttribute_construct()
+        val a = factory.SingleRefRedefSameNameDiffTypeAttribute_construct("a")
+        val b = factory.SingleRefRedefSameNameDiffTypeAttribute_construct("b")
         // identities are non-null by contract; assert they differ
         assertTrue(a._identity != b._identity)
     }

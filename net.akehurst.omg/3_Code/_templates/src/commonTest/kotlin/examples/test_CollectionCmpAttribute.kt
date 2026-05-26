@@ -31,7 +31,7 @@ class test_CollectionCmpAttribute {
     @Test
     fun factory() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.CollectionCmpAttribute_construct()
+        val obj = factory.CollectionCmpAttribute_construct("obj")
         assertNotNull(obj)
         assertNotNull(obj.prop1OrderedSet)
         assertTrue(obj.prop1OrderedSet.isEmpty())
@@ -40,9 +40,9 @@ class test_CollectionCmpAttribute {
     @Test
     fun property() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.CollectionCmpAttribute_construct()
+        val obj = factory.CollectionCmpAttribute_construct("obj")
 
-        val propValue = factory.PropType_construct()
+        val propValue = factory.PropType_construct("p1")
 
         obj.prop1OrderedSet.mutable.add(propValue)
         assertEquals(orderedSetOf(propValue), obj.prop1OrderedSet)
@@ -81,8 +81,8 @@ class test_CollectionCmpAttribute {
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.CollectionCmpAttribute_construct()
-        val b = factory.CollectionCmpAttribute_construct()
+        val a = factory.CollectionCmpAttribute_construct("a")
+        val b = factory.CollectionCmpAttribute_construct("b")
 
         assertNotNull(a._identity)
         assertNotNull(b._identity)
@@ -95,7 +95,7 @@ class test_CollectionCmpAttribute {
     @Test
     fun collection_holder_add_remove_reflected() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.CollectionCmpAttribute_construct()
+        val obj = factory.CollectionCmpAttribute_construct("obj")
         val p1 = factory.PropType_construct("c1")
         val p2 = factory.PropType_construct("c2")
 

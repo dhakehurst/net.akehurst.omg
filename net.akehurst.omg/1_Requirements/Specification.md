@@ -6,8 +6,8 @@ The purpose of this specification is to define how to generate Kotlin multiplatf
 
 ## 1. General Requirements
 
-- [REQ-1.1] The generator shall use external libraries to reduce the size of generated code.
-- [REQ-1.1] The generator shall use Kotlin language features to reduce the size of generated code.
+- [REQ-1.1] The generator SHALL use external libraries to reduce the size of generated code.
+- [REQ-1.2] The generator SHALL use Kotlin language features to reduce the size of generated code.
 
 ## 2. API Requirements
 
@@ -18,13 +18,13 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
 - [REQ-2.1.1] The generator SHALL support the following configuration parameters.
   - [REQ-2.1.1.1] `TARGET_PACKAGE` SHALL define the prefix for all generated Kotlin packages.
   - [REQ-2.1.1.2] `COPYRIGHT` SHALL define the copyright text added to generated files.
-- [REQ-2.2.1] External type mapping SHALL be supported.
-  - [REQ-2.2.1.1] External type mapping SHALL include URL -> type-name mapping.
-  - [REQ-2.2.1.2] External type mapping SHALL support types referenced by URL from outside the source XMI.
-  - [REQ-2.2.1.3] If an external referenced type has no mapping, generation SHALL fail with a diagnostic that includes the unresolved URL.
-    - [REQ-2.2.1.3.1] Generation SHALL emit a diagnostic with severity "error" and NOT generate any output files.
-    - [REQ-2.2.1.3.2] The generator SHALL exit with status code 1 (or non-zero on the target platform).
-- [REQ-2.1.2] The MOF model SHALL be defined by a main XMI file.
+- [REQ-2.1.2] External type mapping SHALL be supported.
+  - [REQ-2.1.2.1] External type mapping SHALL include URL -> type-name mapping.
+  - [REQ-2.1.2.2] External type mapping SHALL support types referenced by URL from outside the source XMI.
+  - [REQ-2.1.2.3] If an external referenced type has no mapping, generation SHALL fail with a diagnostic that includes the unresolved URL.
+    - [REQ-2.1.2.3.1] Generation SHALL emit a diagnostic with severity "error" and NOT generate any output files.
+    - [REQ-2.1.2.3.2] The generator SHALL exit with a non-zero status code on the host platform (for example, 1 on Unix-like systems).
+- [REQ-2.1.3] The MOF model SHALL be defined by a main XMI file.
 
 ### 2.2 Package-level API artifacts
 - [REQ-2.2.1] For each mapped model, a top-level API builder entrypoint SHALL be generated.
@@ -79,9 +79,9 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
   - [REQ-2.5.2.4] unique/ordered -> `${name}OrderedSet`
 
 ### 2.6 Attribute behavior and invariants (API)
-- [REQ-2.6.1] `isID` SHALL not be supported; `_identity` SHALL be the object identifier contract.
-  - [REQ-2.6.1.1] If source MOF specifies `isID=true`, generation SHALL emit a diagnostic warning and ignore the `isID` property.
-  - [REQ-2.6.1.2] The `isID` property SHALL NOT affect code generation or API output.
+- [REQ-2.6.1] `isID` SHALL be supported.
+  - [REQ-2.6.1.1] If source MOF specifies `isID=true`, generation SHALL use attributes with `isID==true` as the identity of an object.
+  - [REQ-2.6.1.2] If no property with `isID=true` is defined, `_identity:Any` SHALL be the object identifier contract.
 - [REQ-2.6.2] `isReadOnly` SHALL not be supported.
   - [REQ-2.6.2.1] Source `isReadOnly` values SHALL be ignored.
   - [REQ-2.6.2.2] No warnings or diagnostics SHALL be emitted for ignored `isReadOnly`.
@@ -180,14 +180,16 @@ and generation-time derived values independent of any specific implementation pr
 
 ### 3.4 Mutator behavior and opposite-end consistency
 
-**Note:** Mutation in the realisation layer is a realisation concern. The API contract exposes only immutable accessor types. The
-realisation backing store is mutable and mutation SHALL occur via the realisation's mutable holders and APIs (for example
+**Note:** Mutation in the realisation layer is a realisation concern. The API contract exposes only immutable accessor types.
+
+The realisation backing store is mutable and mutation SHALL occur via the realisation's mutable holders and APIs (for example
 `MutableValue`/`ManagedValue` for composites, `MutableReference`/`ManagedReference` for references, or mutable backing
 collections exposed via wrapper APIs). Generator implementations SHALL NOT emit a standard set of top-level mutator extension
 functions as part of the generated output; any convenience mutators are an implementation detail of a realisation and optional.
+
 - [REQ-3.4.2] Collection mutation SHALL occur through realisation-provided extensions or direct casting to the mutable backing type.
 - [REQ-3.4.3] Single reference mutation SHALL occur through realisation-level access to `MutableReference` properties (not exposed in API).
-- [REQ-3.4.4] Redefinition mutators with different type and name MAY be generated as distinct extension functions (if REQ-3.4.1 applies).
+- [REQ-3.4.4] Redefinition mutators with different type and name MAY be generated as distinct extension functions.
 - [REQ-3.4.5] Opposite-end update logic SHALL run for composite single-valued mutations when opposite exists.
 - [REQ-3.4.6] For collection references, opposite-end update logic SHALL run on resolve, re-resolve, and removal transitions.
 - [REQ-3.4.7] If reference entry is unresolved, no opposite-end relationship SHALL be created for that entry.
@@ -209,13 +211,12 @@ functions as part of the generated output; any convenience mutators are an imple
     - [REQ-3.5.1.6.5] `List<${type.validName}>` for non-unique/ordered.
     - [REQ-3.5.1.6.6] `OrderedSet<${type.validName}>` for unique/ordered.
   - [REQ-3.5.1.7] Resulting names SHALL be validated against Kotlin keywords and problematic types.
-  - [REQ-3.5.1.6] Resulting names SHALL be validated against Kotlin keywords and problematic types.
   - [REQ-3.5.1.8] For single-valued composite attributes, generators SHALL precompute the value-holder name `{name}Value` and its type `Value<{genType}>` (where `{genType}` follows the rules in [REQ-3.5.1.6]). The computed holder name SHALL be included in name-collision detection (see REQ-2.5.1.7).
 
 ## 4. RAM Realisation Requirements
 
-This section defines the RAM realisation profile as an illustrative and useful concrete implementation of the API 
-and realisation contracts. It specializes the general realisation rules with RAM-specific holder types, 
+This section defines the Ram realisation profile as an illustrative and useful concrete implementation of the API 
+and realisation contracts. It specializes the general realisation rules with Ram-specific holder types, 
 callback behavior, and generated mutator conventions.
 
 ### 4.1 RAM profile scope
@@ -232,9 +233,9 @@ callback behavior, and generated mutator conventions.
 - [REQ-4.3.3] `ManagedReference` SHALL invoke callbacks when `.resolved` changes.
 - [REQ-4.3.4] Managed collections SHALL invoke callbacks on add/remove.
 - [REQ-4.3.5] Combined managed reference/collection callback lifecycle SHALL maintain opposite-end consistency.
- - [REQ-4.3.6] Ram single composite holders SHALL use `ManagedValue<T>` (or equivalent) to back API `Value<T>` holders. `ManagedValue` SHALL invoke callbacks when the stored value changes so that opposite-end update logic and subsetting invariants can be enforced by the RAM realisation.
+ - [REQ-4.3.6] Ram single composite holders SHALL use `ManagedValue<T>` (or equivalent) to back API `Value<T>` holders. `ManagedValue` SHALL invoke callbacks when the stored value changes so that opposite-end update logic and subsetting invariants can be enforced by the Ram realisation.
 
 ### 4.4 RAM mutator realization
-- [REQ-4.4.1] Generator implementations SHALL NOT emit a mandatory set of top-level mutator extension functions for RAM realisations. Mutation in RAM shall be achieved via mutable backing holders (e.g., `ManagedValue`, `ManagedReference`, managed collections) and realisation-specific APIs that enforce opposite-end consistency and invariants.
+- [REQ-4.4.1] Generator implementations SHALL NOT emit a mandatory set of top-level mutator extension functions for Ram realisations. Mutation in Ram shall be achieved via mutable backing holders (e.g., `ManagedValue`, `ManagedReference`, managed collections) and realisation-specific APIs that enforce opposite-end consistency and invariants.
   
   

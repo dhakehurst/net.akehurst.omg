@@ -24,7 +24,7 @@ class test_SingleCmpAttribute {
 
     @Test
     fun factory() {
-        val obj = ExamplesFactoryRam().SingleCmpAttribute_construct()
+        val obj = ExamplesFactoryRam().SingleCmpAttribute_construct("obj")
         assertNotNull(obj)
         assertNotNull(obj.prop1)
         assertNull(obj.prop2)
@@ -33,11 +33,11 @@ class test_SingleCmpAttribute {
     @Test
     fun property() {
 
-        val obj = ExamplesFactoryRam().SingleCmpAttribute_construct()
+        val obj = ExamplesFactoryRam().SingleCmpAttribute_construct("obj")
         assertNotNull(obj.prop1)
         assertNull(obj.prop2)
 
-        val propValue = ExamplesFactoryRam().PropType_construct()
+        val propValue = ExamplesFactoryRam().PropType_construct("p1")
 
         obj.prop1Value.mutable.set(propValue)
         assertEquals(propValue, obj.prop1)
@@ -68,8 +68,8 @@ class test_SingleCmpAttribute {
     @Test
     fun identity_stability_and_uniqueness() {
         val factory = ExamplesFactoryRam()
-        val a = factory.SingleCmpAttribute_construct()
-        val b = factory.SingleCmpAttribute_construct()
+        val a = factory.SingleCmpAttribute_construct("a")
+        val b = factory.SingleCmpAttribute_construct("b")
 
         assertNotNull(a._identity)
         assertNotNull(b._identity)
@@ -82,9 +82,9 @@ class test_SingleCmpAttribute {
     @Test
     fun value_holder_updates_are_reflected() {
         val factory = ExamplesFactoryRam()
-        val obj = factory.SingleCmpAttribute_construct()
-        val v1 = factory.PropType_construct()
-        val v2 = factory.PropType_construct()
+        val obj = factory.SingleCmpAttribute_construct("obj")
+        val v1 = factory.PropType_construct("v1")
+        val v2 = factory.PropType_construct("v2")
 
         // set required composite
         obj.prop1Value.mutable.set(v1)

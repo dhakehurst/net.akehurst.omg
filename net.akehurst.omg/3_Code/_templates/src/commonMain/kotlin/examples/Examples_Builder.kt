@@ -33,26 +33,19 @@ fun Examples(
     Examples_Resolver(factory).Examples_resolve(it)
 }
 
-
 @ExamplesDslMarker
 class Examples_Builder(
     val factory: Examples_Factory,
-    val id: Any?
+    val id: Any
 ) : Builder<Examples> {
+
     private var _content: Collection<Element>? = null
 
-    fun content(init: Element_ContentBuilder.() -> Unit): Collection<Element> {
-        val b = Element_ContentBuilder(factory)
-        b.init()
-        val obj = b.build()
-        _content = obj
-        return obj
-    }
+    fun content(init: Element_ContentBuilder.() -> Unit): Collection<Element> =
+        buildContent(factory, ::Element_ContentBuilder, init) { _content = it }
 
     override fun build(): Examples =
-        (id?.let {
-            factory.Examples_construct(it)
-        } ?: factory.Examples_construct()).also { self ->
+        factory.Examples_construct(id).also { self ->
             _content?.let { self.contentList.mutable.addAll(it) }
         }
 }
