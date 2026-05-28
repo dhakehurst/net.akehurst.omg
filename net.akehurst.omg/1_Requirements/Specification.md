@@ -9,6 +9,7 @@ Normative language
 
 - [REQ-1.1] The generator SHALL use external libraries to reduce the size of generated code.
 - [REQ-1.2] The generator SHALL use Kotlin language features to reduce the size of generated code.
+- [REQ-1.3] The generator SHALL map names from the MOF model to valid Kotlin names in the generated code.
 
 ## 2. API Requirements
 
@@ -37,7 +38,7 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
   - [REQ-2.2.3.4] a Serialisation API.
     - [REQ-2.2.3.4.1] Serialisation SHALL persist `_identity` values as specified in REQ-2.10.1.
 
-### 2.3 Type and classifier mapping (API)
+### 2.3 Primitive Type, Enum and Interface mapping (API)
 - [REQ-2.3.1] Primitive type mapping SHALL be:
   - [REQ-2.3.1.1] `UML.String` -> `kotlin.String`.
   - [REQ-2.3.1.2] `UML.Integer` -> `kotlin.Long`.
@@ -59,7 +60,7 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
   - [REQ-2.4.2.5] `_identity` SHALL be stable for object lifetime.
   - [REQ-2.4.2.6] `_identity` SHALL represent an object's persistent identifier (see REQ-2.10.1 for derivation and serialisation rules).
 - [REQ-2.4.3] Association-owned ends SHALL be non-navigable in API.
-- [REQ-2.4.4] Class-owned member ends SHALL be exposed as API attributes.
+- [REQ-2.4.4] Class-owned member ends SHALL be exposed as API properties.
 
 ### 2.5 Attribute resolution and naming (API)
 - [REQ-2.5.1] Attributes SHALL be resolved in this order.
@@ -67,7 +68,7 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
   - [REQ-2.5.1.2] Apply redefinition rules for each `A` redefining `B`.
     - [REQ-2.5.1.2.1] If same name, same type, and same collection status, `A` SHALL override `B` in Kotlin API.
     - [REQ-2.5.1.2.2] If `A` narrows type or multiplicity, `A` SHALL override `B`.
-    - [REQ-2.5.1.2.3] If name differs or `genType` differs, `A` SHALL be separate and SHALL NOT override `B`.
+    - [REQ-2.5.1.2.3] If name differs or the generated property name differs, `A` SHALL be separate and SHALL NOT override `B`.
   - [REQ-2.5.1.3] Redefined targets SHALL be filtered from final API attribute set.
   - [REQ-2.5.1.4] Duplicate names after filtering that collide on `validName` SHALL fail generation.
   - [REQ-2.5.1.5] Final API attribute set SHALL be deduplicated by `validName` and grouped by originating parent for documentation.
@@ -81,7 +82,7 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
   - [REQ-2.5.2.3] non-unique/ordered -> `${name}List`
   - [REQ-2.5.2.4] unique/ordered -> `${name}OrderedSet`
 
-### 2.6 Attribute behavior and invariants (API)
+### 2.6 Attribute behaviour and invariants (API)
 - [REQ-2.6.1] `isID` SHALL be supported.
   - [REQ-2.6.1.1] If source MOF specifies `isID=true`, generation SHALL use attributes with `isID==true` as the identity of an object.
   - [REQ-2.6.1.2] If no property with `isID=true` is defined, `_identity:Any` SHALL be the object identifier contract.
@@ -99,7 +100,7 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
     - [REQ-2.6.6.3.2] Error message SHALL identify which subset(s) would be violated.
   - [REQ-2.6.6.4] Violations SHALL throw `IllegalStateException`.
 
-### 2.7 Reference contracts (API)
+### 2.7 Composite/Reference contracts (API)
 - [REQ-2.7.1] For reference attributes of type `T`, two API properties SHALL be generated.
   - [REQ-2.7.1.1] A resolved-value API accessor.
   - [REQ-2.7.1.2] A `${propertyName}Reference` API accessor.
@@ -114,11 +115,11 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
   - [REQ-2.7.5.3] non-unique/ordered -> `List<Reference<Any, T>>`
   - [REQ-2.7.5.4] unique/ordered -> `OrderedSet<Reference<Any, T>>`
 - [REQ-2.7.6] Single required resolved-value getter (`lowerBound=1`, `upperBound=1`) SHALL throw `IllegalStateException` if unresolved.
-  - [REQ-2.7.6.1] Exception message text is implementation-defined and SHALL NOT be standardized by this specification.
+  - [REQ-2.7.6.1] Exception message text is implementation-defined and SHALL NOT be standardised by this specification.
 - [REQ-2.7.7] Single optional resolved-value getter (`lowerBound=0`, `upperBound=1`) SHALL return nullable resolved value.
 - [REQ-2.7.8] Collection resolved-value getter SHALL extract resolved values from `${propertyName}Reference`.
   - [REQ-2.7.8.1] If any element is unresolved, getter SHALL throw `IllegalStateException`.
-  - [REQ-2.7.8.2] This behavior SHALL be uniform for all collection references.
+  - [REQ-2.7.8.2] This behaviour SHALL be uniform for all collection references.
   - [REQ-2.7.8.3] Extraction occurs on each getter invocation (lazy evaluation).
   - [REQ-2.7.8.4] Implementations MAY cache extracted results, but only if reference store mutations are tracked and cache is invalidated on change.
 

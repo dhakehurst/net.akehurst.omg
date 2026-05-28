@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.redefined
 
 import net.akehurst.kotlinx.collections.ManagedList
 import net.akehurst.kotlinx.collections.ManagedOrderedSet
@@ -22,6 +22,8 @@ import net.akehurst.kotlinx.collections.ManagedSet
 import net.akehurst.kotlinx.collections.OrderedSet
 import net.akehurst.kotlinx.utils.ManagedReference
 import net.akehurst.kotlinx.utils.Reference
+import net.akehurst.omg.templates.examples.common.PropTypeB
+import net.akehurst.omg.templates.examples.simple.CollectionRefAttribute
 
 
 interface CollectionRefRedefSameNameDiffTypeAttribute : CollectionRefAttribute {
@@ -51,7 +53,7 @@ interface CollectionRefRedefSameNameDiffTypeAttribute : CollectionRefAttribute {
 }
 
 
-data class CollectionRefRedefSameNameDiffTypeAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : CollectionRefRedefSameNameDiffTypeAttribute {
+data class CollectionRefRedefSameNameDiffTypeAttributeRam(val _factory: redefined_PackageFactory, override val _identity: Any) : CollectionRefRedefSameNameDiffTypeAttribute {
 
     private val _prop1 = ManagedOrderedSet<ManagedReference<Any, PropTypeB>>("CollectionRefRedefSameNameDiffTypeAttribute.prop1", ManagedReference::class)
     override val prop1OrderedSetReference: OrderedSet<Reference<Any, PropTypeB>> get() = _prop1
@@ -80,6 +82,6 @@ data class CollectionRefRedefSameNameDiffTypeAttributeRam(val _factory: Examples
     override val prop4Collection: Collection<PropTypeB>
         get() = _prop4.map { it.resolved ?: throw IllegalStateException("unresolved reference in prop4Collection") }
 
-    override fun toString(): String = "CollectionRefRedefSameNameDiffTypeAttribute '${_factory._identity}.$_identity'"
+    override fun toString(): String = "CollectionRefRedefSameNameDiffTypeAttribute '${_factory.identity}.$_identity'"
 }
 

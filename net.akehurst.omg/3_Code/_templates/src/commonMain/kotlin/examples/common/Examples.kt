@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.common
 
-import net.akehurst.kotlinx.utils.UniqueIdentityGenerator
+import net.akehurst.kotlinx.collections.ManagedList
+import net.akehurst.omg.templates.examples.examples_ModelFactory
 
-interface PropType: Element {
-
+interface Example : Element {
+    val contentList: List<Element>
 }
 
-interface PropTypeB : PropType {
+data class ExampleRam(
+    val _factory: common_PackageFactory,
+    override val _identity: Any
+) : Example {
+    override val contentList: List<Element> = ManagedList("Examples.contentList", Element::class)
 
+    override fun toString(): String = "Examples '${_factory._identity}.$_identity'"
 }
 
-data class PropTypeRam(val _factory: Examples_Factory, override val _identity: Any) : PropType {
-	override fun toString(): String = "PropType '${_factory._identity}.$_identity'"
-}
-data class PropTypeBRam(val _factory: Examples_Factory, override val _identity: Any) : PropTypeB {
-	override fun toString(): String = "PropTypeB '${_factory._identity}.$_identity'"
-}
+
+

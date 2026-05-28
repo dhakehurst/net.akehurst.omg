@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.akehurst.omg.templates.examples
 
+package net.akehurst.omg.templates.examples.redefined
 
 import net.akehurst.kotlinx.utils.ManagedReference
 import net.akehurst.kotlinx.utils.Reference
+import net.akehurst.omg.templates.examples.common.PropType
+import net.akehurst.omg.templates.examples.examples_ModelFactory
+import net.akehurst.omg.templates.examples.simple.SingleRefAttribute
 
 
 interface SingleRefRedefDiffNameSameTypeAttribute : SingleRefAttribute {
@@ -34,7 +37,7 @@ interface SingleRefRedefDiffNameSameTypeAttribute : SingleRefAttribute {
     val redefinesProp2Reference: Reference<Any, PropType>
 }
 
-data class SingleRefRedefDiffNameSameTypeAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : SingleRefRedefDiffNameSameTypeAttribute {
+data class SingleRefRedefDiffNameSameTypeAttributeRam(val _factory: redefined_PackageFactory, override val _identity: Any) : SingleRefRedefDiffNameSameTypeAttribute {
 
     override val prop1: PropType get() = redefinesProp1
     override val prop1Reference: Reference<Any, PropType> get() = redefinesProp1Reference

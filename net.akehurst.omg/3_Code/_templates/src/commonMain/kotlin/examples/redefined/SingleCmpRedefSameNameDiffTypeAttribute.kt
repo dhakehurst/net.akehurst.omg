@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.redefined
 
 import net.akehurst.kotlinx.utils.ManagedValue
 import net.akehurst.kotlinx.utils.Value
+import net.akehurst.omg.templates.examples.common.PropTypeB
+import net.akehurst.omg.templates.examples.examples_ModelFactory
+import net.akehurst.omg.templates.examples.simple.SingleCmpAttribute
 
 
 interface SingleCmpRedefSameNameDiffTypeAttribute : SingleCmpAttribute {
@@ -34,8 +37,8 @@ interface SingleCmpRedefSameNameDiffTypeAttribute : SingleCmpAttribute {
     override val prop2Value: Value<PropTypeB?>
 }
 
-data class SingleCmpRedefSameNameDiffTypeAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : SingleCmpRedefSameNameDiffTypeAttribute {
-    override val prop1Value: Value<PropTypeB> = ManagedValue(_factory.PropTypeB_construct("${_identity}.prop1DefaultValue"), "SingleCmpRedefSameNameDiffTypeAttribute.prop1",PropTypeB::class)
+data class SingleCmpRedefSameNameDiffTypeAttributeRam(val _factory: redefined_PackageFactory, override val _identity: Any) : SingleCmpRedefSameNameDiffTypeAttribute {
+    override val prop1Value: Value<PropTypeB> = ManagedValue(_factory.rootFactory.common.PropTypeB_construct("${_identity}.prop1DefaultValue"), "SingleCmpRedefSameNameDiffTypeAttribute.prop1",PropTypeB::class)
     override val prop1: PropTypeB get() = prop1Value.get()
 
     override val prop2Value: Value<PropTypeB?> = ManagedValue<PropTypeB?>(null, "SingleCmpRedefSameNameDiffTypeAttribute.prop2", PropTypeB::class)

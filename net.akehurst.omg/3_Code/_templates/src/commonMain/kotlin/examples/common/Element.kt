@@ -14,22 +14,9 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.common
 
-/**
- * Example showing an attribute that with `isID=true`.
- */
-interface IsIDAttribute : Element {
-    /**
-     * id: String [1] { isID=true }
-     */
-    val id: String
+
+interface Element {
+    val _identity: Any
 }
-
-data class IsIDAttributeRam(val _factory: Examples_Factory, override val id: String) : IsIDAttribute {
-
-    override val _identity: Any get() = id
-
-    override fun toString(): String = "IsIDAttribute '${_factory._identity}.$_identity'"
-}
-

@@ -26,16 +26,16 @@ import net.akehurst.kotlinx.utils.ValueExt.mutable
 annotation class ExamplesDslMarker
 
 fun Examples(
-    factory: Examples_Factory,
+    factory: Examples_ModelFactory,
     id: Any,
     init: Examples_Builder.() -> Unit
 ): Examples = buildObject(factory, id, ::Examples_Builder, init) {
-    Examples_Resolver(factory).Examples_resolve(it)
+    Examples_ModelResolver(factory).Examples_resolve(it)
 }
 
 @ExamplesDslMarker
 class Examples_Builder(
-    val factory: Examples_Factory,
+    val factory: Examples_ModelFactory,
     val id: Any
 ) : Builder<Examples> {
 
@@ -51,23 +51,23 @@ class Examples_Builder(
 }
 
 private inline fun <B : Builder<T>, T : Element> buildObject(
-    factory: Examples_Factory,
+    factory: Examples_ModelFactory,
     id: Any,
-    noinline ctor: (Examples_Factory, Any) -> B,
+    noinline ctor: (Examples_ModelFactory, Any) -> B,
     init: B.() -> Unit = {},
     action: (T) -> Unit
 ): T = Builder.buildAction({ ctor.invoke(factory, id) }, init, action)
 
 private inline fun <B : Builder<T>, T : Any> buildContent(
-    factory: Examples_Factory,
-    noinline ctor: (Examples_Factory) -> B,
+    factory: Examples_ModelFactory,
+    noinline ctor: (Examples_ModelFactory) -> B,
     init: B.() -> Unit = {},
     action: (T) -> Unit
 ): T = Builder.buildAction({ ctor.invoke(factory) }, init, action)
 
 @ExamplesDslMarker
 class Element_ContentBuilder(
-    val factory: Examples_Factory
+    val factory: Examples_ModelFactory
 ) : Builder<Collection<Element>> {
 
     private val _content = mutableListOf<Element>()
@@ -104,7 +104,7 @@ class Element_ContentBuilder(
 
 @ExamplesDslMarker
 class PropType_ContentBuilder(
-    val factory: Examples_Factory
+    val factory: Examples_ModelFactory
 ) : Builder<Collection<PropType>> {
     private val _content = mutableListOf<PropType>()
 
@@ -116,7 +116,7 @@ class PropType_ContentBuilder(
 
 @ExamplesDslMarker
 class PropType_Builder(
-    val factory: Examples_Factory,
+    val factory: Examples_ModelFactory,
     private val _id: Any
 ) : Builder<PropType> {
     override fun build(): PropType = factory.PropType_construct(_id)
@@ -124,7 +124,7 @@ class PropType_Builder(
 
 @ExamplesDslMarker
 class PropTypeB_Builder(
-    val factory: Examples_Factory,
+    val factory: Examples_ModelFactory,
     private val _id: Any
 ) : Builder<PropTypeB> {
     override fun build(): PropTypeB = factory.PropTypeB_construct(_id)
@@ -132,7 +132,7 @@ class PropTypeB_Builder(
 
 @ExamplesDslMarker
 class SingleCmpAttribute_Builder(
-    val factory: Examples_Factory,
+    val factory: Examples_ModelFactory,
     private val _id: Any
 ) : Builder<SingleCmpAttribute> {
     private var _prop1: PropType? = null
@@ -149,7 +149,7 @@ class SingleCmpAttribute_Builder(
 
 @ExamplesDslMarker
 class SingleCmpRedefSameNameDiffTypeAttribute_Builder(
-    val factory: Examples_Factory,
+    val factory: Examples_ModelFactory,
     private val _id: Any
 ) : Builder<SingleCmpRedefSameNameDiffTypeAttribute> {
 
@@ -167,7 +167,7 @@ class SingleCmpRedefSameNameDiffTypeAttribute_Builder(
 
 @ExamplesDslMarker
 class SingleCmpRedefDiffNameSameTypeAttribute_Builder(
-    val factory: Examples_Factory,
+    val factory: Examples_ModelFactory,
     private val _id: Any
 ) : Builder<SingleCmpRedefDiffNameSameTypeAttribute> {
     private var _redefinesProp1: PropType? = null
@@ -184,7 +184,7 @@ class SingleCmpRedefDiffNameSameTypeAttribute_Builder(
 
 @ExamplesDslMarker
 class SingleRefAttribute_Builder(
-    val factory: Examples_Factory,
+    val factory: Examples_ModelFactory,
     private val _id: Any
 ) : Builder<SingleRefAttribute> {
     private var _prop1: Any? = null
@@ -201,7 +201,7 @@ class SingleRefAttribute_Builder(
 
 @ExamplesDslMarker
 class CollectionCmpAttribute_Builder(
-    val factory: Examples_Factory,
+    val factory: Examples_ModelFactory,
     private val _id: Any
 ) : Builder<CollectionCmpAttribute> {
     private var _prop1: Collection<PropType>? = null
@@ -218,7 +218,7 @@ class CollectionCmpAttribute_Builder(
 
 @ExamplesDslMarker
 class CollectionCmpRedefSameNameDiffTypeAttribute_Builder(
-    val factory: Examples_Factory,
+    val factory: Examples_ModelFactory,
     private val _id: Any
 ) : Builder<CollectionCmpRedefSameNameDiffTypeAttribute> {
     private var _prop1: Collection<PropTypeB>? = null
@@ -238,7 +238,7 @@ class CollectionCmpRedefSameNameDiffTypeAttribute_Builder(
 
 @ExamplesDslMarker
 class SingleRefRedefSameNameDiffTypeAttribute_Builder(
-    val factory: Examples_Factory,
+    val factory: Examples_ModelFactory,
     private val _id: Any
 ) : Builder<SingleRefRedefSameNameDiffTypeAttribute> {
     private var _prop1: Any? = null
@@ -255,7 +255,7 @@ class SingleRefRedefSameNameDiffTypeAttribute_Builder(
 
 @ExamplesDslMarker
 class SingleRefRedefDiffNameSameTypeAttribute_Builder(
-    val factory: Examples_Factory,
+    val factory: Examples_ModelFactory,
     private val _id: Any
 ) : Builder<SingleRefRedefDiffNameSameTypeAttribute> {
     private var _redefinesProp1: Any? = null

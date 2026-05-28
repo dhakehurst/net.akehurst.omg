@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.simple
 
 import net.akehurst.kotlinx.utils.ManagedReference
 import net.akehurst.kotlinx.utils.Reference
+import net.akehurst.omg.templates.examples.common.Element
+import net.akehurst.omg.templates.examples.common.PropType
+import net.akehurst.omg.templates.examples.examples_ModelFactory
 
 interface SingleRefAttribute: Element {
     /**
@@ -32,7 +35,7 @@ interface SingleRefAttribute: Element {
     val prop2Reference: Reference<Any, PropType>
 }
 
-data class SingleRefAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : SingleRefAttribute {
+data class SingleRefAttributeRam(val _factory: simple_PackageFactory, override val _identity: Any) : SingleRefAttribute {
 
     override val prop1: PropType get() = prop1Reference.resolved ?: error("prop1 not resolved")
     override val prop1Reference = ManagedReference<Any, PropType>(null, "SingleRefAttributeRam.prop1", PropType::class)

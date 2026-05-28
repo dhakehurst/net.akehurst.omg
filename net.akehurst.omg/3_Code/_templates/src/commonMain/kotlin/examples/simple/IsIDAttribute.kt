@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.simple
 
-import net.akehurst.kotlinx.collections.ManagedList
+import net.akehurst.omg.templates.examples.common.Element
 
-interface Element {
-    val _identity: Any
+/**
+ * Example showing an attribute that with `isID=true`.
+ */
+interface IsIDAttribute : Element {
+    /**
+     * id: String [1] { isID=true }
+     */
+    val id: String
 }
 
-interface Examples : Element {
-    val contentList: List<Element>
+data class IsIDAttributeRam(val _factory: simple_PackageFactory, override val id: String) : IsIDAttribute {
+
+    override val _identity: Any get() = id
+
+    override fun toString(): String = "IsIDAttribute '${_factory._identity}.$_identity'"
 }
-
-data class ExamplesRam(
-    val _factory: Examples_Factory,
-    override val _identity: Any
-) : Examples {
-    override val contentList: List<Element> = ManagedList("Examples.contentList", Element::class)
-
-    override fun toString(): String = "Examples '${_factory._identity}.$_identity'"
-}
-
-
 

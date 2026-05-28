@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.redefined
 
 import net.akehurst.kotlinx.utils.ManagedValue
 import net.akehurst.kotlinx.utils.Value
+import net.akehurst.omg.templates.examples.common.PropType
+import net.akehurst.omg.templates.examples.examples_ModelFactory
+import net.akehurst.omg.templates.examples.simple.SingleCmpAttribute
 
 interface SingleCmpRedefDiffNameSameTypeAttribute : SingleCmpAttribute {
     /**
@@ -33,8 +36,8 @@ interface SingleCmpRedefDiffNameSameTypeAttribute : SingleCmpAttribute {
     val redefinesProp2Value: Value<PropType?>
 }
 
-data class SingleCmpRedefDiffNameSameTypeAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : SingleCmpRedefDiffNameSameTypeAttribute {
-    override val redefinesProp1Value: Value<PropType> = ManagedValue(_factory.PropType_construct("${_identity}.redefinesProp1ValueDefaultValue"),"SingleCmpRedefDiffNameSameTypeAttributeRam.redefinesProp1", PropType::class)
+data class SingleCmpRedefDiffNameSameTypeAttributeRam(val _factory: redefined_PackageFactory, override val _identity: Any) : SingleCmpRedefDiffNameSameTypeAttribute {
+    override val redefinesProp1Value: Value<PropType> = ManagedValue(_factory.rootFactory.common.PropType_construct("${_identity}.redefinesProp1ValueDefaultValue"),"SingleCmpRedefDiffNameSameTypeAttributeRam.redefinesProp1", PropType::class)
     override val redefinesProp1: PropType get() = redefinesProp1Value.get()
     override val prop1Value: Value<PropType> get() = redefinesProp1Value
     override val prop1: PropType get() = prop1Value.get()

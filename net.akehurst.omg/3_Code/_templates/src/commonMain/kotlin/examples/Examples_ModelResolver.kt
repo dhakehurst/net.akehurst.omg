@@ -19,7 +19,7 @@ package net.akehurst.omg.templates.examples
 import net.akehurst.kotlinx.utils.ReferenceStore
 import net.akehurst.kotlinx.utils.resolve
 
-class Examples_Resolver(val store: ReferenceStore<Any>) {
+class Examples_ModelResolver(val store: ReferenceStore<Any>) {
 
     fun Examples_resolve(obj: Examples) {
         obj.contentList.forEach { resolveElement(it) }

@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.redefined
 
 import net.akehurst.kotlinx.collections.ManagedList
 import net.akehurst.kotlinx.collections.ManagedOrderedSet
 import net.akehurst.kotlinx.collections.ManagedSet
 import net.akehurst.kotlinx.collections.OrderedSet
+import net.akehurst.omg.templates.examples.common.PropTypeB
+import net.akehurst.omg.templates.examples.simple.CollectionCmpAttribute
 
 
 interface CollectionCmpRedefSameNameDiffTypeAttribute : CollectionCmpAttribute {
@@ -44,7 +46,7 @@ interface CollectionCmpRedefSameNameDiffTypeAttribute : CollectionCmpAttribute {
     override val prop4Collection: Collection<PropTypeB>
 }
 
-data class CollectionCmpRedefSameNameDiffTypeAttributeRam(val _factory: Examples_Factory, override val _identity: Any): CollectionCmpRedefSameNameDiffTypeAttribute {
+data class CollectionCmpRedefSameNameDiffTypeAttributeRam(val _factory: redefined_PackageFactory, override val _identity: Any): CollectionCmpRedefSameNameDiffTypeAttribute {
 
     // --- CollectionCompositeAttribute ---
     //override var prop1Collection: PropType  REDEFINED

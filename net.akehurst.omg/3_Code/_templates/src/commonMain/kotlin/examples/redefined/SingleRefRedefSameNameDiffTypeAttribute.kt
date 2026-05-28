@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.redefined
 
 import net.akehurst.kotlinx.utils.ManagedReference
 import net.akehurst.kotlinx.utils.Reference
+import net.akehurst.omg.templates.examples.common.PropTypeB
+import net.akehurst.omg.templates.examples.simple.SingleRefAttribute
 
 interface SingleRefRedefSameNameDiffTypeAttribute : SingleRefAttribute {
     /**
@@ -33,7 +35,7 @@ interface SingleRefRedefSameNameDiffTypeAttribute : SingleRefAttribute {
     override val prop2Reference: Reference<Any, PropTypeB>
 }
 
-data class SingleRefRedefSameNameDiffTypeAttributeRam(val _factory: Examples_Factory, override val _identity: Any): SingleRefRedefSameNameDiffTypeAttribute {
+data class SingleRefRedefSameNameDiffTypeAttributeRam(val _factory: redefined_PackageFactory, override val _identity: Any): SingleRefRedefSameNameDiffTypeAttribute {
     override val prop1: PropTypeB get() = prop1Reference.resolved ?: error("prop1 not resolved")
     override val prop1Reference = ManagedReference<Any, PropTypeB>(null, "SingleRefRedefSameNameDiffTypeAttributeRam.prop1", PropTypeB::class)
 

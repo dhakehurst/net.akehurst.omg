@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.simple
 
 import net.akehurst.kotlinx.collections.ManagedList
+import net.akehurst.omg.templates.examples.common.Element
+import net.akehurst.omg.templates.examples.common.PropType
 
 /**
  * Example of a derived-union composite attribute. The attribute `derived` is a derived-union and therefore
@@ -35,12 +37,12 @@ interface DerivedUnionCompositeAttribute : Element {
     val derived: PropType?
 }
 
-data class DerivedUnionCompositeAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : DerivedUnionCompositeAttribute {
+data class DerivedUnionCompositeAttributeRam(val _factory: simple_PackageFactory, override val _identity: Any) : DerivedUnionCompositeAttribute {
     override val children = ManagedList<PropType>("DerivedUnionCompositeAttribute.children", PropType::class)
 
     // computed getter: here we provide a simple illustrative computation (first child or null)
     override val derived: PropType? get() = children.firstOrNull()
 
-    override fun toString(): String = "DerivedUnionCompositeAttribute '${_factory._identity}.$_identity'"
+    override fun toString(): String = "DerivedUnionCompositeAttribute '${_factory.identity}.$_identity'"
 }
 

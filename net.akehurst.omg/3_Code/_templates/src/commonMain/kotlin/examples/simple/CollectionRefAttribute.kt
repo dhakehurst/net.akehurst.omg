@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.simple
 
 import net.akehurst.kotlinx.collections.ManagedList
 import net.akehurst.kotlinx.collections.ManagedOrderedSet
@@ -22,6 +22,8 @@ import net.akehurst.kotlinx.collections.ManagedSet
 import net.akehurst.kotlinx.collections.OrderedSet
 import net.akehurst.kotlinx.utils.ManagedReference
 import net.akehurst.kotlinx.utils.Reference
+import net.akehurst.omg.templates.examples.common.Element
+import net.akehurst.omg.templates.examples.common.PropType
 
 
 interface CollectionRefAttribute : Element {
@@ -51,7 +53,7 @@ interface CollectionRefAttribute : Element {
 }
 
 
-data class CollectionRefAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : CollectionRefAttribute {
+data class CollectionRefAttributeRam(val _factory: simple_PackageFactory, override val _identity: Any) : CollectionRefAttribute {
 
     // backing stores are managed collections of ManagedReference so callbacks can be supported by RAM realisation
     private val _prop1 = ManagedOrderedSet<ManagedReference<Any, PropType>>("CollectionRefAttribute.prop1", ManagedReference::class)

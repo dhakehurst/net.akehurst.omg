@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.simple
 
 import net.akehurst.kotlinx.collections.ManagedList
 import net.akehurst.kotlinx.utils.ManagedReference
 import net.akehurst.kotlinx.utils.Reference
+import net.akehurst.omg.templates.examples.common.Element
+import net.akehurst.omg.templates.examples.common.PropType
 
 /**
  * Example of a derived-union reference attribute. The attribute `derivedRef` is a derived-union and therefore
@@ -38,7 +40,7 @@ interface DerivedUnionRefAttribute : Element {
     val derivedRef: PropType?
 }
 
-data class DerivedUnionRefAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : DerivedUnionRefAttribute {
+data class DerivedUnionRefAttributeRam(val _factory: simple_PackageFactory, override val _identity: Any) : DerivedUnionRefAttribute {
     private val _refs = ManagedList<ManagedReference<Any, PropType>>("DerivedUnionRefAttribute.refs", ManagedReference::class)
     override val refsReference: List<Reference<Any, PropType>> get() = _refs
     override val refs: List<PropType> get() = _refs.map { it.resolved ?: throw IllegalStateException("unresolved reference in refs") }
@@ -48,6 +50,6 @@ data class DerivedUnionRefAttributeRam(val _factory: Examples_Factory, override 
     override val derivedRefReference: Reference<Any, PropType> get() = _derivedRefBacking
     override val derivedRef: PropType? get() = _derivedRefBacking.resolved ?: refs.firstOrNull()
 
-    override fun toString(): String = "DerivedUnionRefAttribute '${_factory._identity}.$_identity'"
+    override fun toString(): String = "DerivedUnionRefAttribute '${_factory.identity}.$_identity'"
 }
 

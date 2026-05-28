@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.simple
 
 import net.akehurst.kotlinx.utils.ManagedValue
 import net.akehurst.kotlinx.utils.Value
+import net.akehurst.omg.templates.examples.common.Element
+import net.akehurst.omg.templates.examples.common.PropType
+import net.akehurst.omg.templates.examples.examples_ModelFactory
 
 
 interface SingleCmpAttribute : Element {
@@ -36,8 +39,8 @@ interface SingleCmpAttribute : Element {
 
 
 
-data class SingleCmpAttributeRam(val _factory: Examples_Factory, override val _identity: Any) : SingleCmpAttribute {
-    override val prop1Value: Value<PropType> = ManagedValue(_factory.PropType_construct("${_identity}.prop1ValueDefaultValue"), "SingleCmpAttributeRam.prop1", PropType::class)
+data class SingleCmpAttributeRam(val _factory: simple_PackageFactory, override val _identity: Any) : SingleCmpAttribute {
+    override val prop1Value: Value<PropType> = ManagedValue(_factory.rootFactory.common.PropType_construct("${_identity}.prop1ValueDefaultValue"), "SingleCmpAttributeRam.prop1", PropType::class)
     override val prop1: PropType get() = prop1Value.get()
 
     override val prop2Value: Value<PropType?> = ManagedValue(null,"SingleCmpAttributeRam.prop2", PropType::class)
