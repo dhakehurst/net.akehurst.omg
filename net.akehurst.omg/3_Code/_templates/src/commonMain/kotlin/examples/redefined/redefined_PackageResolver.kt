@@ -16,15 +16,9 @@
 
 package net.akehurst.omg.templates.examples.redefined
 
+import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreExt.resolve
 import net.akehurst.kotlinx.utils.HierarchicalResolver
-import net.akehurst.kotlinx.utils.resolve
-import net.akehurst.omg.templates.examples.common.Element
-import net.akehurst.omg.templates.examples.common.Example
-import net.akehurst.omg.templates.examples.common.PropType
-import net.akehurst.omg.templates.examples.common.PropTypeB
-import net.akehurst.omg.templates.examples.common.common_PackageFactory
 import net.akehurst.omg.templates.examples.examples_ModelResolver
-import net.akehurst.omg.templates.examples.simple.*
 
 
 class redefined_PackageResolver(

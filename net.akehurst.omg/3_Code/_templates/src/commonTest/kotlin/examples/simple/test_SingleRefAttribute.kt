@@ -16,13 +16,12 @@
 
 package net.akehurst.omg.templates.examples.simple
 
+import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreExt.resolve
 import net.akehurst.kotlinx.utils.ReferenceExt.mutable
 import net.akehurst.kotlinx.utils.cast
-import net.akehurst.kotlinx.utils.resolve
 import net.akehurst.omg.templates.examples.Example
 import net.akehurst.omg.templates.examples.Examples_ModelAsString
 import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
-import net.akehurst.omg.templates.examples.simple.SingleRefAttribute
 import kotlin.test.*
 
 class test_SingleRefAttribute {
@@ -186,13 +185,13 @@ class test_SingleRefAttribute {
 
         val actual = Examples_ModelAsString.Example_asString(model)
         val expected = """
-            Examples 'ExamplesFactoryRam0.Test'
+            Examples 'TestModelFactory.common.Test'
               content = List [
-                PropType 'ExamplesFactoryRam0.p1'
-                PropType 'ExamplesFactoryRam0.p2'
-                SingleRefAttribute 'ExamplesFactoryRam0.obj' 
-                  prop1 PropType 'ExamplesFactoryRam0.p1'
-                  prop2 PropType 'ExamplesFactoryRam0.p2'
+                PropType 'TestModelFactory.common.p1'
+                PropType 'TestModelFactory.common.p2'
+                SingleRefAttribute 'TestModelFactory.simple.obj' 
+                  prop1 PropType 'TestModelFactory.common.p1'
+                  prop2 PropType 'TestModelFactory.common.p2'
               ]
         """.trimIndent()
 

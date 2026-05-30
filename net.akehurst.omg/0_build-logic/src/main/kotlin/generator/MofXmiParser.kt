@@ -32,6 +32,25 @@ class MofXmiParser(
     companion object {
         fun Element.getXmiId() = this.getAttribute("xmi:id")
         fun Element.getAttributeOrNull(name: String) = this.getAttributeNode(name)?.value
+
+        fun Element.getChildrenByTagName(tagName: String): List<Element> {
+            val list = mutableListOf<Element>()
+            val childNodes = childNodes
+            for (i in 0 until childNodes.length) {
+                val node = childNodes.item(i)
+                if (node is Element && node.tagName == tagName) {
+                    list.add(node)
+                }
+            }
+            return list
+        }
+
+        fun Element.getValueByAttributeOrSubElementRef(name:String) =
+            getAttributeOrNull(name)
+                ?: this.getChildrenByTagName(name)?.let {
+                    check(it.size == 1) { "mor than one sub element with name '$name', canot get single value" }
+                    it.first().getAttribute("xmi:idref")
+                }
     }
 
     val refHandler = XmiReferenceHandler()
@@ -214,8 +233,8 @@ class MofXmiParser(
         val xmiId = node.getAttribute("xmi:id")
         when (xmiType) {
             "uml:PackageImport" -> {
-                val importedPackageName = node.getAttribute("importedPackage")
-                currentMofPackage.packageImport.add(importedPackageName)
+                val importedPackageRef = node.getValueByAttributeOrSubElementRef("importedPackage")
+                importedPackageRef?.let {currentMofPackage.packageImportRefs.add(importedPackageRef) }
             }
 
             else -> println("Unknown element type '$xmiType' of packageImport")

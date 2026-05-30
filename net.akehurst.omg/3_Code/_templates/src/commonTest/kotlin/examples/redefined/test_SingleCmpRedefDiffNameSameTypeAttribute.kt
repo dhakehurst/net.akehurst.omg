@@ -92,11 +92,11 @@ class test_SingleCmpRedefDiffNameSameTypeAttribute {
 
         val actual = Examples_ModelAsString.Example_asString(model)
         val expected = """
-            Examples 'ExamplesFactoryRam0.Test'
+            Examples 'TestModelFactory.common.Test'
               content = List [
-                SingleCmpRedefDiffNameSameTypeAttribute 'ExamplesFactoryRam0.obj'
-                  prop1 PropType 'ExamplesFactoryRam0.p1'
-                  prop2 PropType 'ExamplesFactoryRam0.pb2'
+                SingleCmpRedefDiffNameSameTypeAttribute 'TestModelFactory.redefined.obj'
+                  prop1 PropType 'TestModelFactory.common.p1'
+                  prop2 PropType 'TestModelFactory.common.pb2'
               ]
         """.trimIndent()
 

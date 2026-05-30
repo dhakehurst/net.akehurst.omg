@@ -109,18 +109,18 @@ class test_CollectionCmpRedefSameNameDiffTypeAttribute {
 
         val actual = Examples_ModelAsString.Example_asString(model)
         val expected = """
-        Examples 'ExamplesFactoryRam0.Test'
-          content = List [
-            CollectionCmpRedefSameNameDiffTypeAttribute 'ExamplesFactoryRam0.obj'
-              prop1 = OrderedSet [
-                PropTypeB 'ExamplesFactoryRam0.pb1'
+            Examples 'TestModelFactory.common.Test'
+              content = List [
+                CollectionCmpRedefSameNameDiffTypeAttribute 'TestModelFactory.redefined.obj'
+                  prop1 = OrderedSet [
+                    PropTypeB 'TestModelFactory.common.pb1'
+                  ]
+                  prop2 = List [
+                    PropTypeB 'TestModelFactory.common.pb2'
+                  ]
+                  prop3 = Set []
+                  prop4 = Collection []
               ]
-              prop2 = List [
-                PropTypeB 'ExamplesFactoryRam0.pb2'
-              ]
-              prop3 = Set []
-              prop4 = Collection []
-          ]
         """.trimIndent()
 
         assertEquals(expected, actual)

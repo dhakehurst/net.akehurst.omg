@@ -16,9 +16,9 @@
 
 package net.akehurst.omg.templates.examples.redefined
 
+import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreExt.resolve
 import net.akehurst.kotlinx.utils.ReferenceExt.mutable
 import net.akehurst.kotlinx.utils.cast
-import net.akehurst.kotlinx.utils.resolve
 import net.akehurst.omg.templates.examples.Example
 import net.akehurst.omg.templates.examples.Examples_ModelAsString
 import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
@@ -107,11 +107,11 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
 
         val actual = Examples_ModelAsString.Example_asString(model)
         val expected = """
-            Examples 'ExamplesFactoryRam0.Test'
+            Examples 'TestModelFactory.common.Test'
               content = List [
-                PropType 'ExamplesFactoryRam0.p1'
-                SingleRefRedefDiffNameSameTypeAttributeRam 'ExamplesFactoryRam0.obj'
-                  prop1 PropType 'ExamplesFactoryRam0.p1'
+                PropType 'TestModelFactory.common.p1'
+                SingleRefRedefDiffNameSameTypeAttributeRam 'TestModelFactory.redefined.obj'
+                  prop1 PropType 'TestModelFactory.common.p1'
               ]
         """.trimIndent()
 

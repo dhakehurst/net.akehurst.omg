@@ -80,24 +80,28 @@ class test_Templates_SingleReferenceAttribute : test_TemplatesAbstract() {
                 
                 import net.akehurst.kotlinx.collections.OrderedSet
                 import net.akehurst.kotlinx.utils.Reference
+                import net.akehurst.kotlinx.utils.Value
                 
                 /**
-                  * A test class
-                  */
+                   A test class
+                 */
                 interface TestClass {
+                
                    val _identity: Any
-                   /**
-                    * prop1: ExtClass [1..1]{unique}
-                    */
-                   val prop1: ExtClass
-                   fun set_prop1(value: ExtClass)
                    
                    /**
-                    * prop2: ExtClass [0..1]{unique}
+                    * prop1:  [1..1] {reference unique }
                     */
-                   val prop1: ExtClass?
-                   fun set_prop1(value: ExtClass?)
-                }               
+                   val prop1: ExtClass
+                   val prop1Reference: Reference<Any,ExtClass>
+                    
+                   /**
+                    * prop2:  [0..1] {reference unique }
+                    */
+                   val prop2: ExtClass?
+                   val prop2Reference: Reference<Any,ExtClass?>
+                   
+                }            
             """.trimIndent(),
             "sentence" to ""
         )

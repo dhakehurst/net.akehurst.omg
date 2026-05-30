@@ -19,9 +19,9 @@ package net.akehurst.omg.templates.examples.simple
 import net.akehurst.kotlinx.collections.ListExt.mutable
 import net.akehurst.kotlinx.collections.OrderedSetExt.mutable
 import net.akehurst.kotlinx.collections.orderedSetOf
+import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreExt.resolve
 import net.akehurst.kotlinx.utils.ManagedReference
 import net.akehurst.kotlinx.utils.ReferenceExt.mutable
-import net.akehurst.kotlinx.utils.resolve
 import net.akehurst.omg.templates.examples.common.PropType
 import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
 import kotlin.test.Test

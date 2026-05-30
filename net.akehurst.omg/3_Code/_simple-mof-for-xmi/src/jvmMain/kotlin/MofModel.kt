@@ -101,6 +101,7 @@ class MofModel(
         name != other.name -> false
         else -> true
     }
+
     override fun toString(): String = name
 }
 
@@ -117,15 +118,31 @@ data class MofPackage(
     val classes: MutableList<MofClass> = mutableListOf()
     val subPackages: MutableList<MofPackage> = mutableListOf()
     val associations: MutableList<MofAssociation> = mutableListOf()
-    val packageImport: MutableList<String> = mutableListOf()
+
+    // this is actually useless because the xmi does not correctl include all needed
+    val packageImportRefs: MutableList<String> = mutableListOf()
 
     val validName: String by lazy { kotlinValidName(name) }
-    val qualifiedName: String get()= parentPackage?.let { it.qualifiedName + "." + name } ?: name
-    val allImport: List<String>
-        get() = when (parentPackage) {
-            null -> packageImport.toSet().sorted()
-            else -> (parentPackage!!.allImport + packageImport).toSet().sorted()
-        }
+    val qualifiedName: String get() = parentPackage?.let { it.qualifiedName + "." + name } ?: name
+    val qualifiedPath: String get() = parentPackage?.let { it.qualifiedPath + "/" + name } ?: name
+
+    val packageImport: Set<MofPackage> by lazy {
+        val frmInterfaceSupers = interfaces.flatMap { intf -> intf.superTypes.mapNotNull { it.parentPackage } }.toSet()
+        val frmInterfaceAttrs = interfaces.flatMap { intf -> intf.ownedAttribute.mapNotNull { attr -> attr.type.parentPackage } }.toSet()
+        val frmClsSupers = classes.flatMap { intf -> intf.superTypes.mapNotNull { it.parentPackage } }.toSet()
+        val frmClsAttrs = classes.flatMap { intf -> intf.ownedAttribute.mapNotNull { attr -> attr.type.parentPackage } }.toSet()
+        (frmInterfaceSupers + frmInterfaceAttrs + frmClsSupers + frmClsAttrs) - this
+    }
+//    val allImport: List<MofPackage>
+//        get() = when (parentPackage) {
+//            null -> packageImport.toSet().sortedBy { it.qualifiedName }
+//            else -> (parentPackage!!.allImport + packageImport).toSet().sortedBy { it.qualifiedName }
+//        }
+
+    // TODO: this just imports all packages, would be better to calulates those needed as above tried to do
+    val allImport: List<MofPackage> by lazy {
+        model.packageList
+    }
 
     val isEmpty: Boolean get() = enums.isEmpty() && classes.isEmpty()
 
@@ -232,8 +249,8 @@ abstract class MofAbstractType() : MofType {
 
     // --- derived ---
     override val validName: String by lazy { kotlinValidName(name) }
-    override val isPrimitive: Boolean by lazy{ model.isPrimitive(this)}
-    val qualifiedName: String get()= parentPackage?.let { it.qualifiedName + "." + name } ?: name
+    override val isPrimitive: Boolean by lazy { model.isPrimitive(this) }
+    val qualifiedName: String get() = parentPackage?.let { it.qualifiedName + "." + name } ?: name
 
     override val superTypes: Set<MofType> get() = generalizations.map { model.findTypeById(it) as MofType }.toSet()
     override val allSuperTypes: Set<MofType> by lazy { superTypes.transitiveClosure { it.superTypes }.toSet() }
@@ -362,7 +379,7 @@ class MofInterface(
 ) : MofAbstractType() {
 
     override val isAbstract: Boolean = true
-    override val isPrimitive: Boolean  by lazy{ model.isPrimitive(this)}
+    override val isPrimitive: Boolean by lazy { model.isPrimitive(this) }
 
     override val concreteSubclasses: Set<MofClass> by lazy { model.classList.filter { !it.isAbstract && it.allSuperTypes.contains(this) }.toSet() }
 
@@ -406,6 +423,7 @@ open class MofClass(
         xmiId != other.xmiId -> false
         else -> true
     }
+
     override fun toString(): String = "${parentPackage?.qualifiedName}.$name"
 }
 
@@ -421,6 +439,7 @@ class ExternalReferenceClass(
         xmiId != other.xmiId -> false
         else -> true
     }
+
     override fun toString(): String = "ExternalRef($xmiId)"
 }
 
@@ -460,7 +479,7 @@ class MofProperty(
         }
     }
     val validName by lazy { kotlinValidName(attrName) }
-    val qualifiedName: String get()= parentClass?.let { it.qualifiedName + "." + name } ?: name
+    val qualifiedName: String get() = parentClass?.let { it.qualifiedName + "." + name } ?: name
     val type: MofType by lazy {
         typeXmiId?.let { model.findTypeById(it) }
             ?: typeHref?.let { model.findTypeById(it) }
@@ -469,9 +488,22 @@ class MofProperty(
     val validTypeName by lazy {
         when {
             isSingle -> when {
-                isOptional -> type.validName+"?"
+                isOptional -> type.validName + "?"
                 else -> type.validName
             }
+
+            else -> when {
+                (false == isUnique) and (false == isOrdered) -> "Collection<${type.validName}>"
+                (true == isUnique) and (false == isOrdered) -> "Set<${type.validName}>"
+                (false == isUnique) and (true == isOrdered) -> "List<${type.validName}>"
+                (true == isUnique) and (true == isOrdered) -> "OrderedSet<${type.validName}>"
+                else -> "ERROR(validTypeName)"
+            }
+        }
+    }
+    val validTypeNameNotNullable by lazy {
+        when {
+            isSingle -> type.validName
             else -> when {
                 (false == isUnique) and (false == isOrdered) -> "Collection<${type.validName}>"
                 (true == isUnique) and (false == isOrdered) -> "Set<${type.validName}>"
@@ -532,6 +564,7 @@ class MofProperty(
         xmiId != other.xmiId -> false
         else -> true
     }
+
     override fun toString(): String = "${parentClass?.parentPackage?.qualifiedName}.${parentClass?.name}.$name"
 }
 

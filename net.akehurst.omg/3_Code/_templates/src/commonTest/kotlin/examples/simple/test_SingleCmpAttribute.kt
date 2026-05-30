@@ -134,11 +134,11 @@ class test_SingleCmpAttribute {
 
         val actual = Examples_ModelAsString.Example_asString(model)
         val expected = """
-            Examples 'ExamplesFactoryRam0.Test'
+            Examples 'TestModelFactory.common.Test'
               content = List [
-                SingleCmpAttribute 'ExamplesFactoryRam0.obj'
-                  prop1 PropType 'ExamplesFactoryRam0.p1'
-                  prop2 PropType 'ExamplesFactoryRam0.p2'
+                SingleCmpAttribute 'simple.obj'
+                  prop1 PropType 'TestModelFactory.common.p1'
+                  prop2 PropType 'TestModelFactory.common.p2'
               ]
         """.trimIndent()
         assertEquals(expected, actual)

@@ -77,28 +77,32 @@ class test_Templates_SingleCompositeAttribute : test_TemplatesAbstract() {
         val expected = mapOf(
             "api/Root.kt" to """
                 // *** Generated code do NOT manually edit. ***
-                package test.api
+                package test.api.Root
                 
                 import net.akehurst.kotlinx.collections.OrderedSet
                 import net.akehurst.kotlinx.utils.Reference
+                import net.akehurst.kotlinx.utils.Value
                 
                 /**
-                  * A test class
-                  */
+                   A test class
+                 */
                 interface TestClass {
+                
                    val _identity: Any
-                   /**
-                    * prop1: ExtClass [1..1]{unique}
-                    */
-                   val prop1: ExtClass
-                   fun set_prop1(value: ExtClass)
                    
-                   /**
-                    * prop2: ExtClass [0..1]{unique}
-                    */
-                   val prop1: ExtClass?
-                   fun set_prop1(value: ExtClass?)
-                }               
+                    /**
+                      * prop1:  [1..1] {composite unique }
+                      */
+                    val prop1: ExtClass
+                    val prop1Value: Value<ExtClass>
+                    
+                    /**
+                      * prop2:  [0..1] {composite unique }
+                      */
+                    val prop2: ExtClass?
+                    val prop2Value: Value<ExtClass?>
+                    
+                 }
             """.trimIndent(),
             "sentence" to ""
         )
@@ -109,7 +113,7 @@ class test_Templates_SingleCompositeAttribute : test_TemplatesAbstract() {
     fun asString_populated() {
         val template = File("api/AsString.agl-fmt").readText()
         val expected = mapOf(
-            "api/TestAsString.kt" to $$"""
+            "api/Test_ModelAsString.kt" to $$"""
                 // *** Generated code do NOT manually edit. ***
                 package .api
                 

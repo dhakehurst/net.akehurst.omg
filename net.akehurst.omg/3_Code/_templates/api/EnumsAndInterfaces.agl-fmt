@@ -18,55 +18,30 @@ namespace net.akehurst.omg.mof.gen.template
 
 import net.akehurst.omg.mof.gen.simple
 
-fun refSetterArgument(prop:MofProperty): String = with(prop) when {
-    (1 == upperBound) -> when {
-        (0 == lowerBound) -> "ref: Any?"
-        else -> "ref: Any"
-    }
-    else -> when {
-        (false == isUnique) and (false == isOrdered) -> "ref: Collection<Any>"
-        (true == isUnique) and (false == isOrdered) -> "ref: Set<Any>"
-        (false == isUnique) and (true == isOrdered) -> "ref: List<Any>"
-        (true == isUnique) and (true == isOrdered) -> "ref: OrderedSet<Any>"
-        else -> 'ERROR'
-    }
-}
-
-format ExtensionFunctionSetter {
-    MofProperty -> {
-        resType := resultType($self)
-        setterArg := setterArgument($self)
-        setterOvr := when {
-          isOverride and false== isTypeRedefined -> 'override '
-          else -> ''
-        }
-        jvmName := ("@kotlin.jvm.JvmName(\"set_${validName}_${validTypeName}\")"+$EOL)
-        "
-          ${jvmName}${setterOvr}fun ${parentClass.validName}.set_${validName}($setterArg) {
-          // TODO
-          }
-       "
-    }
+format PackageImport {
+    MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.*"
 }
 
 format ApiPackageFile {
-    #output: 'MofPackage -> "api/${qualifiedName}.kt"'
+    #output: 'MofPackage -> "api/$qualifiedPath/${name}_Types.kt"'
 
     MofModel -> "${packageList.filter({it -> false == it.isEmpty})}"
     MofPackage -> "
         $COPYRIGHT
 
         // *** Generated code do NOT manually edit. ***
-        package ${TARGET_PACKAGE}.api
+        package ${TARGET_PACKAGE}.api.${qualifiedName}
 
         import net.akehurst.kotlinx.collections.OrderedSet
         import net.akehurst.kotlinx.utils.Reference
-        import net.akehurst.kotlinx.utils.MutableReference
+        import net.akehurst.kotlinx.utils.Value
+        $[allImport sep $EOL via PackageImport]
 
         $[enums sep $EOL]
         $[interfaces sep $EOL]
         $[classes sep $EOL]
     "
+
     MofEnum -> "
       enum class ${validName} { }
     "
@@ -108,10 +83,11 @@ format ApiPackageFile {
            * ${abs}
            */
           interface ${validName}$supTypes {
+
              $id
+
              $[ownedAttribute sep $EOL]
           }
-          $[ownedAttribute.filter({it -> it.isTypeRedefined and it.isOverride}) sep $EOL via ExtensionFunctionSetter]
         "
     }
     // Always use 'val' for properties so that subclasses can override with a subtype
@@ -143,13 +119,10 @@ format ApiPackageFile {
           $nothing == opposite -> ''
           else -> ' opposite '+ opposite.parentClass.name+'.' + opposite.name
         }
-        setterOvr := when {
-          isOverride and (false==isTypeRedefined) -> 'override '
-          else -> ''
-        }
-        setter := when {
-           (isSingle and isComposite) -> "${setterOvr}fun ${validName}_set(value: $validTypeName)"
-           else -> ''
+        mutatableAccessor := when {
+            isComposite -> "${ovr}val ${validName}Value: Value<$validTypeName>"
+            isReference -> "${ovr}val ${validName}Reference: Reference<Any,$validTypeNameNotNullable>"
+            else -> ''
         }
         "
           /**
@@ -158,7 +131,7 @@ format ApiPackageFile {
            * $opp
            */
           ${ovr}val ${validName}: $validTypeName
-          ${setter}
+          ${mutatableAccessor}
         "
     }
 }

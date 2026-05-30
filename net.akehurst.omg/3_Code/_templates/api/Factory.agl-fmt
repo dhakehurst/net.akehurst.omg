@@ -18,32 +18,43 @@ namespace net.akehurst.omg.mof.gen.template
 
 import net.akehurst.omg.mof.gen.simple
 
+format SubPackageImport {
+    MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageFactory"
+}
+
 format SubPackage {
-    MofPackage -> "val $validName : ${name}_Factory"
+    MofPackage -> "val $validName : ${name}_PackageFactory"
 }
 
 format PackageFactoryFile {
-    #output: 'MofPackage -> "api/${qualifiedName}_Factory.kt"'
+    #output: 'MofPackage -> "api/$qualifiedPath/${name}_PackageFactory.kt"'
 
     MofPackage -> "
         $COPYRIGHT
 
         // *** Generated code do NOT manually edit. ***
-        package ${TARGET_PACKAGE}.api
+        package ${TARGET_PACKAGE}.api.${qualifiedName}
 
-        import net.akehurst.kotlinx.utils.UniqueIdentityGenerator
+        import net.akehurst.kotlinx.utils.HierarchicalFactory
+        import net.akehurst.kotlinx.utils.HierarchicalReferenceStore
+        import ${TARGET_PACKAGE}.api.${model.name}_ModelFactory
+        $[subPackages sep $EOL via SubPackageImport]
 
         /**
          * Factory for $qualifiedName
          */
-        interface ${name}_Factory {
+        interface ${name}_PackageFactory: HierarchicalFactory, HierarchicalReferenceStore<Any> {
+
+            override val rootFactory: ${model.name}_ModelFactory
+
             $[subPackages sep $EOL via SubPackage]
+
             $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
         }
     "
 
     MofClass -> "
-      fun create${validName}(identity:Any = UniqueIdentityGenerator.generate(\"$name\")): ${validName}
+      fun ${validName}_construct(identity:Any): ${validName}
     "
 }
 
@@ -55,12 +66,14 @@ format ModelFactoryFile {
         // *** Generated code do NOT manually edit. ***
         package ${TARGET_PACKAGE}.api
 
-        import net.akehurst.kotlinx.utils.UniqueIdentityGenerator
+        import net.akehurst.kotlinx.utils.HierarchicalFactory
+        import net.akehurst.kotlinx.utils.HierarchicalReferenceStore
+        $[subPackages sep $EOL via SubPackageImport]
 
         /**
-         * Model Factory for name
+         * Model Factory for $name
          */
-        interface ${name}_ModelFactory {
+        interface ${name}_ModelFactory: HierarchicalFactory, HierarchicalReferenceStore<Any> {
           $[subPackages sep $EOL via SubPackage]
         }
         ${packageList via PackageFactoryFile}

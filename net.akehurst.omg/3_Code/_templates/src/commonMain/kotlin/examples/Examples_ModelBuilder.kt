@@ -28,13 +28,32 @@ import net.akehurst.omg.templates.examples.redefined.*
 @DslMarker
 annotation class ExamplesDslMarker
 
-fun Example(
-    factory: examples_ModelFactory,
-    id: Any,
-    init: Examples_Builder.() -> Unit
-): Example = buildObject(factory, id, ::Examples_Builder, init) {
-    val rootResolver = examples_ModelResolver("examplesModel", factory)
-    rootResolver.common.Example_resolve(it)
+object Examples_ModelBuilder {
+
+    inline fun <B : Builder<T>, T : Element> buildObject(
+        factory: examples_ModelFactory,
+        id: Any,
+        noinline ctor: (examples_ModelFactory, Any) -> B,
+        init: B.() -> Unit = {},
+        action: (T) -> Unit
+    ): T = Builder.buildAction({ ctor.invoke(factory, id) }, init, action)
+
+    inline fun <B : Builder<T>, T : Any> buildContent(
+        factory: examples_ModelFactory,
+        noinline ctor: (examples_ModelFactory) -> B,
+        init: B.() -> Unit = {},
+        action: (T) -> Unit
+    ): T = Builder.buildAction({ ctor.invoke(factory) }, init, action)
+
+    fun Example(
+        factory: examples_ModelFactory,
+        id: Any,
+        init: Examples_Builder.() -> Unit
+    ): Example = buildObject(factory, id, ::Examples_Builder, init) {
+        val rootResolver = examples_ModelResolver("examplesModel", factory)
+        rootResolver.common.Example_resolve(it)
+    }
+
 }
 
 @ExamplesDslMarker
@@ -46,7 +65,7 @@ class Examples_Builder(
     private var _content: Collection<Element>? = null
 
     fun content(init: Element_ContentBuilder.() -> Unit): Collection<Element> =
-        buildContent(factory, ::Element_ContentBuilder, init) { _content = it }
+        Examples_ModelBuilder.buildContent(factory, ::Element_ContentBuilder, init) { _content = it }
 
     override fun build(): Example =
         factory.common.Example_construct(id).also { self ->
@@ -54,20 +73,6 @@ class Examples_Builder(
         }
 }
 
-private inline fun <B : Builder<T>, T : Element> buildObject(
-    factory: examples_ModelFactory,
-    id: Any,
-    noinline ctor: (examples_ModelFactory, Any) -> B,
-    init: B.() -> Unit = {},
-    action: (T) -> Unit
-): T = Builder.buildAction({ ctor.invoke(factory, id) }, init, action)
-
-private inline fun <B : Builder<T>, T : Any> buildContent(
-    factory: examples_ModelFactory,
-    noinline ctor: (examples_ModelFactory) -> B,
-    init: B.() -> Unit = {},
-    action: (T) -> Unit
-): T = Builder.buildAction({ ctor.invoke(factory) }, init, action)
 
 @ExamplesDslMarker
 class Element_ContentBuilder(
@@ -76,32 +81,36 @@ class Element_ContentBuilder(
 
     private val _content = mutableListOf<Element>()
 
-    fun PropType(id: Any, init: PropType_Builder.() -> Unit = {}): PropType = buildObject(factory, id, ::PropType_Builder, init) { _content.add(it) }
+    fun PropType(id: Any, init: PropType_Builder.() -> Unit = {}): PropType =
+        Examples_ModelBuilder.buildObject(factory, id, ::PropType_Builder, init) { _content.add(it) }
 
     //fun PropType(id: Any): PropType = factory.createPropType(id)
-    fun PropTypeB(id: Any, init: PropTypeB_Builder.() -> Unit = {}): PropTypeB = buildObject(factory, id, ::PropTypeB_Builder, init) { _content.add(it) }
+    fun PropTypeB(id: Any, init: PropTypeB_Builder.() -> Unit = {}): PropTypeB =
+        Examples_ModelBuilder.buildObject(factory, id, ::PropTypeB_Builder, init) { _content.add(it) }
 
-    fun SingleCmpAttribute(id: Any, init: SingleCmpAttribute_Builder.() -> Unit = {}): SingleCmpAttribute = buildObject(factory, id, ::SingleCmpAttribute_Builder, init) { _content.add(it) }
+    fun SingleCmpAttribute(id: Any, init: SingleCmpAttribute_Builder.() -> Unit = {}): SingleCmpAttribute =
+        Examples_ModelBuilder.buildObject(factory, id, ::SingleCmpAttribute_Builder, init) { _content.add(it) }
 
-    fun SingleReferenceAttribute(id: Any, init: SingleRefAttribute_Builder.() -> Unit = {}): SingleRefAttribute = buildObject(factory, id, ::SingleRefAttribute_Builder, init) { _content.add(it) }
+    fun SingleReferenceAttribute(id: Any, init: SingleRefAttribute_Builder.() -> Unit = {}): SingleRefAttribute =
+        Examples_ModelBuilder.buildObject(factory, id, ::SingleRefAttribute_Builder, init) { _content.add(it) }
 
     fun CollectionCompositeAttribute(id: Any, init: CollectionCmpAttribute_Builder.() -> Unit = {}): CollectionCmpAttribute =
-        buildObject(factory, id, ::CollectionCmpAttribute_Builder, init) { _content.add(it) }
+        Examples_ModelBuilder.buildObject(factory, id, ::CollectionCmpAttribute_Builder, init) { _content.add(it) }
 
     fun SingleCmpRedefSameNameDiffTypeAttribute(id: Any, init: SingleCmpRedefSameNameDiffTypeAttribute_Builder.() -> Unit = {}): SingleCmpRedefSameNameDiffTypeAttribute =
-        buildObject(factory, id, ::SingleCmpRedefSameNameDiffTypeAttribute_Builder, init) { _content.add(it) }
+        Examples_ModelBuilder.buildObject(factory, id, ::SingleCmpRedefSameNameDiffTypeAttribute_Builder, init) { _content.add(it) }
 
     fun SingleCmpRedefDiffNameSameTypeAttribute(id: Any, init: SingleCmpRedefDiffNameSameTypeAttribute_Builder.() -> Unit = {}): SingleCmpRedefDiffNameSameTypeAttribute =
-        buildObject(factory, id, ::SingleCmpRedefDiffNameSameTypeAttribute_Builder, init) { _content.add(it) }
+        Examples_ModelBuilder.buildObject(factory, id, ::SingleCmpRedefDiffNameSameTypeAttribute_Builder, init) { _content.add(it) }
 
     fun CollectionCmpRedefSameNameDiffTypeAttribute(id: Any, init: CollectionCmpRedefSameNameDiffTypeAttribute_Builder.() -> Unit = {}): CollectionCmpRedefSameNameDiffTypeAttribute =
-        buildObject(factory, id, ::CollectionCmpRedefSameNameDiffTypeAttribute_Builder, init) { _content.add(it) }
+        Examples_ModelBuilder.buildObject(factory, id, ::CollectionCmpRedefSameNameDiffTypeAttribute_Builder, init) { _content.add(it) }
 
     fun SingleRefRedefSameNameDiffTypeAttribute(id: Any, init: SingleRefRedefSameNameDiffTypeAttribute_Builder.() -> Unit = {}): SingleRefRedefSameNameDiffTypeAttribute =
-        buildObject(factory, id, ::SingleRefRedefSameNameDiffTypeAttribute_Builder, init) { _content.add(it) }
+        Examples_ModelBuilder.buildObject(factory, id, ::SingleRefRedefSameNameDiffTypeAttribute_Builder, init) { _content.add(it) }
 
     fun SingleRefRedefDiffNameSameTypeAttribute(id: Any, init: SingleRefRedefDiffNameSameTypeAttribute_Builder.() -> Unit = {}): SingleRefRedefDiffNameSameTypeAttribute =
-        buildObject(factory, id, ::SingleRefRedefDiffNameSameTypeAttribute_Builder, init) { _content.add(it) }
+        Examples_ModelBuilder.buildObject(factory, id, ::SingleRefRedefDiffNameSameTypeAttribute_Builder, init) { _content.add(it) }
 
     override fun build(): Collection<Element> = _content
 }
@@ -112,8 +121,11 @@ class PropType_ContentBuilder(
 ) : Builder<Collection<PropType>> {
     private val _content = mutableListOf<PropType>()
 
-    fun PropType(id: Any): PropType = buildObject(factory, id, ::PropType_Builder, {}) { _content.add(it) }
-    fun PropTypeB(id: Any): PropTypeB = buildObject(factory, id, ::PropTypeB_Builder, {}) { _content.add(it) }
+    fun PropType(id: Any): PropType =
+        Examples_ModelBuilder.buildObject(factory, id, ::PropType_Builder, {}) { _content.add(it) }
+
+    fun PropTypeB(id: Any): PropTypeB =
+        Examples_ModelBuilder.buildObject(factory, id, ::PropTypeB_Builder, {}) { _content.add(it) }
 
     override fun build(): Collection<PropType> = _content
 }
@@ -140,10 +152,12 @@ class SingleCmpAttribute_Builder(
     private val _id: Any
 ) : Builder<SingleCmpAttribute> {
     private var _prop1: PropType? = null
-    fun prop1(identity_: Any, init: PropType_Builder.() -> Unit = {}): PropType = buildObject(factory, identity_, ::PropType_Builder, {}) { _prop1 = it }
+    fun prop1(identity_: Any, init: PropType_Builder.() -> Unit = {}): PropType =
+        Examples_ModelBuilder.buildObject(factory, identity_, ::PropType_Builder, {}) { _prop1 = it }
 
     private var _prop2: PropType? = null
-    fun prop2(identity_: Any, init: PropType_Builder.() -> Unit = {}): PropType = buildObject(factory, identity_, ::PropType_Builder, {}) { _prop2 = it }
+    fun prop2(identity_: Any, init: PropType_Builder.() -> Unit = {}): PropType =
+        Examples_ModelBuilder.buildObject(factory, identity_, ::PropType_Builder, {}) { _prop2 = it }
 
     override fun build(): SingleCmpAttribute = factory.simple.SingleCmpAttribute_construct(_id).also { self ->
         _prop1?.let { self.prop1Value.mutable.set(it) }
@@ -158,10 +172,12 @@ class SingleCmpRedefSameNameDiffTypeAttribute_Builder(
 ) : Builder<SingleCmpRedefSameNameDiffTypeAttribute> {
 
     private var _prop1: PropTypeB? = null
-    fun prop1(identity_: Any, init: PropTypeB_Builder.() -> Unit = {}): PropTypeB = buildObject(factory, identity_, ::PropTypeB_Builder, {}) { _prop1 = it }
+    fun prop1(identity_: Any, init: PropTypeB_Builder.() -> Unit = {}): PropTypeB =
+        Examples_ModelBuilder.buildObject(factory, identity_, ::PropTypeB_Builder, {}) { _prop1 = it }
 
     private var _prop2: PropTypeB? = null
-    fun prop2(identity_: Any, init: PropTypeB_Builder.() -> Unit = {}): PropTypeB = buildObject(factory, identity_, ::PropTypeB_Builder, {}) { _prop2 = it }
+    fun prop2(identity_: Any, init: PropTypeB_Builder.() -> Unit = {}): PropTypeB =
+        Examples_ModelBuilder.buildObject(factory, identity_, ::PropTypeB_Builder, {}) { _prop2 = it }
 
     override fun build(): SingleCmpRedefSameNameDiffTypeAttribute = factory.redefined.SingleCmpRedefSameNameDiffTypeAttribute_construct(_id).also { self ->
         _prop1?.let { self.prop1Value.mutable.set(it) }
@@ -175,10 +191,12 @@ class SingleCmpRedefDiffNameSameTypeAttribute_Builder(
     private val _id: Any
 ) : Builder<SingleCmpRedefDiffNameSameTypeAttribute> {
     private var _redefinesProp1: PropType? = null
-    fun redefinesProp1(identity_: Any, init: PropType_Builder.() -> Unit = {}): PropType = buildObject(factory, identity_, ::PropType_Builder, {}) { _redefinesProp1 = it }
+    fun redefinesProp1(identity_: Any, init: PropType_Builder.() -> Unit = {}): PropType =
+        Examples_ModelBuilder.buildObject(factory, identity_, ::PropType_Builder, {}) { _redefinesProp1 = it }
 
     private var _redefinesProp2: PropType? = null
-    fun redefinesProp2(identity_: Any, init: PropType_Builder.() -> Unit = {}): PropType = buildObject(factory, identity_, ::PropType_Builder, {}) { _redefinesProp2 = it }
+    fun redefinesProp2(identity_: Any, init: PropType_Builder.() -> Unit = {}): PropType =
+        Examples_ModelBuilder.buildObject(factory, identity_, ::PropType_Builder, {}) { _redefinesProp2 = it }
 
     override fun build(): SingleCmpRedefDiffNameSameTypeAttribute = factory.redefined.SingleCmpRedefDiffNameSameTypeAttribute_construct(_id).also { self ->
         _redefinesProp1?.let { self.redefinesProp1Value.mutable.set(it) }
@@ -209,10 +227,12 @@ class CollectionCmpAttribute_Builder(
     private val _id: Any
 ) : Builder<CollectionCmpAttribute> {
     private var _prop1: Collection<PropType>? = null
-    fun prop1(init: PropType_ContentBuilder.() -> Unit = {}) = buildContent(factory, ::PropType_ContentBuilder, init) { _prop1 = it }
+    fun prop1(init: PropType_ContentBuilder.() -> Unit = {}) =
+        Examples_ModelBuilder.buildContent(factory, ::PropType_ContentBuilder, init) { _prop1 = it }
 
     private var _prop2: Collection<PropType>? = null
-    fun prop2(init: PropType_ContentBuilder.() -> Unit = {}) = buildContent(factory, ::PropType_ContentBuilder, init) { _prop2 = it }
+    fun prop2(init: PropType_ContentBuilder.() -> Unit = {}) =
+        Examples_ModelBuilder.buildContent(factory, ::PropType_ContentBuilder, init) { _prop2 = it }
 
     override fun build(): CollectionCmpAttribute = factory.simple.CollectionCmpAttribute_construct(_id).also { self ->
         _prop1?.let { self.prop1OrderedSet.mutable.addAll(it) }
@@ -226,13 +246,15 @@ class CollectionCmpRedefSameNameDiffTypeAttribute_Builder(
     private val _id: Any
 ) : Builder<CollectionCmpRedefSameNameDiffTypeAttribute> {
     private var _prop1: Collection<PropTypeB>? = null
-    fun prop1(init: PropType_ContentBuilder.() -> Unit = {}) = buildContent(factory, ::PropType_ContentBuilder, init) {
-        //TODO: should we record an issue or throw exception if wrong type of object has been built !
-        _prop1 = it.filterIsInstance<PropTypeB>()
-    }
+    fun prop1(init: PropType_ContentBuilder.() -> Unit = {}) =
+        Examples_ModelBuilder.buildContent(factory, ::PropType_ContentBuilder, init) {
+            //TODO: should we record an issue or throw exception if wrong type of object has been built !
+            _prop1 = it.filterIsInstance<PropTypeB>()
+        }
 
     private var _prop2: Collection<PropTypeB>? = null
-    fun prop2(init: PropType_ContentBuilder.() -> Unit = {}) = buildContent(factory, ::PropType_ContentBuilder, init) { _prop2 = it.filterIsInstance<PropTypeB>() }
+    fun prop2(init: PropType_ContentBuilder.() -> Unit = {}) =
+        Examples_ModelBuilder.buildContent(factory, ::PropType_ContentBuilder, init) { _prop2 = it.filterIsInstance<PropTypeB>() }
 
     override fun build(): CollectionCmpRedefSameNameDiffTypeAttribute = factory.redefined.CollectionCmpRedefSameNameDiffTypeAttribute_construct(_id).also { self ->
         _prop1?.let { self.prop1OrderedSet.mutable.addAll(it) }

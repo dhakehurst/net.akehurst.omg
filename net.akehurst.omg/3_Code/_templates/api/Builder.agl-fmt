@@ -18,14 +18,21 @@ namespace net.akehurst.omg.mof.gen.template
 
 import net.akehurst.omg.mof.gen.simple
 
+format RootImport {
+    MofClass -> "
+        import ${TARGET_PACKAGE}.api.${qualifiedName}
+        import ${TARGET_PACKAGE}.api.${qualifiedName}_Builder
+    "
+}
+
 format RootBuilderFunction {
    MofClass -> {
      "
-       fun ${model.name}_${name}(factory:${model.name}_ModelFactory, id:Any, init:${name}_Builder.()->Unit): ${validName} {
-          val b = ${name}_Builder(factory, id)
-          b.init()
-          return b.build()
-       }
+       fun ${name}(factory:${model.name}_ModelFactory, id:Any, init:${name}_Builder.()->Unit): ${validName} =
+         buildObject(factory, id, ::${name}_Builder, init) {
+           val rootResolver = ${model.name}_ModelResolver(\"${model.name}Model\", factory)
+           rootResolver.common.${name}_resolve(it)
+         }
      "
    }
 }
@@ -50,11 +57,11 @@ format BuilderClass {
         class ${validName}_Builder(
            val factory: ${model.name}_ModelFactory,
            val id: Any
-        ) {
+        ) : Builder<${validName}> {
 
             $[allCompositeAttribute sep $EOL]
 
-            fun build(): ${validName} = factory.${parentPackage.qualifiedName}.create${validName}(id).apply {
+            override fun build(): ${validName} = factory.${parentPackage.qualifiedName}.${validName}_construct(id).apply {
                $[allCompositeAttribute sep $EOL via BuilderClassAssignment]
             }
         }
@@ -70,13 +77,8 @@ format BuilderClass {
           "
           type.isAbstract -> "
             private var _${validName}: ${validTypeName}? = null
-            fun ${validName}(init:${type.validName}_ContentBuilder.()->Unit): ${type.validName} {
-                val b = ${type.validName}_ContentBuilder(factory, id)
-                b.init()
-                val obj = b.build().first()
-                _${validName} = obj
-                return obj
-            }
+            fun ${validName}(init:${type.validName}_ContentBuilder.()->Unit): ${type.validName} =
+                ${model.name}_ModelBuilder.buildObject(factory, identity_, ::${type.validName}_Builder, {}) { _${validName} = it }
           "
           else -> "
             private var _${validName}: ${validTypeName}? = null
@@ -113,13 +115,8 @@ format BuilderClass {
 format ContentBuilderFunction {
    MofClass -> {
      "
-        fun ${validName}(id:Any, init:${validName}_Builder.()->Unit): ${validName} {
-            val b = ${validName}_Builder(factory,id)
-            b.init()
-            val obj = b.build()
-            _content.add(obj)
-            return obj
-        }
+        fun ${validName}(id:Any, init:${validName}_Builder.()->Unit): ${validName} =
+          ${model.name}_ModelBuilder.buildObject(factory, id, ::${validName}_Builder, {}) { _content.add(it) }
      "
    }
 }
@@ -131,32 +128,37 @@ format ContentBuilderClass {
         class ${validName}_ContentBuilder(
            val factory: ${model.name}_ModelFactory,
            val id: Any
-        ) {
+        ): Builder<Collection<${validName}>> {
             private val _content = mutableListOf<${validName}>()
 
             $[concreteSubclasses sep $EOL via ContentBuilderFunction]
 
-            fun build():Collection<${validName}> = _content
+            override fun build():Collection<${validName}> = _content
         }
      "
    }
 }
 
+format PackageImport {
+    MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.*"
+}
+
 format ApiPackageBuilderFile {
-    #output: 'MofPackage -> "api/${qualifiedName}_Builder.kt"'
+    #output: 'MofPackage -> "api/$qualifiedPath/${name}_PackageBuilder.kt"'
 
     MofPackage -> "
         $COPYRIGHT
 
         // *** Generated code do NOT manually edit. ***
-        package ${TARGET_PACKAGE}.api
+        package ${TARGET_PACKAGE}.api.${qualifiedName}
 
-        import net.akehurst.kotlinx.collections.mutableCollection
-        import net.akehurst.kotlinx.collections.mutableList
-        import net.akehurst.kotlinx.collections.mutableOrderedSet
-        import net.akehurst.kotlinx.collections.mutableSet
         import net.akehurst.kotlinx.collections.OrderedSet
         import net.akehurst.kotlinx.collections.toOrderedSet
+        import net.akehurst.kotlinx.utils.Builder
+        import ${TARGET_PACKAGE}.api.${model.name}DslMarker
+        import ${TARGET_PACKAGE}.api.${model.name}_ModelBuilder
+        import ${TARGET_PACKAGE}.api.${model.name}_ModelFactory
+        $[allImport sep $EOL via PackageImport]
 
         $[classes sep $EOL via ContentBuilderClass]
 
@@ -173,10 +175,32 @@ format ApiModelBuilderFile {
         // *** Generated code do NOT manually edit. ***
         package ${TARGET_PACKAGE}.api
 
+        import net.akehurst.kotlinx.utils.Builder
+        $[instanceRootList sep $EOL via RootImport]
+
         @DslMarker
         annotation class ${name}DslMarker
 
-        $[instanceRootList sep $EOL via RootBuilderFunction]
+        object ${name}_ModelBuilder {
+
+           inline fun <B : Builder<T>, T : Any> buildObject(
+                factory: ${name}_ModelFactory,
+                id: Any,
+                noinline ctor: (${name}_ModelFactory, Any) -> B,
+                init: B.() -> Unit = {},
+                action: (T) -> Unit
+            ): T = Builder.buildAction({ ctor.invoke(factory, id) }, init, action)
+
+            inline fun <B : Builder<T>, T : Any> buildContent(
+                factory: ${name}_ModelFactory,
+                noinline ctor: (${name}_ModelFactory) -> B,
+                init: B.() -> Unit = {},
+                action: (T) -> Unit
+            ): T = Builder.buildAction({ ctor.invoke(factory) }, init, action)
+
+            $[instanceRootList sep $EOL via RootBuilderFunction]
+        }
+
         ${packageList.filter({it -> false == it.isEmpty}) via ApiPackageBuilderFile}
     "
 
