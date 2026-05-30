@@ -22,7 +22,7 @@ import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreByHashMap
 import net.akehurst.omg.templates.examples.examples_ModelFactory
 
 interface common_PackageFactory : HierarchicalFactory, HierarchicalReferenceStore<Any> {
-
+    override val rootFactory: examples_ModelFactory
     fun Example_construct(_identity: Any): Example
     fun PropType_construct(_identity: Any): PropType
     fun PropTypeB_construct(_identity: Any): PropTypeB
@@ -34,13 +34,14 @@ class common_PackageFactoryRam(
     override val identity: Any,
 ) : common_PackageFactory, HierarchicalReferenceStore<Any> by HierarchicalReferenceStoreByHashMap(parentFactory, identity) {
 
+    // --- HierarchicalFactory ---
+    override val qualifiedIdentity: List<Any> = parentFactory.qualifiedIdentity + identity
+    override val rootFactory get() = parentFactory.rootFactory as examples_ModelFactory
+
+    // --- common_PackageFactory ---
     override fun Example_construct(_identity: Any): Example = ExampleRam(rootFactory.common, _identity).also { this[Example::class, _identity] = it }
     override fun PropType_construct(_identity: Any): PropType = PropTypeRam(rootFactory.common, _identity).also { this[PropType::class, _identity] = it }
     override fun PropTypeB_construct(_identity: Any): PropTypeB = PropTypeBRam(rootFactory.common, _identity).also { this[PropTypeB::class, _identity] = it }
-
-    // --- HierarchicalFactory ---
-    override val qualifiedIdentity: List<Any> = parentFactory.qualifiedIdentity + identity
-    override val rootFactory get() = rootReferenceStore as examples_ModelFactory
 
     // --- Any ---
     override fun toString(): String = "common_PackageFactoryRam '${identity}'"

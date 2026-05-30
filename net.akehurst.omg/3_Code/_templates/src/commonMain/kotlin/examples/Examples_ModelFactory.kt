@@ -39,15 +39,15 @@ data class examples_ModelFactoryRam(
     override val identity: Any,
 ) : examples_ModelFactory, HierarchicalReferenceStore<Any> by HierarchicalReferenceStoreByHashMap(null, identity) {
 
-    // --- examples_ModelFactory ---
-    override val common = common_PackageFactoryRam(this, "common")
-    override val simple = simple_PackageFactoryRam(this, "simple")
-    override val redefined = redefined_PackageFactoryRam(this, "redefined")
-
     // --- HierarchicalFactory ---
     override val parentFactory: HierarchicalFactory? = null
     override val rootFactory: HierarchicalFactory = this
     override val qualifiedIdentity: List<Any> = listOf(identity)
+
+    // --- examples_ModelFactory ---
+    override val common = common_PackageFactoryRam(this, "common")
+    override val simple = simple_PackageFactoryRam(this, "simple")
+    override val redefined = redefined_PackageFactoryRam(this, "redefined")
 
     // --- Any ---
     override fun toString(): String = "examples_ModelFactoryRam '${identity}'"

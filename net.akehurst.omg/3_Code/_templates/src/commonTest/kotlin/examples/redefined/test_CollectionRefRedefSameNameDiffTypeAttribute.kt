@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.redefined
 
 import net.akehurst.kotlinx.collections.OrderedSetExt.mutable
 import net.akehurst.kotlinx.collections.orderedSetOf
 import net.akehurst.kotlinx.utils.ManagedReference
 import net.akehurst.kotlinx.utils.ReferenceExt.mutable
+import net.akehurst.omg.templates.examples.common.PropTypeB
+import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -28,11 +30,11 @@ class test_CollectionRefRedefSameNameDiffTypeAttribute {
 
 	@Test
 	fun redefine_collection_refs() {
-		val factory = ExamplesFactoryRam()
-		val obj = CollectionRefRedefSameNameDiffTypeAttributeRam(factory, "crr1")
+		val factory = examples_ModelFactoryRam("TestModelFactory")
+		val obj = factory.redefined.CollectionRefRedefSameNameDiffTypeAttribute_construct( "crr1")
 		assertNotNull(obj)
 
-		val pv = factory.PropTypeB_construct("pb1")
+		val pv = factory.common.PropTypeB_construct("pb1")
 		val mref = ManagedReference<Any, PropTypeB>(null, "crr.mref", PropTypeB::class)
 		mref.mutable.set(pv._identity, pv)
 

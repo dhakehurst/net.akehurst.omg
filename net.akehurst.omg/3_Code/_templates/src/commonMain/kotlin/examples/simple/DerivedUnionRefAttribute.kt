@@ -50,6 +50,6 @@ data class DerivedUnionRefAttributeRam(val _factory: simple_PackageFactory, over
     override val derivedRefReference: Reference<Any, PropType> get() = _derivedRefBacking
     override val derivedRef: PropType? get() = _derivedRefBacking.resolved ?: refs.firstOrNull()
 
-    override fun toString(): String = "DerivedUnionRefAttribute '${_factory.identity}.$_identity'"
+    override fun toString(): String = "DerivedUnionRefAttribute '${_factory.qualifiedIdentity.joinToString(".")}.$_identity'"
 }
 

@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.simple
 
 import net.akehurst.kotlinx.collections.ListExt.mutable
+import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class test_DerivedUnionCompositeAttribute {
+class test_DerivedUnionCmpAttribute {
 
 	@Test
 	fun derived_composite_computation() {
-		val factory = ExamplesFactoryRam()
-		val obj = DerivedUnionCompositeAttributeRam(factory, "d1")
+		val factory = examples_ModelFactoryRam("TestModelFactory")
+		val obj = factory.simple.DerivedUnionCmpAttribute_construct( "d1")
 		assertNotNull(obj)
 
-		val p1 = factory.PropType_construct("c1")
+		val p1 = factory.common.PropType_construct("c1")
 		obj.children.mutable.add(p1)
 		assertEquals(p1, obj.derived)
 	}

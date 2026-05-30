@@ -29,7 +29,7 @@ data class ExampleRam(
 ) : Example {
     override val contentList: List<Element> = ManagedList("Examples.contentList", Element::class)
 
-    override fun toString(): String = "Examples '${_factory._identity}.$_identity'"
+    override fun toString(): String = "Examples '${_factory.qualifiedIdentity.joinToString(".")}.$_identity'"
 }
 
 

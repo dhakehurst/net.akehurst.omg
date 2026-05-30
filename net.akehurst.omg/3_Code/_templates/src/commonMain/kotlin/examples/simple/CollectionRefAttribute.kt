@@ -90,6 +90,6 @@ data class CollectionRefAttributeRam(val _factory: simple_PackageFactory, overri
     override val prop4Collection: Collection<PropType>
         get() = _prop4.map { it.resolved ?: throw IllegalStateException("unresolved reference in prop4Collection") }
 
-    override fun toString(): String = "CollectionRefAttribute '${_factory._identity}.$_identity'"
+    override fun toString(): String = "CollectionRefAttribute '${_factory.qualifiedIdentity.joinToString(".")}.$_identity'"
 }
 

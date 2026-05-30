@@ -17,6 +17,9 @@
 package net.akehurst.omg.templates.examples
 
 import net.akehurst.kotlinx.utils.Indent
+import net.akehurst.omg.templates.examples.common.*
+import net.akehurst.omg.templates.examples.simple.*
+import net.akehurst.omg.templates.examples.redefined.*
 
 object Examples_ModelAsString {
 
@@ -46,7 +49,7 @@ object Examples_ModelAsString {
 
 
     fun Element_asString(self: Element, indent: Indent = Indent()): String = when(self) {
-        is Examples -> Examples_asString(self, indent)
+        is Example -> Example_asString(self, indent)
         is SingleCmpAttribute -> SingleCmpAttribute_asString(self, indent)
         is SingleCmpRedefSameNameDiffTypeAttribute -> SingleCmpRedefSameNameDiffTypeAttribute_asString(self, indent)
         is SingleCmpRedefDiffNameSameTypeAttribute -> SingleCmpRedefDiffNameSameTypeAttribute_asString(self, indent)
@@ -59,7 +62,7 @@ object Examples_ModelAsString {
         else -> error("Element subtype '${self::class.simpleName}' not handled.")
     }
 
-    fun Examples_asString(self: Examples, indent: Indent = Indent()): String {
+    fun Example_asString(self: Example, indent: Indent = Indent()): String {
         val sb = StringBuilder()
         sb.append(self)
         val indentInc = indent.inc

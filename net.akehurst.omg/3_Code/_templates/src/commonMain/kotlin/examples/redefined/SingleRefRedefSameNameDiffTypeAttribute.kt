@@ -42,5 +42,5 @@ data class SingleRefRedefSameNameDiffTypeAttributeRam(val _factory: redefined_Pa
     override val prop2: PropTypeB? get() = prop2Reference.resolved
     override val prop2Reference = ManagedReference<Any, PropTypeB>(null, "SingleRefRedefSameNameDiffTypeAttributeRam.prop2", PropTypeB::class)
 
-    override fun toString(): String = "SingleRefRedefSameNameDiffTypeAttribute '${_factory._identity}.$_identity'"
+    override fun toString(): String = "SingleRefRedefSameNameDiffTypeAttribute '${_factory.qualifiedIdentity.joinToString(".")}.$_identity'"
 }

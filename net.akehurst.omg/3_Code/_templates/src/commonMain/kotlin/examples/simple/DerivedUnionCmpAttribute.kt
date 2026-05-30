@@ -24,7 +24,7 @@ import net.akehurst.omg.templates.examples.common.PropType
  * Example of a derived-union composite attribute. The attribute `derived` is a derived-union and therefore
  * appears as a read-only computed getter in the API. Realisation must provide the computation logic.
  */
-interface DerivedUnionCompositeAttribute : Element {
+interface DerivedUnionCmpAttribute : Element {
     /**
      * children: PropType [0..*] {composite}
      */
@@ -37,12 +37,12 @@ interface DerivedUnionCompositeAttribute : Element {
     val derived: PropType?
 }
 
-data class DerivedUnionCompositeAttributeRam(val _factory: simple_PackageFactory, override val _identity: Any) : DerivedUnionCompositeAttribute {
+data class DerivedUnionCmpAttributeRam(val _factory: simple_PackageFactory, override val _identity: Any) : DerivedUnionCmpAttribute {
     override val children = ManagedList<PropType>("DerivedUnionCompositeAttribute.children", PropType::class)
 
     // computed getter: here we provide a simple illustrative computation (first child or null)
     override val derived: PropType? get() = children.firstOrNull()
 
-    override fun toString(): String = "DerivedUnionCompositeAttribute '${_factory.identity}.$_identity'"
+    override fun toString(): String = "DerivedUnionCompositeAttribute '${_factory.qualifiedIdentity.joinToString(".")}.$_identity'"
 }
 

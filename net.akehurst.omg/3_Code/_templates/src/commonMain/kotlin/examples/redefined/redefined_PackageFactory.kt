@@ -22,9 +22,14 @@ import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreByHashMap
 import net.akehurst.omg.templates.examples.examples_ModelFactory
 
 interface redefined_PackageFactory : HierarchicalReferenceStore<Any>, HierarchicalFactory {
+
+    override val rootFactory: examples_ModelFactory
+
+    fun CollectionCmpRedefSameNameDiffTypeAttribute_construct(_identity: Any): CollectionCmpRedefSameNameDiffTypeAttribute
+    fun CollectionRefRedefSameNameDiffTypeAttribute_construct(_identity: Any): CollectionRefRedefSameNameDiffTypeAttribute
+
     fun SingleCmpRedefSameNameDiffTypeAttribute_construct(_identity: Any): SingleCmpRedefSameNameDiffTypeAttribute
     fun SingleCmpRedefDiffNameSameTypeAttribute_construct(_identity: Any): SingleCmpRedefDiffNameSameTypeAttribute
-    fun CollectionCmpRedefSameNameDiffTypeAttribute_construct(_identity: Any): CollectionCmpRedefSameNameDiffTypeAttribute
     fun SingleRefRedefSameNameDiffTypeAttribute_construct(_identity: Any): SingleRefRedefSameNameDiffTypeAttribute
     fun SingleRefRedefDiffNameSameTypeAttribute_construct(_identity: Any): SingleRefRedefDiffNameSameTypeAttribute
 }
@@ -34,24 +39,28 @@ data class redefined_PackageFactoryRam(
     override val identity: Any,
 ) : redefined_PackageFactory, HierarchicalReferenceStore<Any> by HierarchicalReferenceStoreByHashMap(parentFactory, identity) {
 
+    // --- HierarchicalFactory ---
+    override val qualifiedIdentity: List<Any> = parentFactory.qualifiedIdentity + identity
+    override val rootFactory get() = parentFactory.rootFactory as examples_ModelFactory
+
+    // --- redefined_PackageFactory ---
+    override fun CollectionCmpRedefSameNameDiffTypeAttribute_construct(_identity: Any): CollectionCmpRedefSameNameDiffTypeAttribute =
+        CollectionCmpRedefSameNameDiffTypeAttributeRam(this, _identity).also { this[CollectionCmpRedefSameNameDiffTypeAttribute::class, _identity] = it }
+
+    override fun CollectionRefRedefSameNameDiffTypeAttribute_construct(_identity: Any): CollectionRefRedefSameNameDiffTypeAttribute =
+        CollectionRefRedefSameNameDiffTypeAttributeRam(this, _identity).also { this[CollectionRefRedefSameNameDiffTypeAttribute::class, _identity] = it }
+
     override fun SingleCmpRedefSameNameDiffTypeAttribute_construct(_identity: Any): SingleCmpRedefSameNameDiffTypeAttribute =
         SingleCmpRedefSameNameDiffTypeAttributeRam(this, _identity).also { this[SingleCmpRedefSameNameDiffTypeAttribute::class, _identity] = it }
 
     override fun SingleCmpRedefDiffNameSameTypeAttribute_construct(_identity: Any): SingleCmpRedefDiffNameSameTypeAttribute =
         SingleCmpRedefDiffNameSameTypeAttributeRam(this, _identity).also { this[SingleCmpRedefDiffNameSameTypeAttribute::class, _identity] = it }
 
-    override fun CollectionCmpRedefSameNameDiffTypeAttribute_construct(_identity: Any): CollectionCmpRedefSameNameDiffTypeAttribute =
-        CollectionCmpRedefSameNameDiffTypeAttributeRam(this, _identity).also { this[CollectionCmpRedefSameNameDiffTypeAttribute::class, _identity] = it }
-
     override fun SingleRefRedefSameNameDiffTypeAttribute_construct(_identity: Any): SingleRefRedefSameNameDiffTypeAttribute =
         SingleRefRedefSameNameDiffTypeAttributeRam(this, _identity).also { this[SingleRefRedefSameNameDiffTypeAttribute::class, _identity] = it }
 
     override fun SingleRefRedefDiffNameSameTypeAttribute_construct(_identity: Any): SingleRefRedefDiffNameSameTypeAttribute =
         SingleRefRedefDiffNameSameTypeAttributeRam(this, _identity).also { this[SingleRefRedefDiffNameSameTypeAttribute::class, _identity] = it }
-
-    // --- HierarchicalFactory ---
-    override val qualifiedIdentity: List<Any> = parentFactory.qualifiedIdentity + identity
-    override val rootFactory get() = rootReferenceStore as examples_ModelFactory
 
     // --- Any ---
     override fun toString(): String = "redefined_PackageFactoryRam '${identity}'"

@@ -67,6 +67,6 @@ data class SubsetAttributeRam(val _factory: simple_PackageFactory, override val 
         }
     )
 
-    override fun toString(): String = "SubsetAttribute '${_factory.identity}.$_identity'"
+    override fun toString(): String = "SubsetAttribute '${_factory.qualifiedIdentity.joinToString(".")}.$_identity'"
 }
 

@@ -47,5 +47,5 @@ data class SingleCmpRedefDiffNameSameTypeAttributeRam(val _factory: redefined_Pa
     override val prop2Value: Value<PropType?> get() = redefinesProp2Value
     override val prop2: PropType? get() = prop2Value.get()
 
-    override fun toString(): String = "SingleCmpRedefDiffNameSameTypeAttribute '${_factory._identity}.$_identity'"
+    override fun toString(): String = "SingleCmpRedefDiffNameSameTypeAttribute '${_factory.qualifiedIdentity.joinToString(".")}.$_identity'"
 }

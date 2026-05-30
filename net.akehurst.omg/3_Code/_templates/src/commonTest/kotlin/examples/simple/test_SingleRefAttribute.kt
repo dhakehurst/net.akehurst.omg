@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.simple
 
 import net.akehurst.kotlinx.utils.ReferenceExt.mutable
 import net.akehurst.kotlinx.utils.cast
 import net.akehurst.kotlinx.utils.resolve
+import net.akehurst.omg.templates.examples.Example
+import net.akehurst.omg.templates.examples.Examples_ModelAsString
+import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
+import net.akehurst.omg.templates.examples.simple.SingleRefAttribute
 import kotlin.test.*
 
 class test_SingleRefAttribute {
 
     @Test
     fun factory() {
-        val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefAttribute_construct("obj")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.simple.SingleRefAttribute_construct("obj")
         assertNotNull(obj)
         try {
             obj.prop1
@@ -39,11 +43,11 @@ class test_SingleRefAttribute {
 
     @Test
     fun property_by_value() {
-        val factory = ExamplesFactoryRam()
+        val factory = examples_ModelFactoryRam("TestModelFactory")
 
-        val obj = factory.SingleRefAttribute_construct("obj")
+        val obj = factory.simple.SingleRefAttribute_construct("obj")
 
-        val propValue = factory.PropType_construct("p1")
+        val propValue = factory.common.PropType_construct("p1")
 
         obj.prop1Reference.mutable.set(propValue._identity, propValue)
         assertEquals(propValue, obj.prop1)
@@ -55,12 +59,12 @@ class test_SingleRefAttribute {
 
     @Test
     fun property_by_reference() {
-        val factory = ExamplesFactoryRam()
+        val factory = examples_ModelFactoryRam("TestModelFactory")
 
-        val obj = factory.SingleRefAttribute_construct("obj")
+        val obj = factory.simple.SingleRefAttribute_construct("obj")
 
-        val propValue1 = factory.PropType_construct("p1")
-        val propValue2 = factory.PropType_construct("p2")
+        val propValue1 = factory.common.PropType_construct("p1")
+        val propValue2 = factory.common.PropType_construct("p2")
 
         obj.prop1Reference.mutable.reference = "p1"
         factory.resolve(obj.prop1Reference)
@@ -74,8 +78,8 @@ class test_SingleRefAttribute {
 
     @Test
     fun builder() {
-        val factory = ExamplesFactoryRam()
-        val actual = Examples(factory, "Test") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val actual = Example(factory, "Test") {
             content {
                 PropType("p1")
                 PropType("p2")
@@ -96,9 +100,9 @@ class test_SingleRefAttribute {
 
     @Test
     fun identity_stability_and_uniqueness() {
-        val factory = ExamplesFactoryRam()
-        val a = factory.SingleRefAttribute_construct("a")
-        val b = factory.SingleRefAttribute_construct("b")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val a = factory.simple.SingleRefAttribute_construct("a")
+        val b = factory.simple.SingleRefAttribute_construct("b")
 
         assertNotNull(a._identity)
         assertNotNull(b._identity)
@@ -110,10 +114,10 @@ class test_SingleRefAttribute {
 
     @Test
     fun reference_holder_updates_are_reflected() {
-        val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefAttribute_construct("obj")
-        val pv1 = factory.PropType_construct("rv1")
-        val pv2 = factory.PropType_construct("rv2")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.simple.SingleRefAttribute_construct("obj")
+        val pv1 = factory.common.PropType_construct("rv1")
+        val pv2 = factory.common.PropType_construct("rv2")
 
         // set required reference by value
         obj.prop1Reference.mutable.set(pv1._identity, pv1)
@@ -126,8 +130,8 @@ class test_SingleRefAttribute {
 
     @Test
     fun builder_with_only_required_leaves_optional_null() {
-        val factory = ExamplesFactoryRam()
-        val actual = Examples(factory, "TestOnlyRequiredRef") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val actual = Example(factory, "TestOnlyRequiredRef") {
             content {
                 PropType("p1OnlyRef")
                 SingleReferenceAttribute("objOnlyRef") {
@@ -146,10 +150,10 @@ class test_SingleRefAttribute {
 
     @Test
     fun resolver_idempotence_and_re_resolve() {
-        val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefAttribute_construct("obj")
-        val p1 = factory.PropType_construct("r1")
-        val p2 = factory.PropType_construct("r2")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.simple.SingleRefAttribute_construct("obj")
+        val p1 = factory.common.PropType_construct("r1")
+        val p2 = factory.common.PropType_construct("r2")
 
         // resolve by reference id r1
         obj.prop1Reference.mutable.reference = "r1"
@@ -168,8 +172,8 @@ class test_SingleRefAttribute {
 
     @Test
     fun asString() {
-        val factory = ExamplesFactoryRam()
-        val model = Examples(factory, "Test") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val model = Example(factory, "Test") {
             content {
                 PropType("p1")
                 PropType("p2")
@@ -180,7 +184,7 @@ class test_SingleRefAttribute {
             }
         }
 
-        val actual = Examples_ModelAsString.Examples_asString(model)
+        val actual = Examples_ModelAsString.Example_asString(model)
         val expected = """
             Examples 'ExamplesFactoryRam0.Test'
               content = List [

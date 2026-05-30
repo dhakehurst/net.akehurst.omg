@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.redefined
 
 import net.akehurst.kotlinx.utils.ReferenceExt.mutable
 import net.akehurst.kotlinx.utils.cast
 import net.akehurst.kotlinx.utils.resolve
+import net.akehurst.omg.templates.examples.Example
+import net.akehurst.omg.templates.examples.Examples_ModelAsString
+import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
 import kotlin.test.*
 
 class test_SingleRefRedefDiffNameSameTypeAttribute {
 
     @Test
     fun factory() {
-        val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefRedefDiffNameSameTypeAttribute_construct("obj")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.redefined.SingleRefRedefDiffNameSameTypeAttribute_construct("obj")
         assertNotNull(obj)
         try {
             obj.redefinesProp1
@@ -39,11 +42,11 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
 
     @Test
     fun property_by_value_and_reference() {
-        val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefRedefDiffNameSameTypeAttribute_construct("obj")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.redefined.SingleRefRedefDiffNameSameTypeAttribute_construct("obj")
 
-        val p1 = factory.PropType_construct("p1")
-        val p2 = factory.PropType_construct("p2")
+        val p1 = factory.common.PropType_construct("p1")
+        val p2 = factory.common.PropType_construct("p2")
 
         obj.redefinesProp1Reference.mutable.set(p1._identity, p1)
         assertEquals(p1, obj.redefinesProp1)
@@ -52,8 +55,8 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
         assertEquals(p2, obj.redefinesProp2)
 
         // by reference id and resolve
-        val obj2 = factory.SingleRefRedefDiffNameSameTypeAttribute_construct("obj2")
-        val pv1 = factory.PropType_construct("rv1")
+        val obj2 = factory.redefined.SingleRefRedefDiffNameSameTypeAttribute_construct("obj2")
+        val pv1 = factory.common.PropType_construct("rv1")
         obj2.redefinesProp1Reference.mutable.reference = "rv1"
         factory.resolve(obj2.redefinesProp1Reference)
         assertEquals(pv1, obj2.redefinesProp1)
@@ -61,8 +64,8 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
 
     @Test
     fun builder() {
-        val factory = ExamplesFactoryRam()
-        val actual = Examples(factory, "Test") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val actual = Example(factory, "Test") {
             content {
                 PropType("p1")
                 PropType("p2")
@@ -82,9 +85,9 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
 
     @Test
     fun identity_stability_and_uniqueness() {
-        val factory = ExamplesFactoryRam()
-        val a = factory.SingleRefRedefDiffNameSameTypeAttribute_construct("a")
-        val b = factory.SingleRefRedefDiffNameSameTypeAttribute_construct("b")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val a = factory.redefined.SingleRefRedefDiffNameSameTypeAttribute_construct("a")
+        val b = factory.redefined.SingleRefRedefDiffNameSameTypeAttribute_construct("b")
         assertNotNull(a._identity)
         assertNotNull(b._identity)
         assertNotEquals(a._identity, b._identity)
@@ -92,8 +95,8 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
 
     @Test
     fun asString() {
-        val factory = ExamplesFactoryRam()
-        val model = Examples(factory, "Test") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val model = Example(factory, "Test") {
             content {
                 PropType("p1")
                 SingleRefRedefDiffNameSameTypeAttribute("obj") {
@@ -102,7 +105,7 @@ class test_SingleRefRedefDiffNameSameTypeAttribute {
             }
         }
 
-        val actual = Examples_ModelAsString.Examples_asString(model)
+        val actual = Examples_ModelAsString.Example_asString(model)
         val expected = """
             Examples 'ExamplesFactoryRam0.Test'
               content = List [

@@ -82,6 +82,6 @@ data class CollectionRefRedefSameNameDiffTypeAttributeRam(val _factory: redefine
     override val prop4Collection: Collection<PropTypeB>
         get() = _prop4.map { it.resolved ?: throw IllegalStateException("unresolved reference in prop4Collection") }
 
-    override fun toString(): String = "CollectionRefRedefSameNameDiffTypeAttribute '${_factory.identity}.$_identity'"
+    override fun toString(): String = "CollectionRefRedefSameNameDiffTypeAttribute '${_factory.qualifiedIdentity.joinToString(".")}.$_identity'"
 }
 

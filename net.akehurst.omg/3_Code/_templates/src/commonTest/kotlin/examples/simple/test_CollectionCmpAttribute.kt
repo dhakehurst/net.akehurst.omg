@@ -14,24 +14,27 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.simple
 
 import net.akehurst.kotlinx.collections.ListExt.mutable
 import net.akehurst.kotlinx.collections.OrderedSetExt.mutable
 import net.akehurst.kotlinx.collections.orderedSetOf
 import net.akehurst.kotlinx.utils.cast
+import net.akehurst.omg.templates.examples.Example
+import net.akehurst.omg.templates.examples.Examples_ModelAsString
+import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import kotlin.test.assertNotEquals
 
 class test_CollectionCmpAttribute {
 
     @Test
     fun factory() {
-        val factory = ExamplesFactoryRam()
-        val obj = factory.CollectionCmpAttribute_construct("obj")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.simple.CollectionCmpAttribute_construct("obj")
         assertNotNull(obj)
         assertNotNull(obj.prop1OrderedSet)
         assertTrue(obj.prop1OrderedSet.isEmpty())
@@ -39,10 +42,10 @@ class test_CollectionCmpAttribute {
 
     @Test
     fun property() {
-        val factory = ExamplesFactoryRam()
-        val obj = factory.CollectionCmpAttribute_construct("obj")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.simple.CollectionCmpAttribute_construct("obj")
 
-        val propValue = factory.PropType_construct("p1")
+        val propValue = factory.common.PropType_construct("p1")
 
         obj.prop1OrderedSet.mutable.add(propValue)
         assertEquals(orderedSetOf(propValue), obj.prop1OrderedSet)
@@ -53,8 +56,8 @@ class test_CollectionCmpAttribute {
 
     @Test
     fun builder() {
-        val factory = ExamplesFactoryRam()
-        val actual = Examples(factory, "Test") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val actual = Example(factory, "Test") {
             content {
                 CollectionCompositeAttribute("obj") {
                     prop1 {
@@ -80,9 +83,9 @@ class test_CollectionCmpAttribute {
 
     @Test
     fun identity_stability_and_uniqueness() {
-        val factory = ExamplesFactoryRam()
-        val a = factory.CollectionCmpAttribute_construct("a")
-        val b = factory.CollectionCmpAttribute_construct("b")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val a = factory.simple.CollectionCmpAttribute_construct("a")
+        val b = factory.simple.CollectionCmpAttribute_construct("b")
 
         assertNotNull(a._identity)
         assertNotNull(b._identity)
@@ -94,10 +97,10 @@ class test_CollectionCmpAttribute {
 
     @Test
     fun collection_holder_add_remove_reflected() {
-        val factory = ExamplesFactoryRam()
-        val obj = factory.CollectionCmpAttribute_construct("obj")
-        val p1 = factory.PropType_construct("c1")
-        val p2 = factory.PropType_construct("c2")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.simple.CollectionCmpAttribute_construct("obj")
+        val p1 = factory.common.PropType_construct("c1")
+        val p2 = factory.common.PropType_construct("c2")
 
         // add to ordered set
         obj.prop1OrderedSet.mutable.add(p1)
@@ -118,8 +121,8 @@ class test_CollectionCmpAttribute {
 
     @Test
     fun builder_with_only_prop1_leaves_prop2_empty() {
-        val factory = ExamplesFactoryRam()
-        val actual = Examples(factory, "TestOnlyProp1") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val actual = Example(factory, "TestOnlyProp1") {
             content {
                 CollectionCompositeAttribute("objOnly") {
                     prop1 {
@@ -139,8 +142,8 @@ class test_CollectionCmpAttribute {
 
     @Test
     fun asString() {
-        val factory = ExamplesFactoryRam()
-        val model = Examples(factory, "Test") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val model = Example(factory, "Test") {
             content {
                 CollectionCompositeAttribute("obj") {
                     prop1 {
@@ -156,19 +159,19 @@ class test_CollectionCmpAttribute {
             }
         }
 
-        val actual = Examples_ModelAsString.Examples_asString(model)
+        val actual = Examples_ModelAsString.Example_asString(model)
         val expected = """
-            Examples 'ExamplesFactoryRam0.Test'
+            Examples 'TestModelFactory.common.Test'
               content = List [
-                CollectionCmpAttribute 'ExamplesFactoryRam0.obj'
+                CollectionCmpAttribute 'TestModelFactory.simple.obj'
                   prop1 = OrderedSet [
-                    PropType 'ExamplesFactoryRam0.p1.1'
-                    PropType 'ExamplesFactoryRam0.p1.2'
+                    PropType 'TestModelFactory.common.p1.1'
+                    PropType 'TestModelFactory.common.p1.2'
                   ]
                   prop2 = List [
-                    PropType 'ExamplesFactoryRam0.p2.1'
-                    PropType 'ExamplesFactoryRam0.p2.2'
-                    PropType 'ExamplesFactoryRam0.p2.3'
+                    PropType 'TestModelFactory.common.p2.1'
+                    PropType 'TestModelFactory.common.p2.2'
+                    PropType 'TestModelFactory.common.p2.3'
                   ]
                   prop3 = Set []
                   prop4 = Collection []

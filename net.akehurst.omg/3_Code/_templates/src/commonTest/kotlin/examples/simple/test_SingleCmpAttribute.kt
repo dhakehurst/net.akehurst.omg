@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.simple
 
 import net.akehurst.kotlinx.utils.ValueExt.mutable
 import net.akehurst.kotlinx.utils.cast
+import net.akehurst.omg.templates.examples.Example
+import net.akehurst.omg.templates.examples.Examples_ModelAsString
+import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
+import net.akehurst.omg.templates.examples.simple.SingleCmpAttribute
 import kotlin.test.*
 
 class test_SingleCmpAttribute {
 
     @Test
     fun factory() {
-        val obj = ExamplesFactoryRam().SingleCmpAttribute_construct("obj")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.simple.SingleCmpAttribute_construct("obj")
         assertNotNull(obj)
         assertNotNull(obj.prop1)
         assertNull(obj.prop2)
@@ -32,12 +37,12 @@ class test_SingleCmpAttribute {
 
     @Test
     fun property() {
-
-        val obj = ExamplesFactoryRam().SingleCmpAttribute_construct("obj")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.simple.SingleCmpAttribute_construct("obj")
         assertNotNull(obj.prop1)
         assertNull(obj.prop2)
 
-        val propValue = ExamplesFactoryRam().PropType_construct("p1")
+        val propValue = factory.common.PropType_construct("p1")
 
         obj.prop1Value.mutable.set(propValue)
         assertEquals(propValue, obj.prop1)
@@ -48,7 +53,8 @@ class test_SingleCmpAttribute {
 
     @Test
     fun builder() {
-        val actual = Examples(ExamplesFactoryRam(), "Test") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val actual = Example(factory, "Test") {
             content {
                 SingleCmpAttribute("obj") {
                     prop1("p1")
@@ -67,9 +73,9 @@ class test_SingleCmpAttribute {
 
     @Test
     fun identity_stability_and_uniqueness() {
-        val factory = ExamplesFactoryRam()
-        val a = factory.SingleCmpAttribute_construct("a")
-        val b = factory.SingleCmpAttribute_construct("b")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val a = factory.simple.SingleCmpAttribute_construct("a")
+        val b = factory.simple.SingleCmpAttribute_construct("b")
 
         assertNotNull(a._identity)
         assertNotNull(b._identity)
@@ -81,10 +87,10 @@ class test_SingleCmpAttribute {
 
     @Test
     fun value_holder_updates_are_reflected() {
-        val factory = ExamplesFactoryRam()
-        val obj = factory.SingleCmpAttribute_construct("obj")
-        val v1 = factory.PropType_construct("v1")
-        val v2 = factory.PropType_construct("v2")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.simple.SingleCmpAttribute_construct("obj")
+        val v1 = factory.common.PropType_construct("v1")
+        val v2 = factory.common.PropType_construct("v2")
 
         // set required composite
         obj.prop1Value.mutable.set(v1)
@@ -97,7 +103,8 @@ class test_SingleCmpAttribute {
 
     @Test
     fun builder_with_only_required_leaves_optional_null() {
-        val actual = Examples(ExamplesFactoryRam(), "TestOnlyRequired") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val actual = Example(factory, "TestOnlyRequired") {
             content {
                 SingleCmpAttribute("objOnly") {
                     prop1("p1Only")
@@ -115,7 +122,8 @@ class test_SingleCmpAttribute {
 
     @Test
     fun asString() {
-        val model = Examples(ExamplesFactoryRam(), "Test") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val model = Example(factory, "Test") {
             content {
                 SingleCmpAttribute("obj") {
                     prop1("p1")
@@ -124,7 +132,7 @@ class test_SingleCmpAttribute {
             }
         }
 
-        val actual = Examples_ModelAsString.Examples_asString(model)
+        val actual = Examples_ModelAsString.Example_asString(model)
         val expected = """
             Examples 'ExamplesFactoryRam0.Test'
               content = List [

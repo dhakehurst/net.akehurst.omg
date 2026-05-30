@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.redefined
 
 import net.akehurst.kotlinx.utils.ReferenceExt.mutable
 import net.akehurst.kotlinx.utils.cast
 import net.akehurst.kotlinx.utils.resolve
+import net.akehurst.omg.templates.examples.Example
+import net.akehurst.omg.templates.examples.Examples_ModelAsString
+import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
 import kotlin.test.*
 
 class test_SingleRefRedefSameNameDiffTypeAttribute {
 
     @Test
     fun factory() {
-        val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefRedefSameNameDiffTypeAttribute_construct("obj")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.redefined.SingleRefRedefSameNameDiffTypeAttribute_construct("obj")
         assertNotNull(obj)
         try {
             obj.prop1
@@ -39,8 +42,8 @@ class test_SingleRefRedefSameNameDiffTypeAttribute {
 
     @Test
     fun property_by_value() {
-        val factory = ExamplesFactoryRam()
-        val model = Examples(factory, "Test") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val model = Example(factory, "Test") {
             content {
                 PropTypeB("p1")
                 PropTypeB("p2")
@@ -57,15 +60,15 @@ class test_SingleRefRedefSameNameDiffTypeAttribute {
 
     @Test
     fun property_by_reference_and_builder() {
-        val factory = ExamplesFactoryRam()
-        val obj = factory.SingleRefRedefSameNameDiffTypeAttribute_construct("obj")
-        val p1 = factory.PropTypeB_construct("p1")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.redefined.SingleRefRedefSameNameDiffTypeAttribute_construct("obj")
+        val p1 = factory.common.PropTypeB_construct("p1")
 
         obj.prop1Reference.mutable.reference = "p1"
         factory.resolve(obj.prop1Reference)
         assertEquals(p1, obj.prop1)
 
-        val actual = Examples(factory, "Test") {
+        val actual = Example(factory, "Test") {
             content {
                 PropTypeB("b1")
                 SingleRefRedefSameNameDiffTypeAttribute("obj") {
@@ -79,17 +82,17 @@ class test_SingleRefRedefSameNameDiffTypeAttribute {
 
     @Test
     fun identity_stability_and_uniqueness() {
-        val factory = ExamplesFactoryRam()
-        val a = factory.SingleRefRedefSameNameDiffTypeAttribute_construct("a")
-        val b = factory.SingleRefRedefSameNameDiffTypeAttribute_construct("b")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val a = factory.redefined.SingleRefRedefSameNameDiffTypeAttribute_construct("a")
+        val b = factory.redefined.SingleRefRedefSameNameDiffTypeAttribute_construct("b")
         // identities are non-null by contract; assert they differ
         assertTrue(a._identity != b._identity)
     }
 
     @Test
     fun asString() {
-        val factory = ExamplesFactoryRam()
-        val model = Examples(factory, "Test") {
+        val factory =examples_ModelFactoryRam("TestModelFactory")
+        val model = Example(factory, "Test") {
             content {
                 PropTypeB("p1")
                 PropTypeB("p2")
@@ -100,7 +103,7 @@ class test_SingleRefRedefSameNameDiffTypeAttribute {
             }
         }
 
-        val actual = Examples_ModelAsString.Examples_asString(model)
+        val actual = Examples_ModelAsString.Example_asString(model)
         val expected = """
             Examples 'ExamplesFactoryRam0.Test'
               content = List [

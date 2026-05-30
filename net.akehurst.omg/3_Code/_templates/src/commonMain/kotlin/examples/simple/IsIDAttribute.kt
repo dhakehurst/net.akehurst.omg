@@ -32,6 +32,6 @@ data class IsIDAttributeRam(val _factory: simple_PackageFactory, override val id
 
     override val _identity: Any get() = id
 
-    override fun toString(): String = "IsIDAttribute '${_factory._identity}.$_identity'"
+    override fun toString(): String = "IsIDAttribute '${_factory.qualifiedIdentity.joinToString(".")}.$_identity'"
 }
 

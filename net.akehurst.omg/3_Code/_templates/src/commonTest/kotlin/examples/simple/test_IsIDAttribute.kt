@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.simple
 
+import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -24,8 +25,8 @@ class test_IsIDAttribute {
 
     @Test
     fun isID_ignored_example() {
-        val factory = ExamplesFactoryRam()
-        val obj = IsIDAttributeRam(factory, "idExample")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.simple.IsIDAttribute_construct( "idExample")
         assertNotNull(obj)
         // API should use _identity; example `id` mirrors identity here for illustration
         assertEquals("idExample", obj.id)

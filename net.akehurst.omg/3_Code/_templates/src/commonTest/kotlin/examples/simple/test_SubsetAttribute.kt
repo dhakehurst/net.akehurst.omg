@@ -24,7 +24,6 @@ import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
 
 class test_SubsetAttribute {
 
-
     @Test
     fun addingToP_increasesQMultiplicity() {
         val factory = examples_ModelFactoryRam("Test") // or use your ExamplesFactoryRam() helper
@@ -74,5 +73,29 @@ class test_SubsetAttribute {
         // now p has 1, q should still have 2
         assertEquals(1, ram.pList.count { it == p1 })
         assertEquals(2, ram.qList.count { it == p1 })
+    }
+
+    @Test
+    fun subset_enforcement() {
+        val factory =examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.simple.SubsetAttribute_construct("obj")
+
+        val p = factory.common.PropType_construct("s-p1")
+        // add via the provided helper to ensure subset is maintained
+        obj.pList.mutable.add(p)
+        // p must be in q as well
+        assertEquals(1, obj.qList.size)
+        assertEquals(1, obj.pList.size)
+
+        // removing from q while p contains element should fail
+        assertFailsWith<IllegalStateException> {
+            obj.qList.mutable.remove(p)
+        }
+
+        // remove from p then q can be removed
+        obj.pList.mutable.remove(p)
+        obj.qList.mutable.remove(p)
+        assertEquals(0, obj.qList.size)
+        assertEquals(0, obj.pList.size)
     }
 }

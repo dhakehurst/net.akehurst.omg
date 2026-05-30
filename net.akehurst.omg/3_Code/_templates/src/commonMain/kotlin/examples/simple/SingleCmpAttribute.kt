@@ -46,6 +46,6 @@ data class SingleCmpAttributeRam(val _factory: simple_PackageFactory, override v
     override val prop2Value: Value<PropType?> = ManagedValue(null,"SingleCmpAttributeRam.prop2", PropType::class)
     override val prop2: PropType? get() = prop2Value.get()
 
-    override fun toString(): String = "SingleCmpAttribute '${_factory._identity}.${_identity}'"
+    override fun toString(): String = "SingleCmpAttribute '${_factory.identity}.${_identity}'"
 }
 

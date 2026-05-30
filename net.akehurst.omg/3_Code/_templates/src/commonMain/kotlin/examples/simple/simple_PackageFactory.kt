@@ -24,10 +24,16 @@ import kotlin.collections.plus
 
 interface simple_PackageFactory : HierarchicalFactory, HierarchicalReferenceStore<Any> {
 
+    override val rootFactory: examples_ModelFactory
+
+    fun CollectionCmpAttribute_construct(_identity: Any): CollectionCmpAttribute
+    fun CollectionRefAttribute_construct(_identity: Any): CollectionRefAttribute
+    fun DerivedUnionCmpAttribute_construct(_identity: Any):DerivedUnionCmpAttribute
+    fun DerivedUnionRefAttribute_construct(_identity: Any): DerivedUnionRefAttribute
+    fun IsIDAttribute_construct(id: String): IsIDAttribute
     fun SingleCmpAttribute_construct(_identity: Any): SingleCmpAttribute
     fun SingleRefAttribute_construct(_identity: Any): SingleRefAttribute
-    fun CollectionCmpAttribute_construct(_identity: Any): CollectionCmpAttribute
-    fun IsIDAttributeRam_construct(id: String): IsIDAttribute
+    fun SubsetAttribute_construct(_identity: Any): SubsetAttribute
 
 }
 
@@ -36,15 +42,19 @@ class simple_PackageFactoryRam(
     override val identity: Any,
 ) : simple_PackageFactory, HierarchicalReferenceStore<Any> by HierarchicalReferenceStoreByHashMap(parentFactory, identity) {
 
-
-    override fun SingleCmpAttribute_construct(_identity: Any): SingleCmpAttribute = SingleCmpAttributeRam(this, _identity).also { this[SingleCmpAttribute::class, _identity] = it }
-    override fun SingleRefAttribute_construct(_identity: Any): SingleRefAttribute = SingleRefAttributeRam(this, _identity).also { this[SingleRefAttribute::class, _identity] = it }
-    override fun CollectionCmpAttribute_construct(_identity: Any): CollectionCmpAttribute = CollectionCmpAttributeRam(this, _identity).also { this[CollectionCmpAttribute::class, _identity] = it }
-    override fun IsIDAttributeRam_construct(id: String): IsIDAttribute = IsIDAttributeRam(this, id).also { this[IsIDAttribute::class, identity] = it }
-
     // --- HierarchicalFactory ---
     override val qualifiedIdentity: List<Any> = parentFactory.qualifiedIdentity + identity
-    override val rootFactory get() = rootReferenceStore as examples_ModelFactory
+    override val rootFactory get() = parentFactory.rootFactory as examples_ModelFactory
+
+    // --- simple_PackageFactory ---
+    override fun CollectionCmpAttribute_construct(_identity: Any): CollectionCmpAttribute = CollectionCmpAttributeRam(this, _identity).also { this[CollectionCmpAttribute::class, _identity] = it }
+    override fun CollectionRefAttribute_construct(_identity: Any): CollectionRefAttribute = CollectionRefAttributeRam(this, _identity).also { this[CollectionRefAttribute::class, _identity] = it }
+    override fun DerivedUnionCmpAttribute_construct(_identity: Any): DerivedUnionCmpAttribute = DerivedUnionCmpAttributeRam(this, _identity).also { this[DerivedUnionCmpAttribute::class, _identity] = it }
+    override fun DerivedUnionRefAttribute_construct(_identity: Any): DerivedUnionRefAttribute = DerivedUnionRefAttributeRam(this, _identity).also { this[DerivedUnionRefAttribute::class, _identity] = it }
+    override fun IsIDAttribute_construct(id: String): IsIDAttribute = IsIDAttributeRam(this, id).also { this[IsIDAttribute::class, identity] = it }
+    override fun SingleCmpAttribute_construct(_identity: Any): SingleCmpAttribute = SingleCmpAttributeRam(this, _identity).also { this[SingleCmpAttribute::class, _identity] = it }
+    override fun SingleRefAttribute_construct(_identity: Any): SingleRefAttribute = SingleRefAttributeRam(this, _identity).also { this[SingleRefAttribute::class, _identity] = it }
+    override fun SubsetAttribute_construct(_identity:Any):SubsetAttribute = SubsetAttributeRam(this, _identity).also { this[SubsetAttribute::class, _identity] = it }
 
     // --- Any ---
     override fun toString(): String = "simple_PackageFactoryRam '${identity}'"

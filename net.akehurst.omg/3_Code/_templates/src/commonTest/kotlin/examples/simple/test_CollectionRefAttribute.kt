@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.simple
 
 import net.akehurst.kotlinx.collections.ListExt.mutable
 import net.akehurst.kotlinx.collections.OrderedSetExt.mutable
@@ -22,6 +22,8 @@ import net.akehurst.kotlinx.collections.orderedSetOf
 import net.akehurst.kotlinx.utils.ManagedReference
 import net.akehurst.kotlinx.utils.ReferenceExt.mutable
 import net.akehurst.kotlinx.utils.resolve
+import net.akehurst.omg.templates.examples.common.PropType
+import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -31,12 +33,12 @@ class test_CollectionRefAttribute {
 
     @Test
     fun factory_and_add_by_value() {
-        val factory = ExamplesFactoryRam()
-        val obj = CollectionRefAttributeRam(factory, "cr1")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.simple.CollectionRefAttribute_construct( "cr1")
         assertNotNull(obj)
         assertTrue(obj.prop1OrderedSet.isEmpty())
 
-        val pv = factory.PropType_construct("p1")
+        val pv = factory.common.PropType_construct("p1")
 
         val mref = ManagedReference<Any, PropType>(null, "test.mref", PropType::class)
         mref.mutable.set(pv._identity, pv)
@@ -48,10 +50,10 @@ class test_CollectionRefAttribute {
 
     @Test
     fun add_by_reference_and_resolve() {
-        val factory = ExamplesFactoryRam()
-        val obj = CollectionRefAttributeRam(factory, "cr2")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.simple.CollectionRefAttribute_construct( "cr2")
 
-        val pv = factory.PropType_construct("pr1")
+        val pv = factory.common.PropType_construct("pr1")
         val mref = ManagedReference<Any, PropType>(null, "test2.mref", PropType::class)
         mref.mutable.reference = pv._identity
         obj.prop2ListReference.mutable.add(mref)

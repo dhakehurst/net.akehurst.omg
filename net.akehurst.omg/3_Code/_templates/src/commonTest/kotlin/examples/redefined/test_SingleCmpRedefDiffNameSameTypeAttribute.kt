@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.templates.examples
+package net.akehurst.omg.templates.examples.redefined
 
 import net.akehurst.kotlinx.utils.ValueExt.mutable
 import net.akehurst.kotlinx.utils.cast
+import net.akehurst.omg.templates.examples.Example
+import net.akehurst.omg.templates.examples.Examples_ModelAsString
+import net.akehurst.omg.templates.examples.examples_ModelFactoryRam
+import net.akehurst.omg.templates.examples.redefined.SingleCmpRedefDiffNameSameTypeAttribute
 import kotlin.test.*
 
 class test_SingleCmpRedefDiffNameSameTypeAttribute {
 
     @Test
     fun factory() {
-        val factory = ExamplesFactoryRam()
-        val obj = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct("obj")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.redefined.SingleCmpRedefDiffNameSameTypeAttribute_construct("obj")
         assertNotNull(obj)
         assertNotNull(obj.redefinesProp1)
         assertNull(obj.redefinesProp2)
@@ -33,22 +37,22 @@ class test_SingleCmpRedefDiffNameSameTypeAttribute {
 
     @Test
     fun property() {
-        val factory = ExamplesFactoryRam()
-        val obj = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct("obj")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val obj = factory.redefined.SingleCmpRedefDiffNameSameTypeAttribute_construct("obj")
 
-        val pv = factory.PropType_construct("p1")
+        val pv = factory.common.PropType_construct("p1")
         obj.redefinesProp1Value.mutable.set(pv)
         assertEquals(pv, obj.redefinesProp1)
 
-        val pv2 = factory.PropType_construct("p2")
+        val pv2 = factory.common.PropType_construct("p2")
         obj.redefinesProp2Value.mutable.set(pv2)
         assertEquals(pv2, obj.redefinesProp2)
     }
 
     @Test
     fun builder() {
-        val factory = ExamplesFactoryRam()
-        val actual = Examples(factory, "Test") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val actual = Example(factory, "Test") {
             content {
                 SingleCmpRedefDiffNameSameTypeAttribute("obj") {
                     redefinesProp1("p1")
@@ -66,9 +70,9 @@ class test_SingleCmpRedefDiffNameSameTypeAttribute {
 
     @Test
     fun identity_stability_and_uniqueness() {
-        val factory = ExamplesFactoryRam()
-        val a = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct("a")
-        val b = factory.SingleCmpRedefDiffNameSameTypeAttribute_construct("b")
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val a = factory.redefined.SingleCmpRedefDiffNameSameTypeAttribute_construct("a")
+        val b = factory.redefined.SingleCmpRedefDiffNameSameTypeAttribute_construct("b")
         assertNotNull(a._identity)
         assertNotNull(b._identity)
         assertNotEquals(a._identity, b._identity)
@@ -76,8 +80,8 @@ class test_SingleCmpRedefDiffNameSameTypeAttribute {
 
     @Test
     fun asString() {
-        val factory = ExamplesFactoryRam()
-        val model = Examples(factory, "Test") {
+        val factory = examples_ModelFactoryRam("TestModelFactory")
+        val model = Example(factory, "Test") {
             content {
                 SingleCmpRedefDiffNameSameTypeAttribute("obj") {
                     redefinesProp1("p1") {}
@@ -86,7 +90,7 @@ class test_SingleCmpRedefDiffNameSameTypeAttribute {
             }
         }
 
-        val actual = Examples_ModelAsString.Examples_asString(model)
+        val actual = Examples_ModelAsString.Example_asString(model)
         val expected = """
             Examples 'ExamplesFactoryRam0.Test'
               content = List [
