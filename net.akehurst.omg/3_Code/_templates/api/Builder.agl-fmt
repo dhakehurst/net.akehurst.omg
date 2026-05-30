@@ -39,12 +39,16 @@ format RootBuilderFunction {
 
 format BuilderClassAssignment {
    MofProperty -> when {
-       isSingle -> "_${validName}?.let{ ${validName}_set(it) }"
+       isSingle -> when {
+         isComposite -> "_${validName}?.let{ self.${validName}Value.mutable.set(it) }"
+         isReference -> "_${validName}?.let{ self.${validName}Reference.mutable.set(it) }"
+         else -> 'ERROR'
+       }
        else -> when {
-            (false == isUnique) and (false == isOrdered) -> "_${validName}?.let{ ${validName}.mutableCollection.addAll(it) }"
-            (true == isUnique) and (false == isOrdered) -> "_${validName}?.let{ ${validName}.mutableSet.addAll(it.toSet()) }"
-            (false == isUnique) and (true == isOrdered) -> "_${validName}?.let{ ${validName}.mutableList.addAll(it.toList()) }"
-            (true == isUnique) and (true == isOrdered) -> "_${validName}?.let{ ${validName}.mutableOrderedSet.addAll(it.toOrderedSet()) }"
+            (false == isUnique) and (false == isOrdered) -> "_${validName}?.let{ self.${validName}.mutable.addAll(it) }"
+            (true == isUnique) and (false == isOrdered) -> "_${validName}?.let{ self.${validName}.mutable.addAll(it.toSet()) }"
+            (false == isUnique) and (true == isOrdered) -> "_${validName}?.let{ self.${validName}.mutable.addAll(it.toList()) }"
+            (true == isUnique) and (true == isOrdered) -> "_${validName}?.let{ self.${validName}.mutable.addAll(it.toOrderedSet()) }"
             else -> "ERROR"
        }
    }
@@ -61,7 +65,7 @@ format BuilderClass {
 
             $[allCompositeAttribute sep $EOL]
 
-            override fun build(): ${validName} = factory.${parentPackage.qualifiedName}.${validName}_construct(id).apply {
+            override fun build(): ${validName} = factory.${parentPackage.qualifiedName}.${validName}_construct(id).also { self ->
                $[allCompositeAttribute sep $EOL via BuilderClassAssignment]
             }
         }
@@ -70,7 +74,7 @@ format BuilderClass {
     MofProperty -> when {
         isSingle -> when {
           type.isPrimitive -> "
-            private var _${validName}: ${validTypeName} = null
+            private var _${validName}: ${validTypeName}? = null
             fun ${validName}(value: ${validTypeName}) {
                 _${validName} = value
             }
@@ -95,7 +99,7 @@ format BuilderClass {
           type.isPrimitive -> "
              private var _${validName}: Collection<${type.validName}>? = null
              fun ${validName}(value: ${validTypeName}) {
-               _${validName} = value
+                 _${validName} = value
              }
           "
           else -> "
@@ -154,7 +158,13 @@ format ApiPackageBuilderFile {
 
         import net.akehurst.kotlinx.collections.OrderedSet
         import net.akehurst.kotlinx.collections.toOrderedSet
+        import net.akehurst.kotlinx.collections.CollectionExt.mutable
+        import net.akehurst.kotlinx.collections.ListExt.mutable
+        import net.akehurst.kotlinx.collections.SetExt.mutable
+        import net.akehurst.kotlinx.collections.OrderedSetExt.mutable
         import net.akehurst.kotlinx.utils.Builder
+        import net.akehurst.kotlinx.utils.ReferenceExt.mutable
+        import net.akehurst.kotlinx.utils.ValueExt.mutable
         import ${TARGET_PACKAGE}.api.${model.name}DslMarker
         import ${TARGET_PACKAGE}.api.${model.name}_ModelBuilder
         import ${TARGET_PACKAGE}.api.${model.name}_ModelFactory

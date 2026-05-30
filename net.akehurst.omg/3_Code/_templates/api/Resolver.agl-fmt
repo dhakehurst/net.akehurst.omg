@@ -16,6 +16,40 @@
 
 namespace net.akehurst.omg.mof.gen.template
 
+format PackageImport {
+    MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.${validName}_PackageResolver"
+}
+
+format SubPackage {
+    MofPackage -> "val $validName = ${validName}_PackageResolver(this, \"$validName\", store.${validName})"
+}
+
+format ApiPackageResolverFile {
+    #output: 'MofPackage -> "api/$qualifiedPath/${name}_PackageResolver.kt"'
+
+    MofPackage -> "
+        $COPYRIGHT
+
+        // *** Generated code do NOT manually edit. ***
+        package ${TARGET_PACKAGE}.api.${qualifiedName}
+
+        import net.akehurst.kotlinx.utils.HierarchicalResolver
+        import ${TARGET_PACKAGE}.api.${model.name}_ModelResolver
+
+        class ${name}_PackageResolver(
+            override val parentResolver: ${model.name}_ModelResolver,
+            override val identity: Any,
+            val store: ${name}_PackageFactory
+        ) : HierarchicalResolver {
+
+            override val rootResolver = parentResolver.rootResolver
+            override val qualifiedIdentity: List<Any> get() = parentResolver.qualifiedIdentity + identity
+
+
+        }
+    "
+}
+
 format ApiModelResolverFile {
     #output: 'MofModel -> "api/${name}_ModelResolver.kt"'
 
@@ -25,7 +59,22 @@ format ApiModelResolverFile {
         // *** Generated code do NOT manually edit. ***
         package ${TARGET_PACKAGE}.api
 
+        import net.akehurst.kotlinx.utils.HierarchicalResolver
+        $[subPackages sep $EOL via PackageImport]
 
+        class ${name}_ModelResolver(
+            override val identity: Any,
+            val store: ${name}_ModelFactory
+        ) : HierarchicalResolver {
+
+            override val parentResolver: HierarchicalResolver? = null
+            override val rootResolver: ${name}_ModelResolver = this
+            override val qualifiedIdentity: List<Any> get() = listOf(identity)
+
+            $[subPackages sep $EOL via SubPackage]
+
+        }
+        ${subPackages via ApiPackageResolverFile}
     "
 
 
