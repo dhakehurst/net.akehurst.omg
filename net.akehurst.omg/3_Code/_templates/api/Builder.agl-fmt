@@ -31,7 +31,7 @@ format RootBuilderFunction {
        fun ${name}(factory:${model.name}_ModelFactory, id:Any, init:${name}_Builder.()->Unit): ${validName} =
          buildObject(factory, id, ::${name}_Builder, init) {
            val rootResolver = ${model.name}_ModelResolver(\"${model.name}Model\", factory)
-           rootResolver.common.${name}_resolve(it)
+           rootResolver.${parentPackage.qualifiedName}.${name}_resolve(it)
          }
      "
    }

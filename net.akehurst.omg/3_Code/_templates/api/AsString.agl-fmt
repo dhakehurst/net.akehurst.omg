@@ -19,12 +19,12 @@ namespace net.akehurst.omg.mof.gen.template
 import net.akehurst.omg.mof.gen.simple
 
 format AbstractAsStringFunOption {
-  MofClass -> "is ${validName} -> asString${validName}(self,indent)"
+  MofClass -> "is ${validName} -> rootAsString.${parentPackage.qualifiedName}.${validName}_asString(self,indent)"
 }
 
 format AbstractAsStringFun {
   MofType -> "
-     fun asString${validName}(self: ${validName}, indent:Indent = Indent()): String = when(self) {
+     fun ${validName}_asString(self: ${validName}, indent:Indent = Indent()): String = when(self) {
         $[concreteSubclasses sep $EOL via AbstractAsStringFunOption]
         else -> error(\"Subtype '\${self::class.simpleName}' of ActivityEdge not handled.\")
      }
@@ -32,26 +32,89 @@ format AbstractAsStringFun {
 }
 
 format AppendPropertyComposite {
-  MofProperty -> when {
-    type.isPrimitive -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it}\") }"
-    isSingle -> when {
-      isOptional -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \${this.asString${type.validName}(it)}\") }"
-      else -> "self.${validName}.let{ sb.appendLine(\"\${indentInc}${validName} \${this.asString${type.validName}(it)}\") }"
-    }
-    isCollection -> "self.${validName}.forEach{ sb.appendLine(\"\${indentInc}${validName} \${this.asString${type.validName}(it)}\") }"
-    else -> "ERROR"
+  MofProperty -> {
+      asStr := when {
+        type.parentPackage == parentClass.parentPackage -> 'this'
+        else -> "rootAsString.${type.parentPackage.qualifiedName}"
+      }
+      when {
+        type.isPrimitive -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it}\") }"
+        isSingle -> when {
+          isOptional -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \${$asStr.${type.validName}_asString(it)}\") }"
+          else -> "self.${validName}.let{ sb.appendLine(\"\${indentInc}${validName} \${$asStr.${type.validName}_asString(it)}\") }"
+        }
+        isCollection -> "self.${validName}.forEach{ sb.appendLine(\"\${indentInc}${validName} \${$asStr.${type.validName}_asString(it)}\") }"
+        else -> "ERROR"
+      }
   }
 }
 
 format AppendPropertyReference {
   MofProperty -> when {
     (type.isPrimitive or isSingle) -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it}\") }"
-    isCollection -> "self.${validName}.forEach{ sb.appendLine(\"\${indentInc}${validName} \${this.asString${type.validName}(it)}\") }"
+    isCollection -> "self.${validName}.forEach{ sb.appendLine(\"\${indentInc}${validName} \$it\") }"
     else -> "ERROR"
   }
 }
 
-format ApiPackageFile {
+format AsStringImport {
+    MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.${validName}_PackageAsString"
+}
+
+format PackageImport {
+    MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.*"
+}
+
+format SubPackage {
+    MofPackage -> "val $validName = ${validName}_PackageAsString(this, \"${validName}\")"
+}
+
+format ApiPackageAsStringFile {
+    #output: 'MofPackage -> "api/$qualifiedPath/${name}_PackageAsString.kt"'
+
+    MofPackage -> "
+        $COPYRIGHT
+
+        // *** Generated code do NOT manually edit. ***
+        package ${TARGET_PACKAGE}.api.${qualifiedName}
+
+        import net.akehurst.kotlinx.utils.Indent
+        import net.akehurst.kotlinx.utils.NestedIdentifiable
+        import ${TARGET_PACKAGE}.api.${model.name}_ModelAsString
+        $[subPackages sep $EOL via AsStringImport]
+        $[allImport sep $EOL via PackageImport]
+
+        /**
+         * AsString for package $qualifiedName
+         */
+        class ${name}_PackageAsString(
+          override val parent: NestedIdentifiable<String>,
+          override val identity: String
+        ): NestedIdentifiable<String> {
+            override val rootIdentifiable get() = parent.rootIdentifiable
+            override val qualifiedIdentity get() = parent.qualifiedIdentity + identity
+            val rootAsString get() = rootIdentifiable as ${model.name}_ModelAsString
+
+            $[subPackages sep $EOL via SubPackage]
+
+            $[classes.filter({it -> it.isAbstract}) sep $EOL via AbstractAsStringFun]
+            $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
+        }
+    "
+
+    MofClass -> "
+      fun ${validName}_asString(self: ${validName}, indent:Indent = Indent()): String {
+        val sb = StringBuilder()
+        sb.appendLine(self)
+        val indentInc = indent.inc
+        $[allReferenceAttribute sep $EOL via AppendPropertyReference]
+        $[allCompositeAttribute sep $EOL via AppendPropertyComposite]
+        return sb.toString()
+      }
+    "
+}
+
+format ApiModelAsStringFile {
     #output: 'MofModel -> "api/${name}_ModelAsString.kt"'
 
     MofModel -> "
@@ -60,25 +123,21 @@ format ApiPackageFile {
         // *** Generated code do NOT manually edit. ***
         package ${TARGET_PACKAGE}.api
 
-        import net.akehurst.kotlinx.utils.Indent
+        import net.akehurst.kotlinx.utils.NestedIdentifiable
+        $[subPackages sep $EOL via PackageImport]
 
         /**
-         * Factory covering packages $[packageList.map({it -> it.qualifiedName}) sep ', ']
+         * AsString for model $name
          */
-        object ${name}_ModelAsString {
-          $[allClasses.filter({it -> it.isAbstract}) sep $EOL via AbstractAsStringFun]
-          $[allClasses.filter({it -> false == it.isAbstract}) sep $EOL]
-        }
-    "
+        object ${name}_ModelAsString : NestedIdentifiable<String> {
 
-    MofClass -> "
-      fun asString${validName}(self: ${validName}, indent:Indent = Indent()): String {
-        val sb = StringBuilder()
-        sb.appendLine(self)
-        val indentInc = indent.inc
-        $[allReferenceAttribute sep $EOL via AppendPropertyReference]
-        $[allCompositeAttribute sep $EOL via AppendPropertyComposite]
-        return sb.toString()
-      }
+            override val identity = \"${name}_ModelAsString\"
+            override val parent = null
+            override val rootIdentifiable = this
+            override val qualifiedIdentity = listOf(identity)
+
+            $[subPackages sep $EOL via SubPackage]
+        }
+        ${packageList via ApiPackageAsStringFile}
     "
 }

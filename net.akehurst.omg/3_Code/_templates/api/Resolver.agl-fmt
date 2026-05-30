@@ -16,7 +16,7 @@
 
 namespace net.akehurst.omg.mof.gen.template
 
-format PackageImport {
+format ResolverImport {
     MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.${validName}_PackageResolver"
 }
 
@@ -35,9 +35,10 @@ format ApiPackageResolverFile {
 
         import net.akehurst.kotlinx.utils.HierarchicalResolver
         import ${TARGET_PACKAGE}.api.${model.name}_ModelResolver
+        $[subPackages sep $EOL via ResolverImport]
 
         class ${name}_PackageResolver(
-            override val parentResolver: ${model.name}_ModelResolver,
+            override val parentResolver: HierarchicalResolver,
             override val identity: Any,
             val store: ${name}_PackageFactory
         ) : HierarchicalResolver {
@@ -45,6 +46,11 @@ format ApiPackageResolverFile {
             override val rootResolver = parentResolver.rootResolver
             override val qualifiedIdentity: List<Any> get() = parentResolver.qualifiedIdentity + identity
 
+            $[subPackages sep $EOL via SubPackage]
+
+            //TODO
+            $[classes.filter({it -> it.isAbstract}) sep $EOL via AbstractResolveFun]
+            $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
 
         }
     "
@@ -60,7 +66,7 @@ format ApiModelResolverFile {
         package ${TARGET_PACKAGE}.api
 
         import net.akehurst.kotlinx.utils.HierarchicalResolver
-        $[subPackages sep $EOL via PackageImport]
+        $[subPackages sep $EOL via ResolverImport]
 
         class ${name}_ModelResolver(
             override val identity: Any,
@@ -74,7 +80,7 @@ format ApiModelResolverFile {
             $[subPackages sep $EOL via SubPackage]
 
         }
-        ${subPackages via ApiPackageResolverFile}
+        ${packageList via ApiPackageResolverFile}
     "
 
 
