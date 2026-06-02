@@ -17,7 +17,9 @@ kotlin {
 tasks.named<generator.GenerateTask>("generate") {
     modelName = "KerML"
     instanceRoots = listOf("Package", "LibraryPackage")
-    sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/KerML_1-0_ptc-25-04-04.xmi"))
+//    sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/KerML_1-0_ptc-25-04-04.xmi"))
+// original xmi does not specify aggregations!
+    sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/kerml_patched.xmi"))
     generateDir.set(layout.projectDirectory.dir("../../../_templates/api"))
     parameters = mapOf(
         "TARGET_PACKAGE" to "net.akehurst.omg.kerml.v1_0"

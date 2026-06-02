@@ -68,6 +68,7 @@ object SimpleMof {
                 propertyOf(setOf(VAL), "ownedRedefiningAttribute", "List", execution = MofType::ownedRedefiningAttribute){ typeArgument("MofProperty")}
                 propertyOf(setOf(VAL), "superTypes", "Set", execution = MofType::superTypes){ typeArgument("MofType")}
                 propertyOf(setOf(VAL), "allSuperTypes", "Set", execution = MofType::allSuperTypes){ typeArgument("MofType")}
+                propertyOf(setOf(VAL), "hasSubtypes", "Boolean", execution = MofType::hasSubtypes)
                 propertyOf(setOf(VAL), "concreteSubclasses", "Set", execution = MofType::concreteSubclasses){ typeArgument("MofClass")}
             }
             data("MofEnum", implementation = MofEnum::class) {
@@ -126,6 +127,8 @@ object SimpleMof {
                     parameter(setOf(CMP, VAL), "associationXmiId", "String", true, propertyExecution = MofProperty::associationXmiId)
                 }
                 propertyOf(setOf(DER), "isOverride", "Boolean", execution = MofProperty::isOverride)
+                propertyOf(setOf(DER), "isComposite", "Boolean", execution = MofProperty::isComposite)
+                propertyOf(setOf(DER), "isReference", "Boolean", execution = MofProperty::isReference)
                 propertyOf(setOf(DER),"allRedefinedProperty","Set", execution = MofProperty::allRedefinedProperty) {typeArgument("MofProperty")}
             }
             data("MofOperation", implementation = MofOperation::class) {

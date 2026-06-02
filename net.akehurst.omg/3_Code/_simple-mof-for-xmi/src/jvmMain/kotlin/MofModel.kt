@@ -189,12 +189,15 @@ interface MofType {
     val validName: String
     val isAbstract: Boolean
     val isPrimitive: Boolean
+    val hasSubtypes:Boolean
 
     val allAttributes: Set<MofProperty>
     val ownedRedefiningAttribute: List<MofProperty>
 
     val superTypes: Set<MofType>
     val allSuperTypes: Set<MofType>
+    val subTypes: Set<MofType>
+    val allSubTypes: Set<MofType>
     val concreteSubclasses: Set<MofClass>
 
     /**
@@ -220,10 +223,13 @@ class MofEnum(
     override val validName: String by lazy { kotlinValidName(name) }
     override val isAbstract: Boolean = false
     override val isPrimitive: Boolean = true
+    override val hasSubtypes: Boolean = false
     override val allAttributes: Set<MofProperty> = emptySet()
     override val ownedRedefiningAttribute: List<MofProperty> = emptyList()
     override val superTypes: Set<MofType> = emptySet()
     override val allSuperTypes: Set<MofType> = emptySet()
+    override val subTypes: Set<MofType> = emptySet()
+    override val allSubTypes: Set<MofType> = emptySet()
     override val concreteSubclasses: Set<MofClass> = emptySet()
 
     override val allNormalisedAttribute: Map<MofClass, List<MofProperty>> = emptyMap()
@@ -252,8 +258,19 @@ abstract class MofAbstractType() : MofType {
     override val isPrimitive: Boolean by lazy { model.isPrimitive(this) }
     val qualifiedName: String get() = parentPackage?.let { it.qualifiedName + "." + name } ?: name
 
-    override val superTypes: Set<MofType> get() = generalizations.map { model.findTypeById(it) as MofType }.toSet()
+    override val superTypes: Set<MofType> get() = generalizations.map {
+        model.findTypeById(it) ?: error("Type '$name' not found")
+    }.toSet()
     override val allSuperTypes: Set<MofType> by lazy { superTypes.transitiveClosure { it.superTypes }.toSet() }
+    override val subTypes: Set<MofType> by lazy {
+        model.allClasses.filter { it.superTypes.contains(this) }.toSet()
+    }
+
+    override val allSubTypes: Set<MofType> by lazy {
+        model.allClasses.filter { it.allSuperTypes.contains(this) }.toSet()
+    }
+
+    override val hasSubtypes: Boolean get() = subTypes.isNotEmpty()
 
     override val allAttributes get() = (allSuperTypes.flatMap { it.ownedAttribute } + ownedAttribute).toSet()
     override val ownedRedefiningAttribute get() = ownedAttribute.filter { it.isRedefining }
@@ -485,6 +502,32 @@ class MofProperty(
             ?: typeHref?.let { model.findTypeById(it) }
             ?: model.UnknownType(xmiId)
     }
+    val colTypeName by lazy {
+        when {
+            isSingle -> "ERROR: '$qualifiedName' is not a collection type"
+
+            else -> when {
+                (false == isUnique) and (false == isOrdered) -> "Collection"
+                (true == isUnique) and (false == isOrdered) -> "Set"
+                (false == isUnique) and (true == isOrdered) -> "List"
+                (true == isUnique) and (true == isOrdered) -> "OrderedSet"
+                else -> "ERROR: getting collection type name for '$qualifiedName'"
+            }
+        }
+    }
+    val colTypeNameLower by lazy {
+        when {
+            isSingle -> "ERROR: '$qualifiedName' is not a collection type"
+
+            else -> when {
+                (false == isUnique) and (false == isOrdered) -> "collection"
+                (true == isUnique) and (false == isOrdered) -> "set"
+                (false == isUnique) and (true == isOrdered) -> "list"
+                (true == isUnique) and (true == isOrdered) -> "orderedSet"
+                else -> "ERROR: getting collection type name for '$qualifiedName'"
+            }
+        }
+    }
     val validTypeName by lazy {
         when {
             isSingle -> when {
@@ -492,25 +535,13 @@ class MofProperty(
                 else -> type.validName
             }
 
-            else -> when {
-                (false == isUnique) and (false == isOrdered) -> "Collection<${type.validName}>"
-                (true == isUnique) and (false == isOrdered) -> "Set<${type.validName}>"
-                (false == isUnique) and (true == isOrdered) -> "List<${type.validName}>"
-                (true == isUnique) and (true == isOrdered) -> "OrderedSet<${type.validName}>"
-                else -> "ERROR(validTypeName)"
-            }
+            else -> "$colTypeName<${type.validName}>"
         }
     }
     val validTypeNameNotNullable by lazy {
         when {
             isSingle -> type.validName
-            else -> when {
-                (false == isUnique) and (false == isOrdered) -> "Collection<${type.validName}>"
-                (true == isUnique) and (false == isOrdered) -> "Set<${type.validName}>"
-                (false == isUnique) and (true == isOrdered) -> "List<${type.validName}>"
-                (true == isUnique) and (true == isOrdered) -> "OrderedSet<${type.validName}>"
-                else -> "ERROR(validTypeName)"
-            }
+            else -> "$colTypeName<${type.validName}>"
         }
     }
 

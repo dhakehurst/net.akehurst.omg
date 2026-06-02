@@ -38,7 +38,7 @@ format AppendPropertyComposite {
         else -> "rootAsString.${type.parentPackage.qualifiedName}"
       }
       when {
-        type.isPrimitive -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it}\") }"
+        type.isPrimitive -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it\") }"
         isSingle -> when {
           isOptional -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \${$asStr.${type.validName}_asString(it)}\") }"
           else -> "self.${validName}.let{ sb.appendLine(\"\${indentInc}${validName} \${$asStr.${type.validName}_asString(it)}\") }"
@@ -51,7 +51,7 @@ format AppendPropertyComposite {
 
 format AppendPropertyReference {
   MofProperty -> when {
-    (type.isPrimitive or isSingle) -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it}\") }"
+    (type.isPrimitive or isSingle) -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it\") }"
     isCollection -> "self.${validName}.forEach{ sb.appendLine(\"\${indentInc}${validName} \$it\") }"
     else -> "ERROR"
   }

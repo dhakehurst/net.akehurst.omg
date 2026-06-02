@@ -16,8 +16,67 @@
 
 namespace net.akehurst.omg.mof.gen.template
 
+format ResolvePropertyReference {
+    MofProperty -> when {
+        isSingle -> "store.rootReferenceStore.resolve(obj.${validName}Reference)"
+        else -> "obj.${validName}Reference.forEach { store.rootReferenceStore.resolve(it) }"
+    }
+}
+
+format ResolvePropertyComposite {
+    MofProperty -> when {
+        type.isPrimitive -> '// ${validName}: ${validTypeName} is primitive'
+        isSingle -> when {
+            isOptional -> "obj.${validName}?.let { rootResolver.${type.parentPackage.qualifiedName}.${type.validName}_resolve(it) }"
+            else -> "rootResolver.${type.parentPackage.qualifiedName}.${type.validName}_resolve(obj.${validName})"
+        }
+        else -> "obj.${validName}.forEach { rootResolver.${type.parentPackage.qualifiedName}.${type.validName}_resolve(it) }"
+    }
+}
+
+format CallSubtypeResolve {
+    MofClass -> "is ${validName} -> rootResolver.${parentPackage.qualifiedName}.${validName}_resolve(obj)"
+}
+
+format ResolveFun {
+    MofClass -> when {
+        isAbstract -> "
+             fun ${validName}_resolve(obj: $validName){
+                when(obj) {
+                    $[subTypes sep $EOL via CallSubtypeResolve]
+                    else -> error(\"Cannot resolve subtype '\${obj::class.simpleName}' of '$validName', not handled.\")
+                }
+            }
+        "
+        hasSubtypes -> "
+            fun ${validName}_resolve(obj: $validName){
+                when(obj) {
+                    $[subTypes sep $EOL via CallSubtypeResolve]
+                    else -> {
+                        $[allReferenceAttribute.filter({it -> false == it.type.isPrimitive}) sep $EOL via ResolvePropertyReference]
+                        $[allCompositeAttribute.filter({it -> false == it.type.isPrimitive}) sep $EOL via ResolvePropertyComposite]
+                    }
+                }
+            }
+        "
+        else -> {
+            "
+                fun ${validName}_resolve(obj: $validName) {
+                    $[allReferenceAttribute.filter({it -> false == it.type.isPrimitive}) sep $EOL via ResolvePropertyReference]
+                    $[allCompositeAttribute.filter({it -> false == it.type.isPrimitive}) sep $EOL via ResolvePropertyComposite]
+                }
+            "
+      }
+    }
+
+}
+
 format ResolverImport {
     MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.${validName}_PackageResolver"
+}
+
+format PackageImport {
+    MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.*"
 }
 
 format SubPackage {
@@ -34,8 +93,10 @@ format ApiPackageResolverFile {
         package ${TARGET_PACKAGE}.api.${qualifiedName}
 
         import net.akehurst.kotlinx.utils.HierarchicalResolver
+        import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreExt.resolve
         import ${TARGET_PACKAGE}.api.${model.name}_ModelResolver
         $[subPackages sep $EOL via ResolverImport]
+        $[allImport sep $EOL via PackageImport]
 
         class ${name}_PackageResolver(
             override val parentResolver: HierarchicalResolver,
@@ -43,14 +104,12 @@ format ApiPackageResolverFile {
             val store: ${name}_PackageFactory
         ) : HierarchicalResolver {
 
-            override val rootResolver = parentResolver.rootResolver
+            override val rootResolver: ${model.name}_ModelResolver get() = parentResolver.rootResolver as ${model.name}_ModelResolver
             override val qualifiedIdentity: List<Any> get() = parentResolver.qualifiedIdentity + identity
 
             $[subPackages sep $EOL via SubPackage]
 
-            //TODO
-            $[classes.filter({it -> it.isAbstract}) sep $EOL via AbstractResolveFun]
-            $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
+            $[classes sep $EOL via ResolveFun]
 
         }
     "

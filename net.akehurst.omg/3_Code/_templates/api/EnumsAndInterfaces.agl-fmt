@@ -22,6 +22,31 @@ format PackageImport {
     MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.*"
 }
 
+format UmlPropertySyntax {
+    MofProperty -> {
+        agg := when {
+          isComposite -> 'composite '
+          else -> 'reference '
+        }
+        cons := when {
+            (false == isUnique) and (false == isOrdered) -> ''
+            (true == isUnique) and (false == isOrdered) -> 'unique '
+            (false == isUnique) and (true == isOrdered) -> 'ordered '
+            (true == isUnique) and (true == isOrdered) -> 'ordered unique '
+            else -> '{ERROR}'
+        }
+        redef := when {
+          isRedefining -> ', redefines ' + redefinedProperty.map({it -> it.parentClass.name +'.'+ it.name}).join
+          else -> ''
+        }
+        subs := when {
+          isSubsetting -> ', subsets ' + subsettedProperty.map({it -> it.parentClass.name +'.'+ it.name}).join
+          else -> ''
+        }
+        "$name: $typeName [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}] {$agg$cons$redef$subs}"
+    }
+}
+
 format ApiPackageFile {
     #output: 'MofPackage -> "api/$qualifiedPath/${name}_Types.kt"'
 
@@ -92,25 +117,6 @@ format ApiPackageFile {
     }
     // Always use 'val' for properties so that subclasses can override with a subtype
     MofProperty -> {
-        agg := when {
-          isComposite -> 'composite '
-          else -> 'reference '
-        }
-        cons := when {
-            (false == isUnique) and (false == isOrdered) -> ''
-            (true == isUnique) and (false == isOrdered) -> 'unique '
-            (false == isUnique) and (true == isOrdered) -> 'ordered '
-            (true == isUnique) and (true == isOrdered) -> 'ordered unique '
-            else -> '{ERROR}'
-        }
-        redef := when {
-          isRedefining -> ', redefines ' + redefinedProperty.map({it -> it.parentClass.name +'.'+ it.name}).join
-          else -> ''
-        }
-        subs := when {
-          isSubsetting -> ', subsets ' + subsettedProperty.map({it -> it.parentClass.name +'.'+ it.name}).join
-          else -> ''
-        }
         ovr := when {
           isOverride ->  'override '
           else -> ''
@@ -120,14 +126,21 @@ format ApiPackageFile {
           else -> ' opposite '+ opposite.parentClass.name+'.' + opposite.name
         }
         mutatableAccessor := when {
-            isComposite -> "${ovr}val ${validName}Value: Value<$validTypeName>"
-            isReference -> "${ovr}val ${validName}Reference: Reference<Any,$validTypeNameNotNullable>"
-            else -> ''
+            isSingle -> when {
+              isComposite -> "${ovr}val ${validName}Value: Value<${validTypeNameNotNullable}?>"
+              isReference -> "${ovr}val ${validName}Reference: Reference<Any,$validTypeNameNotNullable>"
+              else -> ''
+            }
+            isCollection -> when {
+              isReference -> "${ovr}val ${validName}Reference: $colTypeName<Reference<Any,${type.validName}>>"
+              else -> ''
+            }
+            else -> 'ERROR'
         }
         "
           /**
            * $comment
-           * $name: $typeName [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}] {$agg$cons$redef$subs}
+           * ${$self via UmlPropertySyntax}
            * $opp
            */
           ${ovr}val ${validName}: $validTypeName

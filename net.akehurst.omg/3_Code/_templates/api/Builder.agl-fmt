@@ -60,12 +60,12 @@ format BuilderClass {
         @${model.name}DslMarker
         class ${validName}_Builder(
            val factory: ${model.name}_ModelFactory,
-           val id: Any
+           val objectIdentity: Any
         ) : Builder<${validName}> {
 
             $[allCompositeAttribute sep $EOL]
 
-            override fun build(): ${validName} = factory.${parentPackage.qualifiedName}.${validName}_construct(id).also { self ->
+            override fun build(): ${validName} = factory.${parentPackage.qualifiedName}.${validName}_construct(objectIdentity).also { self ->
                $[allCompositeAttribute sep $EOL via BuilderClassAssignment]
             }
         }
@@ -74,25 +74,20 @@ format BuilderClass {
     MofProperty -> when {
         isSingle -> when {
           type.isPrimitive -> "
-            private var _${validName}: ${validTypeName}? = null
+            private var _${validName}: ${validTypeNameNotNullable}? = null
             fun ${validName}(value: ${validTypeName}) {
                 _${validName} = value
             }
           "
           type.isAbstract -> "
-            private var _${validName}: ${validTypeName}? = null
+            private var _${validName}: ${validTypeNameNotNullable}? = null
             fun ${validName}(init:${type.validName}_ContentBuilder.()->Unit): ${type.validName} =
-                ${model.name}_ModelBuilder.buildObject(factory, identity_, ::${type.validName}_Builder, {}) { _${validName} = it }
+                ${model.name}_ModelBuilder.buildContent(factory, ::${type.validName}_ContentBuilder, init) { _${validName} = it.first() }.first()
           "
           else -> "
-            private var _${validName}: ${validTypeName}? = null
-            fun ${validName}(id:String, init:${type.validName}_Builder.()->Unit): ${type.validName} {
-                val b = ${type.validName}_Builder(factory, id)
-                b.init()
-                val obj = b.build()
-                _${validName} = obj
-                return obj
-            }
+            private var _${validName}: ${validTypeNameNotNullable}? = null
+            fun ${validName}(id:String, init:${type.validName}_Builder.()->Unit): ${type.validName} =
+                ${model.name}_ModelBuilder.buildObject(factory,id,::${type.validName}_Builder, init) { _${validName} = it}
           "
         }
         else -> when {
@@ -104,13 +99,8 @@ format BuilderClass {
           "
           else -> "
             private var _${validName}: Collection<${type.validName}>? = null
-            fun ${validName}(init:${type.validName}_ContentBuilder.()->Unit): Collection<${type.validName}> {
-                val b = ${type.validName}_ContentBuilder(factory, id)
-                b.init()
-                val obj = b.build()
-                _${validName} = obj
-                return obj
-            }
+            fun ${validName}(init:${type.validName}_ContentBuilder.()->Unit): Collection<${type.validName}> =
+                ${model.name}_ModelBuilder.buildContent(factory, ::${type.validName}_ContentBuilder, init) { _${validName} = it }
           "
         }
     }
@@ -119,8 +109,8 @@ format BuilderClass {
 format ContentBuilderFunction {
    MofClass -> {
      "
-        fun ${validName}(id:Any, init:${validName}_Builder.()->Unit): ${validName} =
-          ${model.name}_ModelBuilder.buildObject(factory, id, ::${validName}_Builder, {}) { _content.add(it) }
+        fun ${validName}(identity_:Any, init:${validName}_Builder.()->Unit): ${validName} =
+          ${model.name}_ModelBuilder.buildObject(factory, identity_, ::${validName}_Builder, {}) { _content.add(it) }
      "
    }
 }
@@ -131,7 +121,6 @@ format ContentBuilderClass {
         @${model.name}DslMarker
         class ${validName}_ContentBuilder(
            val factory: ${model.name}_ModelFactory,
-           val id: Any
         ): Builder<Collection<${validName}>> {
             private val _content = mutableListOf<${validName}>()
 
@@ -195,11 +184,11 @@ format ApiModelBuilderFile {
 
            inline fun <B : Builder<T>, T : Any> buildObject(
                 factory: ${name}_ModelFactory,
-                id: Any,
+                identity_: Any,
                 noinline ctor: (${name}_ModelFactory, Any) -> B,
                 init: B.() -> Unit = {},
                 action: (T) -> Unit
-            ): T = Builder.buildAction({ ctor.invoke(factory, id) }, init, action)
+            ): T = Builder.buildAction({ ctor.invoke(factory, identity_) }, init, action)
 
             inline fun <B : Builder<T>, T : Any> buildContent(
                 factory: ${name}_ModelFactory,

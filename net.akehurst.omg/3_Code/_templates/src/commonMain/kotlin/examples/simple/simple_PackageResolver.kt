@@ -59,7 +59,7 @@ class simple_PackageResolver(
     }
 
     fun CollectionRefAttribute_resolve(obj: CollectionRefAttribute) {
-        obj.prop1OrderedSet.forEach { rootResolver.common.PropType_resolve(it) }
+        obj.prop1OrderedSetReference.forEach { store.rootReferenceStore.resolve(it) }
         obj.prop2List.forEach { rootResolver.common.PropType_resolve(it) }
         obj.prop3Set.forEach { rootResolver.common.PropType_resolve(it) }
         obj.prop4Collection.forEach { rootResolver.common.PropType_resolve(it) }
