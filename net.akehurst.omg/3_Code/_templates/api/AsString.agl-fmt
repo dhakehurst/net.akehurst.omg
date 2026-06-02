@@ -38,12 +38,30 @@ format AppendPropertyComposite {
         else -> "rootAsString.${type.parentPackage.qualifiedName}"
       }
       when {
-        type.isPrimitive -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it\") }"
+        type.isPrimitive -> when {
+            isSingle -> when {
+                'String'==type.name -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} '\$it'\") }"
+                else -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it\") }"
+            }
+            isCollection -> when {
+                'String'==type.name -> "self.${validName}?.let{ if (it.isNotEmpty()) sb.appendLine(\"\${indentInc}${validName} [\${it.joinToString{e -> \"'\$e'\"}}]\") }"
+                else -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it\") }"
+            }
+            else -> 'ERROR'
+        }
         isSingle -> when {
           isOptional -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \${$asStr.${type.validName}_asString(it)}\") }"
           else -> "self.${validName}.let{ sb.appendLine(\"\${indentInc}${validName} \${$asStr.${type.validName}_asString(it)}\") }"
         }
-        isCollection -> "self.${validName}.forEach{ sb.appendLine(\"\${indentInc}${validName} \${$asStr.${type.validName}_asString(it)}\") }"
+        isCollection -> "
+            self.${validName}.let { col ->
+                if(col.isNotEmpty()) {
+                    sb.appendLine()
+                    sb.append(\"\${indentInc}${validName} = \")
+                    sb.append(rootAsString.${type.parentPackage.qualifiedName}.${type.validName}_Content_asString(col, indentInc))
+                }
+            }
+        "
         else -> "ERROR"
       }
   }
@@ -67,6 +85,22 @@ format PackageImport {
 
 format SubPackage {
     MofPackage -> "val $validName = ${validName}_PackageAsString(this, \"${validName}\")"
+}
+
+format ContentAsString {
+  MofClass -> "
+        fun ${validName}_Content_asString(self: Collection<${validName}>, indent: Indent): String = when {
+            0 == self.size -> \"[]\"
+            else -> {
+                val sb = StringBuilder()
+                sb.appendLine(\"[\")
+                val indentItem = indent.inc
+                self.forEach { item -> sb.appendLine(this.${validName}_asString(item, indentItem)) }
+                sb.appendLine(\"\${indent}]\")
+                sb.toString()
+            }
+        }
+  "
 }
 
 format ApiPackageAsStringFile {
@@ -97,6 +131,8 @@ format ApiPackageAsStringFile {
 
             $[subPackages sep $EOL via SubPackage]
 
+            $[classes sep $EOL via ContentAsString]
+
             $[classes.filter({it -> it.isAbstract}) sep $EOL via AbstractAsStringFun]
             $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
         }
@@ -105,13 +141,17 @@ format ApiPackageAsStringFile {
     MofClass -> "
       fun ${validName}_asString(self: ${validName}, indent:Indent = Indent()): String {
         val sb = StringBuilder()
-        sb.appendLine(self)
+        sb.appendLine(\"\${indent}\$self\")
         val indentInc = indent.inc
         $[allReferenceAttribute sep $EOL via AppendPropertyReference]
         $[allCompositeAttribute sep $EOL via AppendPropertyComposite]
         return sb.toString()
       }
     "
+}
+
+format RootImport {
+    MofClass -> "import ${TARGET_PACKAGE}.api.${qualifiedName}"
 }
 
 format ApiModelAsStringFile {
@@ -125,6 +165,7 @@ format ApiModelAsStringFile {
 
         import net.akehurst.kotlinx.utils.NestedIdentifiable
         $[subPackages sep $EOL via PackageImport]
+        $[instanceRootList sep $EOL via RootImport]
 
         /**
          * AsString for model $name
@@ -137,7 +178,12 @@ format ApiModelAsStringFile {
             override val qualifiedIdentity = listOf(identity)
 
             $[subPackages sep $EOL via SubPackage]
+
+            $[instanceRootList sep $EOL]
         }
         ${packageList via ApiPackageAsStringFile}
+    "
+    MofClass -> "
+      fun ${validName}_asString(obj:${validName}) = ${qualifiedName}_asString(obj)
     "
 }

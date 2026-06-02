@@ -71,12 +71,14 @@ format PackageFactoryFile {
                 // --- ${validName}_PackageFactory ---
                 $[subPackages sep $EOL via SubPackage]
                 $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
+
+                override fun toString(): String = \"${validName}_PackageFactory '\${qualifiedName}'\"
             }
         "
     }
 
     MofClass -> "
-      override fun ${validName}_construct(identity:Any) = ${validName}Ram(identity).also{ this[${validName}::class, identity] = it }
+      override fun ${validName}_construct(identity:Any) = ${validName}Ram(this, identity).also{ this[${validName}::class, identity] = it }
     "
 }
 
@@ -109,6 +111,8 @@ format ModelFactoryFile {
             override val parentFactory: HierarchicalFactory? = null
 
             $[subPackages sep $EOL via SubPackage]
+
+            override fun toString(): String = \"${validName}_ModelFactory '${identity}'\"
         }
         ${packageList via PackageFactoryFile}
     "

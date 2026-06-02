@@ -159,10 +159,12 @@ object Examples_ModelAsString {
             sb.append("${indentInc}prop3 = Set ")
             sb.append(PropType_Content_asString(it, indentInc))
         }
-        self.prop4Collection.let {
-            sb.appendLine()
-            sb.append("${indentInc}prop4 = Collection ")
-            sb.append(PropType_Content_asString(it, indentInc))
+        self.prop4Collection.let { col ->
+            if(col.isNotEmpty()) {
+                sb.appendLine()
+                sb.append("${indentInc}prop4 = Collection ")
+                sb.append(PropType_Content_asString(col, indentInc))
+            }
         }
         return sb.toString()
     }

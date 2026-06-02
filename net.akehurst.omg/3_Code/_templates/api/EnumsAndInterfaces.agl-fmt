@@ -58,6 +58,7 @@ format ApiPackageFile {
         package ${TARGET_PACKAGE}.api.${qualifiedName}
 
         import net.akehurst.kotlinx.collections.OrderedSet
+        import net.akehurst.kotlinx.utils.HierarchicalFactory
         import net.akehurst.kotlinx.utils.Reference
         import net.akehurst.kotlinx.utils.Value
         $[allImport sep $EOL via PackageImport]
@@ -76,7 +77,10 @@ format ApiPackageFile {
           else -> " : $[superTypes.map({it -> it.validName}) sep ',']"
         }
         id := when {
-          superTypes.isEmpty -> 'val _identity: Any'
+          superTypes.isEmpty -> "
+              val _factory: HierarchicalFactory
+              val _identity: Any
+          "
           else -> ''
         }
         "
@@ -95,7 +99,10 @@ format ApiPackageFile {
           else -> " : $[superTypes.map({it -> it.validName}) sep ',']"
         }
         id := when {
-          superTypes.isEmpty -> 'val _identity: Any'
+          superTypes.isEmpty -> "
+              val _factory: HierarchicalFactory
+              val _identity: Any
+          "
           else -> ''
         }
         abs := when {

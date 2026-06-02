@@ -28,10 +28,10 @@ format RootImport {
 format RootBuilderFunction {
    MofClass -> {
      "
-       fun ${name}(factory:${model.name}_ModelFactory, id:Any, init:${name}_Builder.()->Unit): ${validName} =
-         buildObject(factory, id, ::${name}_Builder, init) {
-           val rootResolver = ${model.name}_ModelResolver(\"${model.name}Model\", factory)
-           rootResolver.${parentPackage.qualifiedName}.${name}_resolve(it)
+       fun ${validName}(factory:${model.validName}_ModelFactory, id:Any, init:${validName}_Builder.()->Unit): ${validName} =
+         buildObject(factory, id, ::${validName}_Builder, init) {
+           val rootResolver = ${model.validName}_ModelResolver(\"${model.validName}Model\", factory)
+           rootResolver.${parentPackage.qualifiedName}.${validName}_resolve(it)
          }
      "
    }

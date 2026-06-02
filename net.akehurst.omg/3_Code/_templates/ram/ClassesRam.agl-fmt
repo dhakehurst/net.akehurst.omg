@@ -375,8 +375,10 @@ format ApiPackageFile {
     "
     // no need for MofEnum
     MofClass -> "
-        data class ${validName}Ram(override val _identity:Any) : ${validName} {
+        data class ${validName}Ram(override val _factory: ${parentPackage.validName}_PackageFactory, override val _identity:Any) : ${validName} {
             $[allNormalisedAttribute sep $EOL via PropertyGetter]
+
+            override fun toString(): String = \"${validName} '\${_identity}'\"
         }
     "
 }
