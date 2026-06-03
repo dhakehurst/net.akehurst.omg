@@ -23,7 +23,8 @@ tasks.named<generator.GenerateTask>("generate") {
     sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/kerml_patched.xmi"))
     generateDir.set(layout.projectDirectory.dir("../../../_templates/ram"))
     parameters = mapOf(
-        "TARGET_PACKAGE" to "net.akehurst.omg.kerml.v1_0"
+        "TARGET_PACKAGE" to "net.akehurst.omg.kerml.v1_0",
+        "COPYRIGHT" to file(layout.projectDirectory.dir("../../../_templates/text/COPYRIGHT.txt")).readText()
     )
     referencedTypeMapping = mapOf(
         "https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" to "String",

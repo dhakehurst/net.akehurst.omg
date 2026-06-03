@@ -32,49 +32,52 @@ format SubPackage {
 format PackageFactoryFile {
     #output: 'MofPackage -> "ram/${qualifiedPath}/${validName}_FactoryRam.kt"'
 
-    MofPackage -> {
-        prntFacImp := when {
-            $nothing == parentPackage -> ''
-            else -> "import ${TARGET_PACKAGE}.api.${parentPackage.qualifiedName}.${parentPackage.validName}_PackageFactory"
-        }
-        prntFactory := when {
-            $nothing == parentPackage -> "${model.validName}_ModelFactory"
-            else -> "${parentPackage.validName}_PackageFactory"
-        }
-        "
-            $COPYRIGHT
-
-            // *** Generated code do NOT manually edit. ***
-            package ${TARGET_PACKAGE}.ram.${qualifiedName}
-
-            import net.akehurst.kotlinx.utils.HierarchicalReferenceStore
-            import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreByHashMap
-            import ${TARGET_PACKAGE}.api.${qualifiedName}.${validName}_PackageFactory
-            import ${TARGET_PACKAGE}.api.${model.validName}_ModelFactory
-            ${prntFacImp}
-            $[subPackages sep $EOL via SubPackageImportApi]
-            $[subPackages sep $EOL via SubPackageImportRam]
-            import ${TARGET_PACKAGE}.api.${qualifiedName}.*
-
-            /**
-             * Ram Factory for $qualifiedName
-             */
-            class ${validName}_PackageFactoryRam(
-                override val parentFactory: $prntFactory,
-                override val identity: Any,
-            ) : ${validName}_PackageFactory, HierarchicalReferenceStore<Any> by HierarchicalReferenceStoreByHashMap(parentFactory, identity) {
-
-                // --- HierarchicalFactory ---
-                override val qualifiedIdentity: List<Any> = parentFactory.qualifiedIdentity + identity
-                override val rootFactory get() = parentFactory.rootFactory as ${model.validName}_ModelFactory
-
-                // --- ${validName}_PackageFactory ---
-                $[subPackages sep $EOL via SubPackage]
-                $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
-
-                override fun toString(): String = \"${validName}_PackageFactory '\${qualifiedName}'\"
+    MofPackage -> when {
+        EXCLUDE_PACKAGE.contains(qualifiedName) -> ''
+        else -> {
+            prntFacImp := when {
+                $nothing == parentPackage -> ''
+                else -> "import ${TARGET_PACKAGE}.api.${parentPackage.qualifiedName}.${parentPackage.validName}_PackageFactory"
             }
-        "
+            prntFactory := when {
+                $nothing == parentPackage -> "${model.validName}_ModelFactory"
+                else -> "${parentPackage.validName}_PackageFactory"
+            }
+            "
+                $COPYRIGHT
+
+                // *** Generated code do NOT manually edit. ***
+                package ${TARGET_PACKAGE}.ram.${qualifiedName}
+
+                import net.akehurst.kotlinx.utils.HierarchicalReferenceStore
+                import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreByHashMap
+                import ${TARGET_PACKAGE}.api.${qualifiedName}.${validName}_PackageFactory
+                import ${TARGET_PACKAGE}.api.${model.validName}_ModelFactory
+                ${prntFacImp}
+                $[genSubPackages sep $EOL via SubPackageImportApi]
+                $[genSubPackages sep $EOL via SubPackageImportRam]
+                import ${TARGET_PACKAGE}.api.${qualifiedName}.*
+
+                /**
+                 * Ram Factory for $qualifiedName
+                 */
+                class ${validName}_PackageFactoryRam(
+                    override val parentFactory: $prntFactory,
+                    override val identity: Any,
+                ) : ${validName}_PackageFactory, HierarchicalReferenceStore<Any> by HierarchicalReferenceStoreByHashMap(parentFactory, identity) {
+
+                    // --- HierarchicalFactory ---
+                    override val qualifiedIdentity: List<Any> = parentFactory.qualifiedIdentity + identity
+                    override val rootFactory get() = parentFactory.rootFactory as ${model.validName}_ModelFactory
+
+                    // --- ${validName}_PackageFactory ---
+                    $[genSubPackages sep $EOL via SubPackage]
+                    $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
+
+                    override fun toString(): String = \"${validName}_PackageFactory '\${qualifiedName}'\"
+                }
+            "
+        }
     }
 
     MofClass -> "
@@ -95,8 +98,8 @@ format ModelFactoryFile {
         import net.akehurst.kotlinx.utils.HierarchicalReferenceStore
         import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreByHashMap
         import ${TARGET_PACKAGE}.api.*
-        $[subPackages sep $EOL via SubPackageImportApi]
-        $[subPackages sep $EOL via SubPackageImportRam]
+        $[genSubPackages sep $EOL via SubPackageImportApi]
+        $[genSubPackages sep $EOL via SubPackageImportRam]
 
         /**
          * Model Ram Factory for name
@@ -110,7 +113,7 @@ format ModelFactoryFile {
             override val rootFactory get() = this
             override val parentFactory: HierarchicalFactory? = null
 
-            $[subPackages sep $EOL via SubPackage]
+            $[genSubPackages sep $EOL via SubPackage]
 
             override fun toString(): String = \"${validName}_ModelFactory '${identity}'\"
         }

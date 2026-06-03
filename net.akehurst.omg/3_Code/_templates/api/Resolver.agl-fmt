@@ -86,33 +86,36 @@ format SubPackage {
 format ApiPackageResolverFile {
     #output: 'MofPackage -> "api/$qualifiedPath/${name}_PackageResolver.kt"'
 
-    MofPackage -> "
-        $COPYRIGHT
+    MofPackage -> when {
+        EXCLUDE_PACKAGE.contains(qualifiedName) -> ''
+        else -> "
+            $COPYRIGHT
 
-        // *** Generated code do NOT manually edit. ***
-        package ${TARGET_PACKAGE}.api.${qualifiedName}
+            // *** Generated code do NOT manually edit. ***
+            package ${TARGET_PACKAGE}.api.${qualifiedName}
 
-        import net.akehurst.kotlinx.utils.HierarchicalResolver
-        import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreExt.resolve
-        import ${TARGET_PACKAGE}.api.${model.name}_ModelResolver
-        $[subPackages sep $EOL via ResolverImport]
-        $[allImport sep $EOL via PackageImport]
+            import net.akehurst.kotlinx.utils.HierarchicalResolver
+            import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreExt.resolve
+            import ${TARGET_PACKAGE}.api.${model.name}_ModelResolver
+            $[genSubPackages sep $EOL via ResolverImport]
+            $[allImportWithSubtypes sep $EOL via PackageImport]
 
-        class ${name}_PackageResolver(
-            override val parentResolver: HierarchicalResolver,
-            override val identity: Any,
-            val store: ${name}_PackageFactory
-        ) : HierarchicalResolver {
+            class ${name}_PackageResolver(
+                override val parentResolver: HierarchicalResolver,
+                override val identity: Any,
+                val store: ${name}_PackageFactory
+            ) : HierarchicalResolver {
 
-            override val rootResolver: ${model.name}_ModelResolver get() = parentResolver.rootResolver as ${model.name}_ModelResolver
-            override val qualifiedIdentity: List<Any> get() = parentResolver.qualifiedIdentity + identity
+                override val rootResolver: ${model.name}_ModelResolver get() = parentResolver.rootResolver as ${model.name}_ModelResolver
+                override val qualifiedIdentity: List<Any> get() = parentResolver.qualifiedIdentity + identity
 
-            $[subPackages sep $EOL via SubPackage]
+                $[genSubPackages sep $EOL via SubPackage]
 
-            $[classes sep $EOL via ResolveFun]
+                $[classes sep $EOL via ResolveFun]
 
-        }
-    "
+            }
+        "
+    }
 }
 
 format ApiModelResolverFile {
@@ -125,7 +128,7 @@ format ApiModelResolverFile {
         package ${TARGET_PACKAGE}.api
 
         import net.akehurst.kotlinx.utils.HierarchicalResolver
-        $[subPackages sep $EOL via ResolverImport]
+        $[genSubPackages sep $EOL via ResolverImport]
 
         class ${name}_ModelResolver(
             override val identity: Any,
@@ -136,7 +139,7 @@ format ApiModelResolverFile {
             override val rootResolver: ${name}_ModelResolver = this
             override val qualifiedIdentity: List<Any> get() = listOf(identity)
 
-            $[subPackages sep $EOL via SubPackage]
+            $[genSubPackages sep $EOL via SubPackage]
 
         }
         ${packageList via ApiPackageResolverFile}

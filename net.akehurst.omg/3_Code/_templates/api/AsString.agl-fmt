@@ -106,37 +106,40 @@ format ContentAsString {
 format ApiPackageAsStringFile {
     #output: 'MofPackage -> "api/$qualifiedPath/${name}_PackageAsString.kt"'
 
-    MofPackage -> "
-        $COPYRIGHT
+    MofPackage -> when {
+        EXCLUDE_PACKAGE.contains(qualifiedName) -> ''
+        else -> "
+            $COPYRIGHT
 
-        // *** Generated code do NOT manually edit. ***
-        package ${TARGET_PACKAGE}.api.${qualifiedName}
+            // *** Generated code do NOT manually edit. ***
+            package ${TARGET_PACKAGE}.api.${qualifiedName}
 
-        import net.akehurst.kotlinx.utils.Indent
-        import net.akehurst.kotlinx.utils.NestedIdentifiable
-        import ${TARGET_PACKAGE}.api.${model.name}_ModelAsString
-        $[subPackages sep $EOL via AsStringImport]
-        $[allImport sep $EOL via PackageImport]
+            import net.akehurst.kotlinx.utils.Indent
+            import net.akehurst.kotlinx.utils.NestedIdentifiable
+            import ${TARGET_PACKAGE}.api.${model.name}_ModelAsString
+            $[genSubPackages sep $EOL via AsStringImport]
+            $[allImportWithSubtypes sep $EOL via PackageImport]
 
-        /**
-         * AsString for package $qualifiedName
-         */
-        class ${name}_PackageAsString(
-          override val parent: NestedIdentifiable<String>,
-          override val identity: String
-        ): NestedIdentifiable<String> {
-            override val rootIdentifiable get() = parent.rootIdentifiable
-            override val qualifiedIdentity get() = parent.qualifiedIdentity + identity
-            val rootAsString get() = rootIdentifiable as ${model.name}_ModelAsString
+            /**
+             * AsString for package $qualifiedName
+             */
+            class ${name}_PackageAsString(
+              override val parent: NestedIdentifiable<String>,
+              override val identity: String
+            ): NestedIdentifiable<String> {
+                override val rootIdentifiable get() = parent.rootIdentifiable
+                override val qualifiedIdentity get() = parent.qualifiedIdentity + identity
+                val rootAsString get() = rootIdentifiable as ${model.name}_ModelAsString
 
-            $[subPackages sep $EOL via SubPackage]
+                $[genSubPackages sep $EOL via SubPackage]
 
-            $[classes sep $EOL via ContentAsString]
+                $[classes sep $EOL via ContentAsString]
 
-            $[classes.filter({it -> it.isAbstract}) sep $EOL via AbstractAsStringFun]
-            $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
-        }
-    "
+                $[classes.filter({it -> it.isAbstract}) sep $EOL via AbstractAsStringFun]
+                $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
+            }
+        "
+    }
 
     MofClass -> "
       fun ${validName}_asString(self: ${validName}, indent:Indent = Indent()): String {
@@ -164,7 +167,7 @@ format ApiModelAsStringFile {
         package ${TARGET_PACKAGE}.api
 
         import net.akehurst.kotlinx.utils.NestedIdentifiable
-        $[subPackages sep $EOL via PackageImport]
+        $[genSubPackages sep $EOL via PackageImport]
         $[instanceRootList sep $EOL via RootImport]
 
         /**
@@ -177,7 +180,7 @@ format ApiModelAsStringFile {
             override val rootIdentifiable = this
             override val qualifiedIdentity = listOf(identity)
 
-            $[subPackages sep $EOL via SubPackage]
+            $[genSubPackages sep $EOL via SubPackage]
 
             $[instanceRootList sep $EOL]
         }

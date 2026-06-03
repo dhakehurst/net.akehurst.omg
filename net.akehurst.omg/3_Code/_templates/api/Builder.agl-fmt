@@ -139,30 +139,33 @@ format PackageImport {
 format ApiPackageBuilderFile {
     #output: 'MofPackage -> "api/$qualifiedPath/${name}_PackageBuilder.kt"'
 
-    MofPackage -> "
-        $COPYRIGHT
+    MofPackage -> when {
+        EXCLUDE_PACKAGE.contains(qualifiedName) -> ''
+        else -> "
+            $COPYRIGHT
 
-        // *** Generated code do NOT manually edit. ***
-        package ${TARGET_PACKAGE}.api.${qualifiedName}
+            // *** Generated code do NOT manually edit. ***
+            package ${TARGET_PACKAGE}.api.${qualifiedName}
 
-        import net.akehurst.kotlinx.collections.OrderedSet
-        import net.akehurst.kotlinx.collections.toOrderedSet
-        import net.akehurst.kotlinx.collections.CollectionExt.mutable
-        import net.akehurst.kotlinx.collections.ListExt.mutable
-        import net.akehurst.kotlinx.collections.SetExt.mutable
-        import net.akehurst.kotlinx.collections.OrderedSetExt.mutable
-        import net.akehurst.kotlinx.utils.Builder
-        import net.akehurst.kotlinx.utils.ReferenceExt.mutable
-        import net.akehurst.kotlinx.utils.ValueExt.mutable
-        import ${TARGET_PACKAGE}.api.${model.name}DslMarker
-        import ${TARGET_PACKAGE}.api.${model.name}_ModelBuilder
-        import ${TARGET_PACKAGE}.api.${model.name}_ModelFactory
-        $[allImport sep $EOL via PackageImport]
+            import net.akehurst.kotlinx.collections.OrderedSet
+            import net.akehurst.kotlinx.collections.toOrderedSet
+            import net.akehurst.kotlinx.collections.CollectionExt.mutable
+            import net.akehurst.kotlinx.collections.ListExt.mutable
+            import net.akehurst.kotlinx.collections.SetExt.mutable
+            import net.akehurst.kotlinx.collections.OrderedSetExt.mutable
+            import net.akehurst.kotlinx.utils.Builder
+            import net.akehurst.kotlinx.utils.ReferenceExt.mutable
+            import net.akehurst.kotlinx.utils.ValueExt.mutable
+            import ${TARGET_PACKAGE}.api.${model.name}DslMarker
+            import ${TARGET_PACKAGE}.api.${model.name}_ModelBuilder
+            import ${TARGET_PACKAGE}.api.${model.name}_ModelFactory
+            $[allImportWithSubtypes sep $EOL via PackageImport]
 
-        $[classes sep $EOL via ContentBuilderClass]
+            $[classes sep $EOL via ContentBuilderClass]
 
-        $[classes.filter({it -> false == it.isAbstract}) sep $EOL via BuilderClass]
-    "
+            $[classes.filter({it -> false == it.isAbstract}) sep $EOL via BuilderClass]
+        "
+    }
 }
 
 format ApiModelBuilderFile {

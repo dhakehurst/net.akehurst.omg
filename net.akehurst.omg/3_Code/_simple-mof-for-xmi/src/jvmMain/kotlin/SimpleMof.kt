@@ -26,12 +26,13 @@ object SimpleMof {
                 constructor_ {
                     parameter(setOf(REF, VAL), "name", "String", propertyExecution = MofModel::name)
                 }
-                propertyOf(setOf(CMP,VAL), "subPackages", "List", execution = MofModel::subPackages) { typeArgument("MofPackage") }
-                propertyOf(setOf(CMP,VAL), "packageList", "List", execution = MofModel::packageList) { typeArgument("MofPackage") }
-                propertyOf(setOf(CMP,VAL), "classeList", "List", execution = MofModel::classList) { typeArgument("MofEnum") }
-                propertyOf(setOf(CMP,VAL), "enumList", "List", execution = MofModel::enumList) { typeArgument("MofClass") }
-                propertyOf(setOf(CMP,VAL), "associationList", "List", execution = MofModel::associationList) { typeArgument("MofAssociation") }
+                propertyOf(setOf(CMP, VAL), "subPackages", "List", execution = MofModel::subPackages) { typeArgument("MofPackage") }
+                propertyOf(setOf(CMP, VAL), "packageList", "List", execution = MofModel::packageList) { typeArgument("MofPackage") }
+                propertyOf(setOf(CMP, VAL), "classeList", "List", execution = MofModel::classList) { typeArgument("MofEnum") }
+                propertyOf(setOf(CMP, VAL), "enumList", "List", execution = MofModel::enumList) { typeArgument("MofClass") }
+                propertyOf(setOf(CMP, VAL), "associationList", "List", execution = MofModel::associationList) { typeArgument("MofAssociation") }
                 propertyOf(setOf(DER), "allClasses", "List", execution = MofModel::allClasses) { typeArgument("MofClass") }
+                propertyOf(setOf(DER), "genSubPackages", "List", execution = MofModel::genSubPackages) { typeArgument("MofPackage") }
                 methodPrimitive("findTypeById", "MofType", true) {
                     execution { self, args ->
                         (args[0] as? String)?.let {
@@ -58,18 +59,19 @@ object SimpleMof {
                 }
                 propertyOf(setOf(DER), "qualifiedName", "String")
                 propertyOf(setOf(DER), "allImport", "List") { typeArgument("String") }
-                propertyOf(setOf(CMP,VAL), "subPackages", "List", execution = MofPackage::subPackages) { typeArgument("MofPackage") }
+                propertyOf(setOf(CMP, VAL), "subPackages", "List", execution = MofPackage::subPackages) { typeArgument("MofPackage") }
+                propertyOf(setOf(DER), "genSubPackages", "List", execution = MofPackage::genSubPackages) { typeArgument("MofPackage") }
             }
             interface_("MofType", implementation = MofType::class) {
                 propertyOf(setOf(VAL), "isAbstract", "Boolean", execution = MofType::isAbstract)
                 propertyOf(setOf(VAL), "isPrimitive", "Boolean", execution = MofType::isPrimitive)
-                propertyOf(setOf(VAL), "ownedAttribute", "List", execution = MofType::ownedAttribute){ typeArgument("MofProperty")}
-                propertyOf(setOf(VAL), "allAttributes", "Set", execution = MofType::allAttributes){ typeArgument("MofProperty")}
-                propertyOf(setOf(VAL), "ownedRedefiningAttribute", "List", execution = MofType::ownedRedefiningAttribute){ typeArgument("MofProperty")}
-                propertyOf(setOf(VAL), "superTypes", "Set", execution = MofType::superTypes){ typeArgument("MofType")}
-                propertyOf(setOf(VAL), "allSuperTypes", "Set", execution = MofType::allSuperTypes){ typeArgument("MofType")}
+                propertyOf(setOf(VAL), "ownedAttribute", "List", execution = MofType::ownedAttribute) { typeArgument("MofProperty") }
+                propertyOf(setOf(VAL), "allAttributes", "Set", execution = MofType::allAttributes) { typeArgument("MofProperty") }
+                propertyOf(setOf(VAL), "ownedRedefiningAttribute", "List", execution = MofType::ownedRedefiningAttribute) { typeArgument("MofProperty") }
+                propertyOf(setOf(VAL), "superTypes", "Set", execution = MofType::superTypes) { typeArgument("MofType") }
+                propertyOf(setOf(VAL), "allSuperTypes", "Set", execution = MofType::allSuperTypes) { typeArgument("MofType") }
                 propertyOf(setOf(VAL), "hasSubtypes", "Boolean", execution = MofType::hasSubtypes)
-                propertyOf(setOf(VAL), "concreteSubclasses", "Set", execution = MofType::concreteSubclasses){ typeArgument("MofClass")}
+                propertyOf(setOf(VAL), "concreteSubclasses", "Set", execution = MofType::concreteSubclasses) { typeArgument("MofClass") }
             }
             data("MofEnum", implementation = MofEnum::class) {
                 supertype("MofType")
@@ -95,11 +97,8 @@ object SimpleMof {
                     parameter(setOf(REF, VAL), "parentPackage", "MofPackage", true, propertyExecution = MofClass::parentPackage) {}
                 }
 
-                propertyOf(setOf(DER), "allNormalisedAttribute", "Map", execution = MofClass::allNormalisedAttribute) {
-                    typeArgument("MofClass")
-                    typeArgument("List") {
-                        typeArgument("MofProperty")
-                    }
+                propertyOf(setOf(DER), "allNormalisedAttribute", "List", execution = MofClass::allNormalisedAttribute) {
+                    typeArgument("MofClassAttributeImplInfo")
                 }
                 propertyOf(setOf(DER), "allNormalisedAttribute2", "Map", execution = MofClass::allNormalisedAttribute2) {
                     typeArgument("MofClass")
@@ -110,6 +109,18 @@ object SimpleMof {
                 propertyOf(setOf(DER), "allCompositeAttribute", "List", execution = MofClass::allCompositeAttribute) { typeArgument("MofProperty") }
                 propertyOf(setOf(DER), "allReferenceAttribute", "List", execution = MofClass::allReferenceAttribute) { typeArgument("MofProperty") }
 
+            }
+            data("MofClassAttributeImplInfo") {
+                constructor_ {
+                    parameter(setOf(CMP, VAL), "defClass", "MofClass", propertyExecution = MofClassAttributeImplInfo::defClass)
+                    parameter(setOf(CMP, VAL), "attributes", "List", propertyExecution = MofClassAttributeImplInfo::attributes) { typeArgument("MofRedefinedAttributeImplInfo") }
+                }
+            }
+            data("MofRedefinedAttributeImplInfo") {
+                constructor_ {
+                    parameter(setOf(CMP, VAL), "attribute", "MofProperty", propertyExecution = MofRedefinedAttributeImplInfo::attribute)
+                    parameter(setOf(CMP, VAL), "bridges", "List", propertyExecution = MofRedefinedAttributeImplInfo::bridges) { typeArgument("MofProperty") }
+                }
             }
             data("MofProperty", implementation = MofProperty::class) {
                 constructor_ {
@@ -129,7 +140,7 @@ object SimpleMof {
                 propertyOf(setOf(DER), "isOverride", "Boolean", execution = MofProperty::isOverride)
                 propertyOf(setOf(DER), "isComposite", "Boolean", execution = MofProperty::isComposite)
                 propertyOf(setOf(DER), "isReference", "Boolean", execution = MofProperty::isReference)
-                propertyOf(setOf(DER),"allRedefinedProperty","Set", execution = MofProperty::allRedefinedProperty) {typeArgument("MofProperty")}
+                propertyOf(setOf(DER), "allRedefinedProperty", "Set", execution = MofProperty::allRedefinedProperty) { typeArgument("MofProperty") }
             }
             data("MofOperation", implementation = MofOperation::class) {
                 constructor_ {

@@ -28,11 +28,12 @@ class XmiReferenceHandler {
     }
 
     fun hasRef(currentFileName: String?, ref: String) =
-        currentFileName?.let { refsByFile[currentFileName].containsKey(ref) }
+            currentFileName?.let { refsByFile[currentFileName].containsKey(ref) }
             ?: refsByFile.values.any { it.containsKey(ref) }
 
     fun getRef(currentFileName: String?, ref: String) =
-        currentFileName?.let { refsByFile[currentFileName][ref] }
+        refsByFile["OVERRIDE"][ref]
+            ?: currentFileName?.let { refsByFile[currentFileName][ref] }
             ?: refsByFile.values.firstNotNullOfOrNull { it[ref] }
 
     fun setRef(currentFileName: String, ref: String, value: Any) {

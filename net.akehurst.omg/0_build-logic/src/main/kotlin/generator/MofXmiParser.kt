@@ -45,7 +45,7 @@ class MofXmiParser(
             return list
         }
 
-        fun Element.getValueByAttributeOrSubElementRef(name:String) =
+        fun Element.getValueByAttributeOrSubElementRef(name: String) =
             getAttributeOrNull(name)
                 ?: this.getChildrenByTagName(name)?.let {
                     check(it.size == 1) { "mor than one sub element with name '$name', canot get single value" }
@@ -59,15 +59,14 @@ class MofXmiParser(
     init {
         referencedTypeMapping.forEach { (k, v) ->
             ExternalReferenceClass(model, k, v).also {
-                refHandler.setRef("EXTERNAL", k, it)
+                refHandler.setRef("OVERRIDE", k, it)
             }
         }
-
     }
 
     lateinit var currentFileName: String
-    fun hasRef(ref: String) = refHandler.hasRef(currentFileName, ref)
-    fun getRef(ref: String) = refHandler.getRef(currentFileName, ref)
+    fun hasRef(ref: String):Boolean = refHandler.hasRef(currentFileName, ref)
+    fun getRef(ref: String):Any? = refHandler.getRef(currentFileName, ref)
     fun setRef(ref: String, value: Any) {
         refHandler.setRef(currentFileName, ref, value)
     }
@@ -220,7 +219,7 @@ class MofXmiParser(
                     val mofEnum = MofEnum(model, name, xmiId)
                     model.enumList.add(mofEnum)
                     setRef(xmiId, mofEnum)
-                    currentMofPackage.addEnum(currentFileName,mofEnum)
+                    currentMofPackage.addEnum(currentFileName, mofEnum)
                 }
             }
 
@@ -234,7 +233,7 @@ class MofXmiParser(
         when (xmiType) {
             "uml:PackageImport" -> {
                 val importedPackageRef = node.getValueByAttributeOrSubElementRef("importedPackage")
-                importedPackageRef?.let {currentMofPackage.packageImportRefs.add(importedPackageRef) }
+                importedPackageRef?.let { currentMofPackage.packageImportRefs.add(importedPackageRef) }
             }
 
             else -> println("Unknown element type '$xmiType' of packageImport")
@@ -348,6 +347,7 @@ class MofXmiParser(
                 null == otherEnd -> {
                     error("Error, there must be an 'other' end for an association. end=$end, memberEnds = $memberEnds")
                 }
+
                 null == end.parentClass -> otherEnd.typeXmiId?.let { end.parentClass = getRef(it) as? MofClass }
                     ?: otherEnd.typeHref?.let { ExternalReferenceClass(model, it, it.substringAfter("#")) }
 
@@ -410,10 +410,10 @@ class MofXmiParser(
             if (it.isNotEmpty()) isOrdered = it.toBoolean()
         }
         val redefinedRef = getChildrenByTagName(propertyElement, "redefinedProperty").firstOrNull()?.let {
-            it.getAttribute("xmi:idref")
+            it.getAttribute("xmi:idref").ifBlank { it.getAttribute("href") }
         }
         val subsettedRef = getChildrenByTagName(propertyElement, "subsettedProperty").firstOrNull()?.let {
-            it.getAttribute("xmi:idref")
+            it.getAttribute("xmi:idref").ifBlank { it.getAttribute("href") }
         }
         val prop = MofProperty(
             model,

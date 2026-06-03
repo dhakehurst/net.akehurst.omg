@@ -34,26 +34,34 @@ class GeneratorFromTemplate(
     private val types: TypesDomain,
 ) {
     val issues = IssueHolder(LanguageProcessorPhase.FORMAT)
-    val template = Agl.formatDomain(FormatString(templateString),types).let {
-        check(it.allIssues.errors.isEmpty()) { it.allIssues.toString()}
+    val template = Agl.formatDomain(FormatString(templateString), types).let {
+        check(it.allIssues.errors.isEmpty()) { it.allIssues.toString() }
         it.asm ?: error("Should not be null")
     }
     val objectGraph = ObjectGraphAccessorMutatorByReflection(types, issues)
 
-    fun generateToFiles(model: MofModel, parameters:Map<String,Any>, outputDir: File) {
+    fun generateToFiles(model: MofModel, parameters: Map<String, Any>, outputDir: File) {
         if (!outputDir.exists()) outputDir.mkdirs()
         val output = generate(model, parameters)
-        output.filterNot{it.key== FormatResultDefault.DEFAULT }.forEach { (n,v) ->
+        output.filterNot { it.key == FormatResultDefault.DEFAULT }.forEach { (n, v) ->
             val file = File(outputDir, n)
             file.parentFile.mkdirs()
-            file.writeText(v)
-            logger.info("i: Generated file: ${file.absolutePath}")
+            when {
+                v.isBlank() -> {
+                    logger.info("w: File: ${file.absolutePath} not generated as there is no content!")
+                }
+                else -> {
+                    file.writeText(v)
+                    logger.info("i: Generated file: ${file.absolutePath}")
+                }
+            }
         }
     }
 
-    fun generate(model: MofModel, parameters:Map<String,Any>): Map<String, String> {
+    fun generate(model: MofModel, parameters: Map<String, Any>): Map<String, String> {
+        model.generateParameters = parameters
         val self = objectGraph.toTypedObject(model, StdLibDefault.NothingType)
-        val typedParams = parameters.map { (k, v) -> Pair(k,objectGraph.toTypedObject(v, StdLibDefault.AnyType)) }.toMap()
+        val typedParams = parameters.map { (k, v) -> Pair(k, objectGraph.toTypedObject(v, StdLibDefault.AnyType)) }.toMap()
         val options = FormatOptionsDefault(environment = typedParams)
         val result = Agl.format(template, objectGraph, self, options)
         check(result.issues.errors.isEmpty()) { result.issues.toString() }

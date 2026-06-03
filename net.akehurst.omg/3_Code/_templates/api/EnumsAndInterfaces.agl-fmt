@@ -51,22 +51,25 @@ format ApiPackageFile {
     #output: 'MofPackage -> "api/$qualifiedPath/${name}_Types.kt"'
 
     MofModel -> "${packageList.filter({it -> false == it.isEmpty})}"
-    MofPackage -> "
-        $COPYRIGHT
+    MofPackage -> when {
+        EXCLUDE_PACKAGE.contains(qualifiedName) -> ''
+        else -> "
+            $COPYRIGHT
 
-        // *** Generated code do NOT manually edit. ***
-        package ${TARGET_PACKAGE}.api.${qualifiedName}
+            // *** Generated code do NOT manually edit. ***
+            package ${TARGET_PACKAGE}.api.${qualifiedName}
 
-        import net.akehurst.kotlinx.collections.OrderedSet
-        import net.akehurst.kotlinx.utils.HierarchicalFactory
-        import net.akehurst.kotlinx.utils.Reference
-        import net.akehurst.kotlinx.utils.Value
-        $[allImport sep $EOL via PackageImport]
+            import net.akehurst.kotlinx.collections.OrderedSet
+            import net.akehurst.kotlinx.utils.HierarchicalFactory
+            import net.akehurst.kotlinx.utils.Reference
+            import net.akehurst.kotlinx.utils.Value
+            $[allImport sep $EOL via PackageImport]
 
-        $[enums sep $EOL]
-        $[interfaces sep $EOL]
-        $[classes sep $EOL]
-    "
+            $[enums sep $EOL]
+            $[interfaces sep $EOL]
+            $[classes sep $EOL]
+        "
+    }
 
     MofEnum -> "
       enum class ${validName} { }

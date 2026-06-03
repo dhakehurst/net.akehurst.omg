@@ -29,29 +29,32 @@ format SubPackage {
 format PackageFactoryFile {
     #output: 'MofPackage -> "api/$qualifiedPath/${name}_PackageFactory.kt"'
 
-    MofPackage -> "
-        $COPYRIGHT
+    MofPackage -> when {
+        EXCLUDE_PACKAGE.contains(qualifiedName) -> ''
+        else -> "
+            $COPYRIGHT
 
-        // *** Generated code do NOT manually edit. ***
-        package ${TARGET_PACKAGE}.api.${qualifiedName}
+            // *** Generated code do NOT manually edit. ***
+            package ${TARGET_PACKAGE}.api.${qualifiedName}
 
-        import net.akehurst.kotlinx.utils.HierarchicalFactory
-        import net.akehurst.kotlinx.utils.HierarchicalReferenceStore
-        import ${TARGET_PACKAGE}.api.${model.name}_ModelFactory
-        $[subPackages sep $EOL via SubPackageImport]
+            import net.akehurst.kotlinx.utils.HierarchicalFactory
+            import net.akehurst.kotlinx.utils.HierarchicalReferenceStore
+            import ${TARGET_PACKAGE}.api.${model.name}_ModelFactory
+            $[genSubPackages sep $EOL via SubPackageImport]
 
-        /**
-         * Factory for $qualifiedName
-         */
-        interface ${name}_PackageFactory: HierarchicalFactory, HierarchicalReferenceStore<Any> {
+            /**
+             * Factory for $qualifiedName
+             */
+            interface ${name}_PackageFactory: HierarchicalFactory, HierarchicalReferenceStore<Any> {
 
-            override val rootFactory: ${model.name}_ModelFactory
+                override val rootFactory: ${model.name}_ModelFactory
 
-            $[subPackages sep $EOL via SubPackage]
+                $[genSubPackages sep $EOL via SubPackage]
 
-            $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
-        }
-    "
+                $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
+            }
+        "
+    }
 
     MofClass -> "
       fun ${validName}_construct(identity:Any): ${validName}
@@ -68,13 +71,13 @@ format ModelFactoryFile {
 
         import net.akehurst.kotlinx.utils.HierarchicalFactory
         import net.akehurst.kotlinx.utils.HierarchicalReferenceStore
-        $[subPackages sep $EOL via SubPackageImport]
+        $[genSubPackages sep $EOL via SubPackageImport]
 
         /**
          * Model Factory for $name
          */
         interface ${name}_ModelFactory: HierarchicalFactory, HierarchicalReferenceStore<Any> {
-          $[subPackages sep $EOL via SubPackage]
+          $[genSubPackages sep $EOL via SubPackage]
         }
         ${packageList via PackageFactoryFile}
     "

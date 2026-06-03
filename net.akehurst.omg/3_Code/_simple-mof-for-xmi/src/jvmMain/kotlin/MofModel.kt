@@ -46,7 +46,10 @@ class MofModel(
 ) {
     fun UnknownType(xmiId: String) = ExternalReferenceClass(this, "UNKOWN", "Any /*TODO: <Unknown type for xmiId = $xmiId>*/")
 
+    var generateParameters: Map<String, Any> = mutableMapOf()
+
     val subPackages: MutableList<MofPackage> = mutableListOf()
+    val genSubPackages get() = subPackages.filterNot { pkg -> (this.generateParameters["EXCLUDE_PACKAGE"] as? List<String>)?.let { it.contains(pkg.qualifiedName) } ?: false }
 
     val packageList = mutableListOf<MofPackage>()
     val enumList = mutableListOf<MofEnum>()
@@ -61,12 +64,24 @@ class MofModel(
     }
 
     fun findTypeById(id: String): MofType? = when {
-        id.startsWith("http://www.omg.org") -> {
-            //val ref = id.substringAfter("#")
+        id.startsWith("http://www.omg.org") || id.startsWith("https://www.omg.org") -> {
             refHandler.getRef(null, id) as? MofType
+                ?: let {
+                    val ref = id.substringAfter("#")
+                    refHandler.getRef(null, ref) as? MofType
+                }
         }
 
         else -> refHandler.getRef(null, id) as? MofType
+    }
+
+    fun findPropertyById(id: String) = when {
+        id.startsWith("http://www.omg.org") || id.startsWith("https://www.omg.org") -> {
+            val ref = id.substringAfter("#")
+            refHandler.getRef(null, ref) as? MofProperty
+        }
+
+        else -> refHandler.getRef(null, id) as? MofProperty
     }
 
     fun findPackageById(id: String): MofPackage? = refHandler.getRef(null, id) as? MofPackage
@@ -126,23 +141,40 @@ data class MofPackage(
     val qualifiedName: String get() = parentPackage?.let { it.qualifiedName + "." + name } ?: name
     val qualifiedPath: String get() = parentPackage?.let { it.qualifiedPath + "/" + name } ?: name
 
+    val genSubPackages get() = subPackages.filterNot { pkg -> (model.generateParameters["EXCLUDE_PACKAGE"] as? List<String>)?.let { it.contains(pkg.qualifiedName) } ?: false }
+
     val packageImport: Set<MofPackage> by lazy {
         val frmInterfaceSupers = interfaces.flatMap { intf -> intf.superTypes.mapNotNull { it.parentPackage } }.toSet()
-        val frmInterfaceAttrs = interfaces.flatMap { intf -> intf.ownedAttribute.mapNotNull { attr -> attr.type.parentPackage } }.toSet()
+        val frmInterfaceAttrs = interfaces.flatMap { intf -> intf.allAttributes.mapNotNull { attr -> attr.type.parentPackage } }.toSet()
         val frmClsSupers = classes.flatMap { intf -> intf.superTypes.mapNotNull { it.parentPackage } }.toSet()
-        val frmClsAttrs = classes.flatMap { intf -> intf.ownedAttribute.mapNotNull { attr -> attr.type.parentPackage } }.toSet()
-        (frmInterfaceSupers + frmInterfaceAttrs + frmClsSupers + frmClsAttrs) - this
+        val frmClsAttrs = classes.flatMap { intf -> intf.allAttributes.mapNotNull { attr -> attr.type.parentPackage } }.toSet()
+        val imports = (frmInterfaceSupers + frmInterfaceAttrs + frmClsSupers + frmClsAttrs) - this
+        imports.filterNot { pkg -> (model.generateParameters["EXCLUDE_PACKAGE"] as? List<String>)?.let { it.contains(pkg.qualifiedName) } ?: false }.toSet()
     }
-//    val allImport: List<MofPackage>
-//        get() = when (parentPackage) {
-//            null -> packageImport.toSet().sortedBy { it.qualifiedName }
-//            else -> (parentPackage!!.allImport + packageImport).toSet().sortedBy { it.qualifiedName }
-//        }
+
+    val packageImportWithSubtypes: Set<MofPackage> by lazy {
+        val frmInterfaceSubs = interfaces.flatMap { intf -> intf.allSubTypes.mapNotNull { it.parentPackage } }.toSet()
+        val frmClsSubs = classes.flatMap { intf -> intf.allSubTypes.mapNotNull { it.parentPackage } }.toSet()
+        val imports = (packageImport + frmInterfaceSubs + frmClsSubs) - this
+        imports.filterNot { pkg -> (model.generateParameters["EXCLUDE_PACKAGE"] as? List<String>)?.let { it.contains(pkg.qualifiedName) } ?: false }.toSet()
+    }
+
+    val allImport: List<MofPackage>
+        get() = when (parentPackage) {
+            null -> packageImport.toSet().sortedBy { it.qualifiedName }
+            else -> (parentPackage!!.allImport + packageImport).toSet().sortedBy { it.qualifiedName }
+        }
+
+    val allImportWithSubtypes: List<MofPackage>
+        get() = when (parentPackage) {
+            null -> packageImportWithSubtypes.toSet().sortedBy { it.qualifiedName }
+            else -> (parentPackage!!.allImportWithSubtypes + packageImportWithSubtypes).toSet().sortedBy { it.qualifiedName }
+        }
 
     // TODO: this just imports all packages, would be better to calulates those needed as above tried to do
-    val allImport: List<MofPackage> by lazy {
-        model.packageList
-    }
+//    val allImport: List<MofPackage> by lazy {
+//        model.packageList.filterNot { pkg -> (model.generateParameters["EXCLUDE_PACKAGE"] as? List<String>)?.let { it.contains(pkg.qualifiedName) } ?: false }
+//    }
 
     val isEmpty: Boolean get() = enums.isEmpty() && classes.isEmpty()
 
@@ -189,7 +221,7 @@ interface MofType {
     val validName: String
     val isAbstract: Boolean
     val isPrimitive: Boolean
-    val hasSubtypes:Boolean
+    val hasSubtypes: Boolean
 
     val allAttributes: Set<MofProperty>
     val ownedRedefiningAttribute: List<MofProperty>
@@ -206,7 +238,7 @@ interface MofType {
      * type covariance and multiplicity narrowing. Excludes properties that have been redefined.
      * Results are grouped by their defining parent class.
      */
-    val allNormalisedAttribute: Map<MofClass, List<MofProperty>>
+    val allNormalisedAttribute: List<MofClassAttributeImplInfo>
     val allNormalisedAttribute2: Map<MofClass, List<MofProperty>>
 }
 
@@ -232,7 +264,7 @@ class MofEnum(
     override val allSubTypes: Set<MofType> = emptySet()
     override val concreteSubclasses: Set<MofClass> = emptySet()
 
-    override val allNormalisedAttribute: Map<MofClass, List<MofProperty>> = emptyMap()
+    override val allNormalisedAttribute: List<MofClassAttributeImplInfo> = emptyList()
     override val allNormalisedAttribute2: Map<MofClass, List<MofProperty>> = emptyMap()
 
     override fun hashCode(): Int = xmiId.hashCode()
@@ -258,9 +290,10 @@ abstract class MofAbstractType() : MofType {
     override val isPrimitive: Boolean by lazy { model.isPrimitive(this) }
     val qualifiedName: String get() = parentPackage?.let { it.qualifiedName + "." + name } ?: name
 
-    override val superTypes: Set<MofType> get() = generalizations.map {
-        model.findTypeById(it) ?: error("Type '$name' not found")
-    }.toSet()
+    override val superTypes: Set<MofType>
+        get() = generalizations.map {
+            model.findTypeById(it) ?: error("Type '${it}' not found")
+        }.toSet()
     override val allSuperTypes: Set<MofType> by lazy { superTypes.transitiveClosure { it.superTypes }.toSet() }
     override val subTypes: Set<MofType> by lazy {
         model.allClasses.filter { it.superTypes.contains(this) }.toSet()
@@ -276,10 +309,10 @@ abstract class MofAbstractType() : MofType {
     override val ownedRedefiningAttribute get() = ownedAttribute.filter { it.isRedefining }
     val allRedefiningAttribute by lazy { (allSuperTypes.flatMap { it.ownedRedefiningAttribute } + ownedRedefiningAttribute).toSet() }
 
-    override val allNormalisedAttribute: Map<MofClass, List<MofProperty>>
+    override val allNormalisedAttribute: List<MofClassAttributeImplInfo>
             by lazy {
                 // 2. Recursively get the normalized properties from all superclasses
-                val inheritedProperties = superTypes.flatMap { it.allNormalisedAttribute.values.flatten() }.toSet()
+                val inheritedProperties = superTypes.flatMap { st -> st.allNormalisedAttribute.flatMap { c -> c.attributes.map { r -> r.attribute } } }.toSet()
                 val allCandidateProperties = ownedAttribute + inheritedProperties
                 // 4. Get ALL redefined targets from EVERY candidate property
                 val redefinedTargets = allCandidateProperties.flatMap { it.redefinedProperty }.toSet()
@@ -329,7 +362,14 @@ abstract class MofAbstractType() : MofType {
                     }
                 }
                 val normalized = deduplicatedProperties.values
-                normalized.groupBy { it.parentClass!! }
+                val grps = normalized.groupBy { it.parentClass!! }
+                grps.map { (cls, props) ->
+                    val attrs = props.map { p ->
+                        val brdgs = p.requiredBridgingProperty(normalized)
+                        MofRedefinedAttributeImplInfo(p, brdgs)
+                    }
+                    MofClassAttributeImplInfo(cls, attrs)
+                }
             }
 
     override val allNormalisedAttribute2: Map<MofClass, List<MofProperty>>
@@ -387,6 +427,10 @@ abstract class MofAbstractType() : MofType {
                 val normalized = deduplicatedProperties.values
                 normalized.groupBy { it.parentClass!! }
             }
+
+    val allNormalisedAttributeFlat: Set<MofProperty> by lazy {
+        allNormalisedAttribute.flatMap { c -> c.attributes.map { r -> r.attribute } }.toSet()
+    }
 }
 
 class MofInterface(
@@ -421,8 +465,8 @@ open class MofClass(
     }
 
     override var isAbstract: Boolean = false
-    val allCompositeAttribute: List<MofProperty> by lazy { allNormalisedAttribute.values.flatten().filter { it.isComposite } }
-    val allReferenceAttribute: List<MofProperty> by lazy { allNormalisedAttribute.values.flatten().filter { it.isReference } }
+    val allCompositeAttribute: List<MofProperty> by lazy { allNormalisedAttributeFlat.filter { it.isComposite } }
+    val allReferenceAttribute: List<MofProperty> by lazy { allNormalisedAttributeFlat.filter { it.isReference } }
     override val concreteSubclasses: Set<MofClass> by lazy {
         ((if (isAbstract) mutableListOf() else mutableListOf(this)) +
                 model.classList.filter { !it.isAbstract && it.allSuperTypes.contains(this) }).toSet()
@@ -565,7 +609,7 @@ class MofProperty(
     val isRedefining get() = redefinedPropertyRef.isNotEmpty()
     val redefinedProperty
         get() = redefinedPropertyRef.map {
-            model.refHandler.getRef(null, it)!! as MofProperty
+            model.findPropertyById(it) ?: error("Cannot find redefinedPropertyRef '$it' in '$qualifiedName'")
         }
 
     val allRedefinedProperty: Set<MofProperty>
@@ -586,8 +630,23 @@ class MofProperty(
             return byNormName.values.toSet()
         }
 
+    // due to codgen names of properties, and redefining changing names
+    // a redefined property may need to implement bridging properties
+    fun requiredBridgingProperty(normalized: Collection<MofProperty>): List<MofProperty> {
+        return allRedefinedProperty
+            .filter {
+                // bridge redefined things with a different name
+                it.validName != this.validName &&
+                        // if not in the set of implemented/normalized properties
+                        normalized.contains(it).not()
+            }
+    }
+
     val isSubsetting get() = subsettedPropertyRef.isNotEmpty()
-    val subsettedProperty get() = subsettedPropertyRef.map { model.refHandler.getRef(null, it)!! as MofProperty }
+    val subsettedProperty
+        get() = subsettedPropertyRef.map {
+            model.findPropertyById(it) ?: error("Cannot find subsettedPropertyRef '$it' in '$qualifiedName'")
+        }
 
     override fun hashCode(): Int = xmiId.hashCode()
     override fun equals(other: Any?): Boolean = when {
@@ -598,6 +657,16 @@ class MofProperty(
 
     override fun toString(): String = "${parentClass?.parentPackage?.qualifiedName}.${parentClass?.name}.$name"
 }
+
+data class MofClassAttributeImplInfo(
+    val defClass: MofClass,
+    val attributes: List<MofRedefinedAttributeImplInfo>
+)
+
+data class MofRedefinedAttributeImplInfo(
+    val attribute: MofProperty,
+    val bridges: List<MofProperty>,
+)
 
 class MofOperation(
     val model: MofModel,

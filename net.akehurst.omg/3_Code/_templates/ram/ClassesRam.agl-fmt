@@ -233,14 +233,15 @@ format PropertyBridgeAsCollection {
 }
 
 format PropertyGetterSglCmp {
-    MofProperty -> {
+    MofRedefinedAttributeImplInfo -> {
         opt := when {
             isOptional -> ''
             else -> " ?: error(\"Property ${validName} is not optional, therefore it must be set before is is accessed.\")"
         }
         brdg := when {
            isRedefining -> {
-             redefined := allRedefinedProperty.filter({it -> it.validName != validName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
+             //redefined := allRedefinedProperty.filter({it -> it.validName != validName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
+             redefined := requiredBridgingProperty
              "$[redefined sep $EOL via PropertyBridgeAsSingle]"
            }
            else -> ''
@@ -257,14 +258,15 @@ format PropertyGetterSglCmp {
 }
 
 format PropertyGetterSglRef {
-    MofProperty -> {
+    MofRedefinedAttributeImplInfo -> {
         opt := when {
             isOptional -> ''
             else -> " ?: error(\"Property ${validName} is not optional, therefore it must be set before is is accessed.\")"
         }
         brdg := when {
            isRedefining -> {
-             redefined := allRedefinedProperty.filter({it -> it.validName != validName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
+             //redefined := allRedefinedProperty.filter({it -> it.validName != validName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
+             redefined := requiredBridgingProperty
              "$[redefined sep $EOL via PropertyBridgeAsSingle]"
            }
            else -> ''
@@ -282,11 +284,12 @@ format PropertyGetterSglRef {
 
 
 format PropertyGetterColCmp {
-    MofProperty -> {
+    MofRedefinedAttributeImplInfo -> {
         impl := "= Managed${colTypeName}(\"${parentClass.validName}.${validName}\",${type.validName}::class)"
         brdg := when {
            isRedefining -> {
-             redefined := allRedefinedProperty.filter({it -> it.validName != validName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
+             //redefined := allRedefinedProperty.filter({it -> it.validName != validName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
+             redefined := requiredBridgingProperty
              "$[redefined sep $EOL via PropertyBridgeAsCollection]"
            }
            else -> ''
@@ -301,42 +304,43 @@ format PropertyGetterColCmp {
 }
 
 format PropertyGetterColRef {
+    MofRedefinedAttributeImplInfo -> {
+        attr := "$attribute"
+        brdg := "$[bridges sep $EOL via PropertyBridgeAsCollection]"
+        "
+            $attr
+            $brdg
+        "
+    }
     MofProperty -> {
         impl := "= Managed${colTypeName}(\"${parentClass.validName}.${validName}\",${type.validName}::class)"
-        brdg := when {
-           isRedefining -> {
-             redefined := allRedefinedProperty.filter({it -> it.validName != validName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
-             "$[redefined sep $EOL via PropertyBridgeAsCollection]"
-           }
-           else -> ''
-        }
         mutable := "override val ${validName}Reference: ${colTypeName}<Reference<Any, ${type.validName}>> $impl"
         accessor := "override val ${validName}: $validTypeName get() = ${validName}Reference.map{it.resolved ?: error(\"In property '${validName}' of object '\${_identity}:${parentClass.validName}', reference '\$it' is not resolved.\") }.to${colTypeName}()"
         "
-        /* ColRef ${$self via UmlPropertySyntax} */
-        $mutable
-        $accessor
-        $brdg
+            /* ColRef ${$self via UmlPropertySyntax} */
+            $mutable
+            $accessor
         "
     }
 }
 
 format PropertyGetter {
-    Pair<MofClass, List<MofProperty>> -> {
+    MofClassAttributeImplInfo -> {
+        attrs :=
         "
-          // --- ${first.name} ---
-          $[second sep $EOL]
+          // --- ${defClass.validName} ---
+          $[attributes sep $EOL]
         "
     }
-    MofProperty -> when {
-        isSingle -> when {
-            isComposite -> "${$self via PropertyGetterSglCmp}"
-            isReference -> "${$self via PropertyGetterSglRef}"
+    MofRedefinedAttributeImplInfo -> when {
+        attribute.isSingle -> when {
+            attribute.isComposite -> "${$self via PropertyGetterSglCmp}"
+            attribute.isReference -> "${$self via PropertyGetterSglRef}"
             else -> 'ERROR'
         }
-        isCollection -> when {
-            isComposite -> "${$self via PropertyGetterColCmp}"
-            isReference -> "${$self via PropertyGetterColRef}"
+        attribute.isCollection -> when {
+            attribute.isComposite -> "${$self via PropertyGetterColCmp}"
+            attribute.isReference -> "${$self via PropertyGetterColRef}"
             else -> 'ERROR'
         }
         else -> 'ERROR'
@@ -351,28 +355,32 @@ format ApiPackageFile {
     #output: 'MofPackage -> "ram/${qualifiedPath}/${validName}_Ram.kt"'
 
     MofModel -> "$packageList"
-    MofPackage -> "
-        $COPYRIGHT
+    MofPackage -> when {
+        EXCLUDE_PACKAGE.contains(qualifiedName) -> ''
+        else -> "
+            $COPYRIGHT
 
-        // *** Generated code do NOT manually edit. ***
-        package ${TARGET_PACKAGE}.ram.${qualifiedName}
+            // *** Generated code do NOT manually edit. ***
+            package ${TARGET_PACKAGE}.ram.${qualifiedName}
 
-        import net.akehurst.kotlinx.collections.OrderedSet
-        import net.akehurst.kotlinx.collections.orderedSetOf
-        import net.akehurst.kotlinx.collections.toOrderedSet
-        import net.akehurst.kotlinx.collections.ManagedList
-        import net.akehurst.kotlinx.collections.ManagedOrderedSet
-        import net.akehurst.kotlinx.collections.ManagedSet
-        import net.akehurst.kotlinx.utils.ManagedReference
-        import net.akehurst.kotlinx.utils.ManagedValue
-        import net.akehurst.kotlinx.utils.Reference
-        import net.akehurst.kotlinx.utils.ReferenceImmutable
-        import net.akehurst.kotlinx.utils.Value
-        import net.akehurst.kotlinx.utils.ValueImmutable
-        $[allImport sep $EOL via PackageImport]
+            import net.akehurst.kotlinx.collections.OrderedSet
+            import net.akehurst.kotlinx.collections.orderedSetOf
+            import net.akehurst.kotlinx.collections.toOrderedSet
+            import net.akehurst.kotlinx.collections.ManagedList
+            import net.akehurst.kotlinx.collections.ManagedOrderedSet
+            import net.akehurst.kotlinx.collections.ManagedSet
+            import net.akehurst.kotlinx.utils.ManagedReference
+            import net.akehurst.kotlinx.utils.ManagedValue
+            import net.akehurst.kotlinx.utils.Reference
+            import net.akehurst.kotlinx.utils.ReferenceImmutable
+            import net.akehurst.kotlinx.utils.Value
+            import net.akehurst.kotlinx.utils.ValueImmutable
+            import ${TARGET_PACKAGE}.api.${qualifiedName}.*
+            $[allImport sep $EOL via PackageImport]
 
-        $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
-    "
+            $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
+        "
+    }
     // no need for MofEnum
     MofClass -> "
         data class ${validName}Ram(override val _factory: ${parentPackage.validName}_PackageFactory, override val _identity:Any) : ${validName} {
