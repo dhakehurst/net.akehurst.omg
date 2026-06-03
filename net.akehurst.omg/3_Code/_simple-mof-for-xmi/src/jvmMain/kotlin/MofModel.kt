@@ -365,7 +365,7 @@ abstract class MofAbstractType() : MofType {
                 val grps = normalized.groupBy { it.parentClass!! }
                 grps.map { (cls, props) ->
                     val attrs = props.map { p ->
-                        val brdgs = p.requiredBridgingProperty(normalized)
+                        val brdgs = p.requiredBridgingProperty(normalized).map{ Pair(p, it) }
                         MofRedefinedAttributeImplInfo(p, brdgs)
                     }
                     MofClassAttributeImplInfo(cls, attrs)
@@ -665,7 +665,7 @@ data class MofClassAttributeImplInfo(
 
 data class MofRedefinedAttributeImplInfo(
     val attribute: MofProperty,
-    val bridges: List<MofProperty>,
+    val bridges: List<Pair<MofProperty,MofProperty>>,
 )
 
 class MofOperation(

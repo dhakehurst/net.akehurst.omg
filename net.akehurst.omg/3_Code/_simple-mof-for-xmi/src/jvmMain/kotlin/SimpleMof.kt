@@ -119,7 +119,12 @@ object SimpleMof {
             data("MofRedefinedAttributeImplInfo") {
                 constructor_ {
                     parameter(setOf(CMP, VAL), "attribute", "MofProperty", propertyExecution = MofRedefinedAttributeImplInfo::attribute)
-                    parameter(setOf(CMP, VAL), "bridges", "List", propertyExecution = MofRedefinedAttributeImplInfo::bridges) { typeArgument("MofProperty") }
+                    parameter(setOf(CMP, VAL), "bridges", "List", propertyExecution = MofRedefinedAttributeImplInfo::bridges) {
+                        typeArgument("Pair") {
+                            typeArgument("MofProperty")
+                            typeArgument("MofProperty")
+                        }
+                    }
                 }
             }
             data("MofProperty", implementation = MofProperty::class) {

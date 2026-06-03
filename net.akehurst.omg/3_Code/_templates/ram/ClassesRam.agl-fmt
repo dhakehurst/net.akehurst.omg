@@ -234,50 +234,48 @@ format PropertyBridgeAsCollection {
 
 format PropertyGetterSglCmp {
     MofRedefinedAttributeImplInfo -> {
+        attr := "$attribute"
+        brdg := "$[bridges sep $EOL via PropertyBridgeAsSingle]"
+        "
+            /* ${attribute via UmlPropertySyntax} */
+            $attr
+            $brdg
+        "
+    }
+    MofProperty -> {
         opt := when {
             isOptional -> ''
             else -> " ?: error(\"Property ${validName} is not optional, therefore it must be set before is is accessed.\")"
         }
-        brdg := when {
-           isRedefining -> {
-             //redefined := allRedefinedProperty.filter({it -> it.validName != validName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
-             redefined := requiredBridgingProperty
-             "$[redefined sep $EOL via PropertyBridgeAsSingle]"
-           }
-           else -> ''
-        }
         accessor := "override val ${validName}: $validTypeName get() = ${validName}Value.get()$opt"
         mutable := "override val ${validName}Value: Value<${validTypeNameNotNullable}?> = ManagedValue(null, \"${parentClass.validName}.${validName}\", ${validTypeNameNotNullable}::class)"
         "
-            /* ${$self via UmlPropertySyntax} */
             $mutable
             $accessor
-            $brdg
         "
     }
 }
 
 format PropertyGetterSglRef {
     MofRedefinedAttributeImplInfo -> {
+        attr := "$attribute"
+        brdg := "$[bridges sep $EOL via PropertyBridgeAsSingle]"
+        "
+            /* ${attribute via UmlPropertySyntax} */
+            $attr
+            $brdg
+        "
+    }
+    MofProperty -> {
         opt := when {
             isOptional -> ''
             else -> " ?: error(\"Property ${validName} is not optional, therefore it must be set before is is accessed.\")"
         }
-        brdg := when {
-           isRedefining -> {
-             //redefined := allRedefinedProperty.filter({it -> it.validName != validName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
-             redefined := requiredBridgingProperty
-             "$[redefined sep $EOL via PropertyBridgeAsSingle]"
-           }
-           else -> ''
-        }
         accessor := "override val ${validName}: $validTypeName get() = ${validName}Reference.resolved$opt"
         mutable := "override val ${validName}Reference: Reference<Any, ${validTypeNameNotNullable}> = ManagedReference(null, \"${parentClass.validName}.${validName}\", ${validTypeNameNotNullable}::class)"
         "
-            /* ${$self via UmlPropertySyntax} */
             $mutable
             $accessor
-            $brdg
         "
     }
 }
@@ -285,22 +283,18 @@ format PropertyGetterSglRef {
 
 format PropertyGetterColCmp {
     MofRedefinedAttributeImplInfo -> {
-        impl := "= Managed${colTypeName}(\"${parentClass.validName}.${validName}\",${type.validName}::class)"
-        brdg := when {
-           isRedefining -> {
-             //redefined := allRedefinedProperty.filter({it -> it.validName != validName}).map({it -> Pair($self,it)}) as List<Pair<MofProperty,MofProperty>>
-             redefined := requiredBridgingProperty
-             "$[redefined sep $EOL via PropertyBridgeAsCollection]"
-           }
-           else -> ''
-        }
-        accessor := "override val ${validName}: $validTypeName $impl"
-         "
-        /* ${$self via UmlPropertySyntax} */
-        $accessor
-        $brdg
+        attr := "$attribute"
+        brdg := "$[bridges sep $EOL via PropertyBridgeAsCollection]"
+        "
+            /* ${attribute via UmlPropertySyntax} */
+            $attr
+            $brdg
         "
     }
+     MofProperty -> {
+        impl := "= Managed${colTypeName}(\"${parentClass.validName}.${validName}\",${type.validName}::class)"
+        "override val ${validName}: $validTypeName $impl"
+     }
 }
 
 format PropertyGetterColRef {
@@ -308,6 +302,7 @@ format PropertyGetterColRef {
         attr := "$attribute"
         brdg := "$[bridges sep $EOL via PropertyBridgeAsCollection]"
         "
+            /* ${attribute via UmlPropertySyntax} */
             $attr
             $brdg
         "
@@ -317,7 +312,6 @@ format PropertyGetterColRef {
         mutable := "override val ${validName}Reference: ${colTypeName}<Reference<Any, ${type.validName}>> $impl"
         accessor := "override val ${validName}: $validTypeName get() = ${validName}Reference.map{it.resolved ?: error(\"In property '${validName}' of object '\${_identity}:${parentClass.validName}', reference '\$it' is not resolved.\") }.to${colTypeName}()"
         "
-            /* ColRef ${$self via UmlPropertySyntax} */
             $mutable
             $accessor
         "
@@ -326,7 +320,6 @@ format PropertyGetterColRef {
 
 format PropertyGetter {
     MofClassAttributeImplInfo -> {
-        attrs :=
         "
           // --- ${defClass.validName} ---
           $[attributes sep $EOL]
