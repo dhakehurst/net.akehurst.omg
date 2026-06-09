@@ -428,6 +428,24 @@ abstract class MofAbstractType() : MofType {
                 normalized.groupBy { it.parentClass!! }
             }
 
+    val bridgingAttributes : Set<MofAttributeBridging> by lazy {
+        val byName = mutableMapOf<String, MofAttributeBridging>()
+        allNormalisedAttribute.forEach { (cls, props) ->
+            props.forEach { p ->
+                p.bridges.forEach { (n,o) ->
+                    if (byName.containsKey(o.validName)) {
+                        byName[o.validName]!!.redefinedBy.add(n)
+                    } else {
+                        byName[o.validName] = MofAttributeBridging(o).also {
+                            it.redefinedBy.add(n)
+                        }
+                    }
+                }
+            }
+        }
+        byName.values.toSet()
+    }
+
     val allNormalisedAttributeFlat: Set<MofProperty> by lazy {
         allNormalisedAttribute.flatMap { c -> c.attributes.map { r -> r.attribute } }.toSet()
     }
@@ -643,10 +661,16 @@ class MofProperty(
     }
 
     val isSubsetting get() = subsettedPropertyRef.isNotEmpty()
-    val subsettedProperty
-        get() = subsettedPropertyRef.map {
+    val subsettedProperty:Set<MofProperty> by lazy {
+        subsettedPropertyRef.map {
             model.findPropertyById(it) ?: error("Cannot find subsettedPropertyRef '$it' in '$qualifiedName'")
-        }
+        }.toSet()
+    }
+
+    val isSubsetted get() = subsettingProperty.isNotEmpty()
+    val subsettingProperty:Set<MofProperty> by lazy {
+        model.refHandler.allValuesOfType<MofProperty>().filter { it.subsettedProperty.contains(this) }.toSet()
+    }
 
     override fun hashCode(): Int = xmiId.hashCode()
     override fun equals(other: Any?): Boolean = when {
@@ -667,6 +691,12 @@ data class MofRedefinedAttributeImplInfo(
     val attribute: MofProperty,
     val bridges: List<Pair<MofProperty,MofProperty>>,
 )
+
+data class MofAttributeBridging(
+    val original: MofProperty
+) {
+    val redefinedBy = mutableListOf<MofProperty>()
+}
 
 class MofOperation(
     val model: MofModel,

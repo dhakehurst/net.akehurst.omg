@@ -56,7 +56,6 @@ format AppendPropertyComposite {
         isCollection -> "
             self.${validName}.let { col ->
                 if(col.isNotEmpty()) {
-                    sb.appendLine()
                     sb.append(\"\${indentInc}${validName} = \")
                     sb.append(rootAsString.${type.parentPackage.qualifiedName}.${type.validName}_Content_asString(col, indentInc))
                 }
@@ -95,7 +94,7 @@ format ContentAsString {
                 val sb = StringBuilder()
                 sb.appendLine(\"[\")
                 val indentItem = indent.inc
-                self.forEach { item -> sb.appendLine(this.${validName}_asString(item, indentItem)) }
+                self.forEach { item -> sb.append(this.${validName}_asString(item, indentItem)) }
                 sb.appendLine(\"\${indent}]\")
                 sb.toString()
             }

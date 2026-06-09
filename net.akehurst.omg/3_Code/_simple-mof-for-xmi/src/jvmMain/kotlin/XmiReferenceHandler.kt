@@ -20,6 +20,7 @@ package net.akehurst.omg._simple_mof_for_xmi
 import net.akehurst.kotlinx.collections.LazyMapNotNull
 import net.akehurst.kotlinx.collections.lazyMapNotNull
 import kotlin.collections.set
+import kotlin.reflect.KClass
 
 class XmiReferenceHandler {
 
@@ -39,4 +40,6 @@ class XmiReferenceHandler {
     fun setRef(currentFileName: String, ref: String, value: Any) {
         refsByFile[currentFileName][ref] = value
     }
+
+    inline fun<reified T:Any> allValuesOfType(): List<T> = refsByFile.values.flatMap { it.values }.filterIsInstance<T>()
 }

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import net.akehurst.omg.sysml_2_0_ram.
+import net.akehurst.omg.sysml.v2_0.api.SysML_ModelAsString
+import net.akehurst.omg.sysml.v2_0.api.SysML_ModelBuilder
+import net.akehurst.omg.sysml.v2_0.ram.SysML_ModelFactoryRam
 import kotlin.test.*
 
 class test_SysML_ModelBuilder {
@@ -22,10 +24,10 @@ class test_SysML_ModelBuilder {
     @Test
     fun empty() {
         val factory = SysML_ModelFactoryRam("TestFactoryRam")
-        val model = KerML_ModelBuilder.Package(factory, "RootPackage") {
+        val model = SysML_ModelBuilder.Package(factory, "RootPackage") {
 
         }
-        val actual = KerML_ModelAsString.Package_asString(model)
+        val actual = SysML_ModelAsString.Package_asString(model)
         println(actual)
         val expected = """
             Package 'RootPackage'
@@ -37,11 +39,11 @@ class test_SysML_ModelBuilder {
 
     @Test
     fun named() {
-        val factory = KerML_ModelFactoryRam("TestFactoryRam")
-        val model = KerML_ModelBuilder.Package(factory, "RootPackage") {
+        val factory = SysML_ModelFactoryRam("TestFactoryRam")
+        val model = SysML_ModelBuilder.Package(factory, "RootPackage") {
             name("Root Package")
         }
-        val actual = KerML_ModelAsString.Package_asString(model)
+        val actual = SysML_ModelAsString.Package_asString(model)
         println(actual)
         val expected = """
             Package 'RootPackage'
@@ -54,8 +56,8 @@ class test_SysML_ModelBuilder {
 
     @Test
     fun named_subpackage() {
-        val factory = KerML_ModelFactoryRam("TestFactoryRam")
-        val model = KerML_ModelBuilder.Package(factory, "RootPackage") {
+        val factory = SysML_ModelFactoryRam("TestFactoryRam")
+        val model = SysML_ModelBuilder.Package(factory, "RootPackage") {
             name("Root Package")
             ownedElementOrderedSet {
                 Package("SubPackage") {
@@ -63,14 +65,13 @@ class test_SysML_ModelBuilder {
                 }
             }
         }
-        val actual = KerML_ModelAsString.Package_asString(model)
+        val actual = SysML_ModelAsString.Package_asString(model)
         println(actual)
         val expected = """
             Package 'RootPackage'
               ownedElementOrderedSet = [
                 Package 'SubPackage'
                   name 'Sub Package'
-                  
               ]
               name 'Root Package'
 
@@ -79,4 +80,35 @@ class test_SysML_ModelBuilder {
         assertEquals(expected, actual)
     }
 
+    @Test
+    fun subpackage_with_content_x1() {
+        val factory = SysML_ModelFactoryRam("TestFactoryRam")
+        val model = SysML_ModelBuilder.Package(factory, "RootPackage") {
+            name("Root Package")
+            ownedElementOrderedSet {
+                Package("SubPackage") {
+                    name("Sub Package")
+                    ownedMemberOrderedSet {
+                        EnumerationDefinition("Enum1") {
+                            name("Enum1")
+                            own
+                        }
+                    }
+                }
+            }
+        }
+        val actual = SysML_ModelAsString.Package_asString(model)
+        println(actual)
+        val expected = """
+            Package 'RootPackage'
+              ownedElementOrderedSet = [
+                Package 'SubPackage'
+                  name 'Sub Package'
+              ]
+              name 'Root Package'
+
+        """.trimIndent()
+
+        assertEquals(expected, actual)
+    }
 }

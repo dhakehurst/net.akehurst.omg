@@ -115,7 +115,7 @@ format ModelFactoryFile {
 
             $[genSubPackages sep $EOL via SubPackage]
 
-            override fun toString(): String = \"${validName}_ModelFactory '${identity}'\"
+            override fun toString(): String = \"${validName}_ModelFactory '\${identity}'\"
         }
         ${packageList via PackageFactoryFile}
     "

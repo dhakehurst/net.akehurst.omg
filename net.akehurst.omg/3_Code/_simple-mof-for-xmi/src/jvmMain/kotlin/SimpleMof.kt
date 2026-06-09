@@ -100,6 +100,9 @@ object SimpleMof {
                 propertyOf(setOf(DER), "allNormalisedAttribute", "List", execution = MofClass::allNormalisedAttribute) {
                     typeArgument("MofClassAttributeImplInfo")
                 }
+                propertyOf(setOf(DER), "bridgingAttributes", "Set", execution = MofClass::bridgingAttributes) {
+                    typeArgument("MofAttributeBridging")
+                }
                 propertyOf(setOf(DER), "allNormalisedAttribute2", "Map", execution = MofClass::allNormalisedAttribute2) {
                     typeArgument("MofClass")
                     typeArgument("List") {
@@ -127,6 +130,10 @@ object SimpleMof {
                     }
                 }
             }
+            data("MofAttributeBridging") {
+                propertyOf(setOf(VAL, REF), "original", "MofProperty")
+                propertyOf(setOf(VAL, REF), "redefinedBy", "List") { typeArgument("MofProperty") }
+            }
             data("MofProperty", implementation = MofProperty::class) {
                 constructor_ {
                     parameter(setOf(CMP, VAL), "name", "String", propertyExecution = MofProperty::name)
@@ -146,6 +153,8 @@ object SimpleMof {
                 propertyOf(setOf(DER), "isComposite", "Boolean", execution = MofProperty::isComposite)
                 propertyOf(setOf(DER), "isReference", "Boolean", execution = MofProperty::isReference)
                 propertyOf(setOf(DER), "allRedefinedProperty", "Set", execution = MofProperty::allRedefinedProperty) { typeArgument("MofProperty") }
+                propertyOf(setOf(DER), "subsettingProperty", "Set", execution = MofProperty::subsettingProperty) { typeArgument("MofProperty") }
+                propertyOf(setOf(DER), "subsettedProperty", "Set", execution = MofProperty::subsettedProperty) { typeArgument("MofProperty") }
             }
             data("MofOperation", implementation = MofOperation::class) {
                 constructor_ {

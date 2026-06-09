@@ -110,7 +110,7 @@ format ContentBuilderFunction {
    MofClass -> {
      "
         fun ${validName}(identity_:Any, init:${validName}_Builder.()->Unit): ${validName} =
-          ${model.name}_ModelBuilder.buildObject(factory, identity_, ::${validName}_Builder, {}) { _content.add(it) }
+          ${model.name}_ModelBuilder.buildObject(factory, identity_, ::${validName}_Builder, init) { _content.add(it) }
      "
    }
 }

@@ -39,215 +39,179 @@ format UmlPropertySyntax {
           isSubsetting -> ', subsets ' + subsettedProperty.map({it -> it.parentClass.name +'.'+ it.name}).join
           else -> ''
         }
-        "$name: $typeName [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}] {$agg$cons$redef$subs}"
+        "$name: ${type.name} [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}] {$agg$cons$redef$subs}"
     }
 }
 
-format BridgeImplOrgSglCmpAsSgl {
-    // (redefining/as, redefined/original)
-    Pair<MofProperty,MofProperty> ->  when {
-        first.isReference -> "get() = ValueImmutable(${first.validName}Reference.resolved)"
-        first.isComposite -> "get() = ${first.validName}Value"
-        else -> 'ERROR'
+format BridgeImplOrgSglCmp {
+    MofAttributeBridging ->  when {
+        1 == redefinedBy.size -> when {
+            redefinedBy.first.isSingle -> when {
+                redefinedBy.first.isReference -> "ValueImmutable(${redefinedBy.first.validName}Reference.resolved)"
+                redefinedBy.first.isComposite -> "${redefinedBy.first.validName}Value"
+                else -> 'ERROR'
+            }
+            redefinedBy.first.isCollection -> "${redefinedBy.first.validName}.first()"
+            else -> 'ERROR'
+        }
+        else -> 'TODO'
     }
 }
 
-format BridgeImplOrgSglRefAsSgl {
-    // (redefining/as, redefined/original)
-    Pair<MofProperty,MofProperty> -> when {
-       first.isReference -> "get() = ${first.validName}Reference"
-       first.isComposite -> "get() = ReferenceImmutable(${first.validName}._identity, ${first.validName})"
-       else -> 'ERROR'
+format BridgeImplOrgSglRef {
+    MofAttributeBridging -> when {
+        1 == redefinedBy.size -> when {
+            redefinedBy.first.isSingle -> when {
+               redefinedBy.first.isReference -> "${redefinedBy.first.validName}Reference"
+               redefinedBy.first.isComposite -> "ReferenceImmutable(${redefinedBy.first.validName}._identity, ${redefinedBy.first.validName})"
+               else -> 'ERROR'
+            }
+            redefinedBy.first.isCollection -> "${redefinedBy.first.validName}.first()"
+            else -> 'ERROR'
+        }
+        else -> 'TODO'
     }
 }
 
-format BridgeImplOrgColCmpAsSgl {
-    // (redefining/as, redefined/original)
-    Pair<MofProperty,MofProperty> ->  when {
-        first.isOptional -> "get() = ${first.validName}?.let { ${second.colTypeNameLower}Of(it) } ?: ${second.colTypeNameLower}Of()"
-        else -> "get() = ${second.colTypeNameLower}Of(${first.validName})"
+format BridgeImplOrgColCmp {
+    MofAttributeBridging -> when {
+        1 == redefinedBy.size -> when {
+            redefinedBy.first.isSingle -> when {
+                redefinedBy.first.isOptional -> "${redefinedBy.first.validName}?.let { ${original.colTypeNameLower}Of(it) } ?: ${original.colTypeNameLower}Of()"
+                else -> "${original.colTypeNameLower}Of(${redefinedBy.first.validName})"
+            }
+            redefinedBy.first.isCollection -> when {
+                redefinedBy.first.isComposite -> "${redefinedBy.first.validName}.to${original.colTypeName}()"
+                redefinedBy.first.isReference -> "${redefinedBy.first.validName}.map{ ValueImmutable(it) }.to${original.colTypeName}()"
+                else -> 'ERROR'
+            }
+            else -> 'ERROR'
+        }
+        else -> 'TODO'
     }
 }
 
-format BridgeImplOrgColRefAsSgl {
-    // (redefining/as, redefined/original)
-    Pair<MofProperty,MofProperty> -> when {
-        first.isReference -> "get() = ${second.colTypeNameLower}Of(${first.validName}Reference)"
-        first.isComposite -> "get() = ${second.colTypeNameLower}Of(ReferenceImmutable(${first.validName}._identity, ${first.validName}))"
-        else -> 'ERROR'
+
+format BridgeImplOrgColRef {
+    MofAttributeBridging -> when {
+        0 == redefinedBy.size -> 'ERROR'
+        else -> {
+            redef := redefinedBy.map({ it ->
+                when {
+                    it.isSingle -> when {
+                        it.isReference -> "listOf(${it.validName}Reference)"
+                        it.isComposite -> "listOf(ReferenceImmutable(${it.validName}._identity, ${it.validName}))"
+                        else -> 'ERROR'
+                    }
+                    it.isCollection -> when {
+                        it.isComposite -> "${it.validName}.map{ ReferenceImmutable(it._identity, it) }"
+                        it.isReference -> "${it.validName}Reference.to${original.colTypeName}()"
+                        else -> 'ERROR'
+                    }
+                    else -> 'ERROR'
+                }
+            })
+            "($[redef sep ' + ']).to${original.colTypeName}()"
+        }
     }
 }
 
-format BridgeImplOrgSglCmpAsCol {
-    // (redefining/as, redefined/original)
-    Pair<MofProperty,MofProperty> -> "get() = ${first.validName}.first()"
-}
-
-format BridgeImplOrgSglRefAsCol {
-    // (redefining/as, redefined/original)
-    Pair<MofProperty,MofProperty> -> "get() = ${first.validName}.first()"
-}
-
-format BridgeImplOrgColCmpAsCol {
-    // (redefining/as, redefined/original)
-    Pair<MofProperty,MofProperty> -> "get() = ${first.validName}.to${second.colTypeName}()"
-}
-
-format BridgeImplOrgColRefAsCol {
-    // (redefining/as, redefined/original)
-    Pair<MofProperty,MofProperty> -> when {
-         first.isReference -> "get() = ${first.validName}Reference.to${second.colTypeName}()"
-         first.isComposite -> "get() = ${first.validName}.to${second.colTypeName}()"
-        else -> 'ERROR'
-    }
-}
-
-format PropertyBridgeOrgSglCmpAsSgl {
+format PropertyBridgeOrgSglCmp {
     // (redefining/new/to, redefined/original)
-    Pair<MofProperty,MofProperty> -> {
-        mutatable := "override val ${second.validName}Value: Value<${second.validTypeNameNotNullable}?> ${$self via BridgeImplOrgSglCmpAsSgl}"
-        accessor := "override val ${second.validName}: ${second.validTypeName} get() = ${first.validName}"
+    MofAttributeBridging -> {
+        mutatable := "override val ${original.validName}Value: Value<${original.validTypeNameNotNullable}?> get() = ${$self via BridgeImplOrgSglCmp}"
+        accessor := "${original via PropertyAccessorSglCmp}"
+        redef := redefinedBy.map({ it -> it.validName})
         "
-          // Bridging ${second.parentClass.validName}.${second.validName} with ${first.validName}
+          // Bridging ${original.parentClass.validName}.${original.validName} with $[redef sep ', ']
           $mutatable
           $accessor
         "
     }
 }
 
-format PropertyBridgeOrgSglRefAsSgl {
+format PropertyBridgeOrgSglRef {
     // (redefining/new/to, redefined/original)
-    Pair<MofProperty,MofProperty> -> {
-        mutatable := "override val ${second.validName}Reference: Reference<Any, ${second.validTypeNameNotNullable}> ${$self via BridgeImplOrgSglRefAsSgl}"
-        accessor := "override val ${second.validName}: ${second.validTypeName} get() = ${first.validName}"
+    MofAttributeBridging -> {
+        mutatable := "override val ${original.validName}Reference: Reference<Any, ${original.validTypeNameNotNullable}> get() = ${$self via BridgeImplOrgSglRef}"
+        accessor := "${original via PropertyAccessorSglRef}"
+        redef := redefinedBy.map({ it -> it.validName})
         "
-          // Bridging ${second.parentClass.validName}.${second.validName} with ${first.validName}
+          // Bridging ${original.parentClass.validName}.${original.validName} with $[redef sep ', ']
           $mutatable
           $accessor
         "
     }
 }
 
-format PropertyBridgeOrgColCmpAsSgl {
+format PropertyBridgeOrgColCmp {
     // (redefining/new/to, redefined/original)
-    Pair<MofProperty,MofProperty> -> {
-        accessor := "override val ${second.validName}: ${second.validTypeName} ${$self via BridgeImplOrgColCmpAsSgl}"
+    MofAttributeBridging -> {
+        accessor := "override val ${original.validName}: ${original.validTypeName} get() = ${$self via BridgeImplOrgColCmp}"
+        redef := redefinedBy.map({ it -> it.validName})
         "
-          // Bridging ${second.parentClass.validName}.${second.validName} with ${first.validName}
+          // Bridging ${original.parentClass.validName}.${original.validName} with $[redef sep ', ']
           $accessor
         "
     }
 }
 
-format PropertyBridgeOrgColRefAsSgl {
-    // (redefining/new/to, redefined/original)
-    Pair<MofProperty,MofProperty> -> {
-        mutable := "override val ${second.validName}Reference: ${second.colTypeName}<Reference<Any,${second.type.validName}>> ${$self via BridgeImplOrgColRefAsSgl}"
-        accessor := "override val ${second.validName}: ${second.validTypeName} ${$self via BridgeImplOrgColCmpAsSgl }"
+format PropertyBridgeOrgColRef {
+    MofAttributeBridging -> {
+        mutable := "override val ${original.validName}Reference: ${original.colTypeName}<Reference<Any,${original.type.validName}>> get() = ${$self via BridgeImplOrgColRef}"
+        accessor := "override val ${original.validName}: ${original.colTypeName}<${original.type.validName}> get() = ${original.validName}Reference.map{ it.resolved  ?: error(\"In property '${original.validName}' of object '\${_identity}:${parentClass.validName}', reference '\$it' is not resolved.\")  }.to${original.colTypeName}()"
+        redef := redefinedBy.map({ it -> it.validName})
         "
-          // Bridging ${second.parentClass.validName}.${second.validName} with ${first.validName}
+          // Bridging ${original.parentClass.validName}.${original.validName} with $[redef sep ', ']
           $mutable
           $accessor
         "
     }
 }
 
-format PropertyBridgeOrgSglCmpAsCol {
-    // (redefining/new/to, redefined/original)
-    Pair<MofProperty,MofProperty> -> {
-        accessor := "override val ${second.validName}: ${second.validTypeName} ${$self via BridgeImplOrgSglCmpAsCol}"
-        "
-          // Bridging ${second.parentClass.validName}.${second.validName} with ${first.validName}
-          $accessor
-        "
-    }
-}
-
-format PropertyBridgeOrgSglRefAsCol {
-    // (redefining/new/to, redefined/original)
-    Pair<MofProperty,MofProperty> -> {
-        accessor := "override val ${second.validName}: ${second.validTypeName} ${$self via BridgeImplOrgSglRefAsCol}"
-        "
-          // Bridging ${second.parentClass.validName}.${second.validName} with ${first.validName}
-          $accessor
-        "
-    }
-}
-
-format PropertyBridgeOrgColCmpAsCol {
-    // (redefining/new/to, redefined/original)
-    Pair<MofProperty,MofProperty> -> {
-        accessor := "override val ${second.validName}: ${second.validTypeName} ${$self via BridgeImplOrgColCmpAsCol}"
-        "
-          // Bridging ${second.parentClass.validName}.${second.validName} with ${first.validName}
-          $accessor
-        "
-    }
-}
-
-format PropertyBridgeOrgColRefAsCol {
-   // (redefining/new/to, redefined/original)
-    Pair<MofProperty,MofProperty> -> {
-        mutable := "override val ${second.validName}Reference: ${second.colTypeName}<Reference<Any,${second.type.validName}>> ${$self via BridgeImplOrgColRefAsCol}"
-        accessor := "override val ${second.validName}: ${second.colTypeName}<${second.type.validName}> ${$self via BridgeImplOrgColCmpAsCol}"
-        "
-          // Bridging ${second.parentClass.validName}.${second.validName} with ${first.validName}
-          $mutable
-          $accessor
-        "
-    }
-}
-
-format PropertyBridgeAsSingle {
-    // (redefining/as, redefined/original)
-    Pair<MofProperty,MofProperty> -> when {
-        second.isSingle -> when {
-            second.isComposite -> "${$self via PropertyBridgeOrgSglCmpAsSgl}"
-            second.isReference -> "${$self via PropertyBridgeOrgSglRefAsSgl}"
+format PropertyBridge {
+    MofAttributeBridging -> when {
+        original.isSingle -> when {
+            original.isComposite -> { "${$self via PropertyBridgeOrgSglCmp}" }
+            (original.isReference) -> "${$self via PropertyBridgeOrgSglRef}"
             else -> 'ERROR'
         }
-        second.isCollection -> when {
-           second.isComposite -> "${$self via PropertyBridgeOrgColCmpAsSgl}"
-           second.isReference -> "${$self via PropertyBridgeOrgColRefAsSgl}"
+        (original.isCollection) -> when {
+           original.isComposite -> "${$self via PropertyBridgeOrgColCmp}"
+           (original.isReference) -> "${$self via PropertyBridgeOrgColRef}"
            else -> 'ERROR'
-       }
+        }
         else -> 'ERROR'
     }
 }
 
-format PropertyBridgeAsCollection {
-    // (redefining/new/to, redefined/original)
-    Pair<MofProperty,MofProperty> -> when {
-        second.isSingle -> when {
-            second.isComposite -> "${$self via PropertyBridgeOrgSglCmpAsCol}"
-            second.isReference -> "${$self via PropertyBridgeOrgSglRefAsCol}"
-            else -> 'ERROR'
-        }
-        second.isCollection -> when {
-           second.isComposite -> "${$self via PropertyBridgeOrgColCmpAsCol}"
-           second.isReference -> "${$self via PropertyBridgeOrgColRefAsCol}"
-           else -> 'ERROR'
-       }
-        else -> 'ERROR'
-    }
-}
-
-format PropertyGetterSglCmp {
-    MofRedefinedAttributeImplInfo -> {
-        attr := "$attribute"
-        brdg := "$[bridges sep $EOL via PropertyBridgeAsSingle]"
-        "
-            /* ${attribute via UmlPropertySyntax} */
-            $attr
-            $brdg
-        "
-    }
+format PropertyAccessorSglCmp {
     MofProperty -> {
         opt := when {
             isOptional -> ''
             else -> " ?: error(\"Property ${validName} is not optional, therefore it must be set before is is accessed.\")"
         }
-        accessor := "override val ${validName}: $validTypeName get() = ${validName}Value.get()$opt"
+        "override val ${validName}: $validTypeName get() = ${validName}Value.get()$opt"
+    }
+}
+
+format PropertyAccessorSglRef {
+    MofProperty -> {
+        opt := when {
+            isOptional -> ''
+            else -> " ?: error(\"Property ${validName} is not optional, therefore it must be set before is is accessed.\")"
+        }
+        "override val ${validName}: $validTypeName get() = ${validName}Reference.resolved$opt"
+    }
+}
+
+format PropertyGetterSglCmp {
+    MofRedefinedAttributeImplInfo -> "
+        /* ${attribute via UmlPropertySyntax} */
+        $attribute
+    "
+    MofProperty -> {
+        accessor := "${$self via PropertyAccessorSglCmp}"
         mutable := "override val ${validName}Value: Value<${validTypeNameNotNullable}?> = ManagedValue(null, \"${parentClass.validName}.${validName}\", ${validTypeNameNotNullable}::class)"
         "
             $mutable
@@ -257,21 +221,12 @@ format PropertyGetterSglCmp {
 }
 
 format PropertyGetterSglRef {
-    MofRedefinedAttributeImplInfo -> {
-        attr := "$attribute"
-        brdg := "$[bridges sep $EOL via PropertyBridgeAsSingle]"
-        "
-            /* ${attribute via UmlPropertySyntax} */
-            $attr
-            $brdg
-        "
-    }
+    MofRedefinedAttributeImplInfo -> "
+        /* ${attribute via UmlPropertySyntax} */
+        $attribute
+    "
     MofProperty -> {
-        opt := when {
-            isOptional -> ''
-            else -> " ?: error(\"Property ${validName} is not optional, therefore it must be set before is is accessed.\")"
-        }
-        accessor := "override val ${validName}: $validTypeName get() = ${validName}Reference.resolved$opt"
+        accessor := "${$self via PropertyAccessorSglRef}"
         mutable := "override val ${validName}Reference: Reference<Any, ${validTypeNameNotNullable}> = ManagedReference(null, \"${parentClass.validName}.${validName}\", ${validTypeNameNotNullable}::class)"
         "
             $mutable
@@ -282,15 +237,10 @@ format PropertyGetterSglRef {
 
 
 format PropertyGetterColCmp {
-    MofRedefinedAttributeImplInfo -> {
-        attr := "$attribute"
-        brdg := "$[bridges sep $EOL via PropertyBridgeAsCollection]"
-        "
-            /* ${attribute via UmlPropertySyntax} */
-            $attr
-            $brdg
-        "
-    }
+    MofRedefinedAttributeImplInfo -> "
+        /* ${attribute via UmlPropertySyntax} */
+        $attribute
+    "
      MofProperty -> {
         impl := "= Managed${colTypeName}(\"${parentClass.validName}.${validName}\",${type.validName}::class)"
         "override val ${validName}: $validTypeName $impl"
@@ -298,17 +248,26 @@ format PropertyGetterColCmp {
 }
 
 format PropertyGetterColRef {
-    MofRedefinedAttributeImplInfo -> {
-        attr := "$attribute"
-        brdg := "$[bridges sep $EOL via PropertyBridgeAsCollection]"
-        "
-            /* ${attribute via UmlPropertySyntax} */
-            $attr
-            $brdg
-        "
-    }
+    MofRedefinedAttributeImplInfo -> "
+        /* ${attribute via UmlPropertySyntax} */
+        $attribute
+    "
     MofProperty -> {
-        impl := "= Managed${colTypeName}(\"${parentClass.validName}.${validName}\",${type.validName}::class)"
+        addCascade := when {
+            isSubsetting -> {
+              adds := subsettedProperty.map({it -> "this.${it.validName}Reference.mutable.add(item)"})
+              "onAdd = { item -> $[adds sep $EOL] },"
+            }
+            else -> ''
+        }
+        removeCascade := when {
+            isSubsetted -> {
+                removes := subsettingProperties.map({it -> "this.${it.validName}Reference.mutable.remove(item)"})
+                "onRemove = { item -> $[removes sep $EOL] },"
+            }
+            else -> ''
+        }
+        impl := "= Managed${colTypeName}(\"${parentClass.validName}.${validName}\",${type.validName}::class, $addCascade $removeCascade)"
         mutable := "override val ${validName}Reference: ${colTypeName}<Reference<Any, ${type.validName}>> $impl"
         accessor := "override val ${validName}: $validTypeName get() = ${validName}Reference.map{it.resolved ?: error(\"In property '${validName}' of object '\${_identity}:${parentClass.validName}', reference '\$it' is not resolved.\") }.to${colTypeName}()"
         "
@@ -368,8 +327,9 @@ format ApiPackageFile {
             import net.akehurst.kotlinx.utils.ReferenceImmutable
             import net.akehurst.kotlinx.utils.Value
             import net.akehurst.kotlinx.utils.ValueImmutable
-            import ${TARGET_PACKAGE}.api.${qualifiedName}.*
             $[allImport sep $EOL via PackageImport]
+            import ${TARGET_PACKAGE}.api.${qualifiedName}.*
+            import ${TARGET_PACKAGE}.api.${qualifiedName}.${validName}_PackageFactory
 
             $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
         "
@@ -378,6 +338,9 @@ format ApiPackageFile {
     MofClass -> "
         data class ${validName}Ram(override val _factory: ${parentPackage.validName}_PackageFactory, override val _identity:Any) : ${validName} {
             $[allNormalisedAttribute sep $EOL via PropertyGetter]
+
+            // --- Redefined Properties ---
+            $[bridgingAttributes sep $EOL via PropertyBridge]
 
             override fun toString(): String = \"${validName} '\${_identity}'\"
         }
