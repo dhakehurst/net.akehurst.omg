@@ -119,7 +119,11 @@ format BridgeImplOrgColRef {
 format PropertyBridgeOrgSglCmp {
     // (redefining/new/to, redefined/original)
     MofAttributeBridging -> {
-        mutatable := "override val ${original.validName}Value: Value<${original.validTypeNameNotNullable}?> get() = ${$self via BridgeImplOrgSglCmp}"
+        ovr := when {
+            original.isAssociationOwned -> ''
+            else -> 'override '
+        }
+        mutatable := "${ovr}val ${original.validName}Value: Value<${original.validTypeNameNotNullable}?> get() = ${$self via BridgeImplOrgSglCmp}"
         accessor := "${original via PropertyAccessorSglCmp}"
         redef := redefinedBy.map({ it -> it.validName})
         "
@@ -133,7 +137,11 @@ format PropertyBridgeOrgSglCmp {
 format PropertyBridgeOrgSglRef {
     // (redefining/new/to, redefined/original)
     MofAttributeBridging -> {
-        mutatable := "override val ${original.validName}Reference: Reference<Any, ${original.validTypeNameNotNullable}> get() = ${$self via BridgeImplOrgSglRef}"
+        ovr := when {
+            original.isAssociationOwned -> ''
+            else -> 'override '
+        }
+        mutatable := "${ovr}val ${original.validName}Reference: Reference<Any, ${original.validTypeNameNotNullable}> get() = ${$self via BridgeImplOrgSglRef}"
         accessor := "${original via PropertyAccessorSglRef}"
         redef := redefinedBy.map({ it -> it.validName})
         "
@@ -147,7 +155,11 @@ format PropertyBridgeOrgSglRef {
 format PropertyBridgeOrgColCmp {
     // (redefining/new/to, redefined/original)
     MofAttributeBridging -> {
-        accessor := "override val ${original.validName}: ${original.validTypeName} get() = ${$self via BridgeImplOrgColCmp}"
+        ovr := when {
+            original.isAssociationOwned -> ''
+            else -> 'override '
+        }
+        accessor := "${ovr}val ${original.validName}: ${original.validTypeName} get() = ${$self via BridgeImplOrgColCmp}"
         redef := redefinedBy.map({ it -> it.validName})
         "
           // Bridging ${original.parentClass.validName}.${original.validName} with $[redef sep ', ']
@@ -158,8 +170,12 @@ format PropertyBridgeOrgColCmp {
 
 format PropertyBridgeOrgColRef {
     MofAttributeBridging -> {
-        mutable := "override val ${original.validName}Reference: ${original.colTypeName}<Reference<Any,${original.type.validName}>> get() = ${$self via BridgeImplOrgColRef}"
-        accessor := "override val ${original.validName}: ${original.colTypeName}<${original.type.validName}> get() = ${original.validName}Reference.map{ it.resolved  ?: error(\"In property '${original.validName}' of object '\${_identity}:${parentClass.validName}', reference '\$it' is not resolved.\")  }.to${original.colTypeName}()"
+        ovr := when {
+            original.isAssociationOwned -> ''
+            else -> 'override '
+        }
+        mutable := "${ovr}val ${original.validName}Reference: ${original.colTypeName}<Reference<Any,${original.type.validName}>> get() = ${$self via BridgeImplOrgColRef}"
+        accessor := "${ovr}val ${original.validName}: ${original.colTypeName}<${original.type.validName}> get() = ${original.validName}Reference.map{ it.resolved  ?: error(\"In property '${original.validName}' of object '\${_identity}:${original.parentClass.validName}', reference '\$it' is not resolved.\")  }.to${original.colTypeName}()"
         redef := redefinedBy.map({ it -> it.validName})
         "
           // Bridging ${original.parentClass.validName}.${original.validName} with $[redef sep ', ']
@@ -191,7 +207,11 @@ format PropertyAccessorSglCmp {
             isOptional -> ''
             else -> " ?: error(\"Property ${validName} is not optional, therefore it must be set before is is accessed.\")"
         }
-        "override val ${validName}: $validTypeName get() = ${validName}Value.get()$opt"
+        ovr := when {
+            isAssociationOwned -> ''
+            else -> 'override '
+        }
+        "${ovr}val ${validName}: $validTypeName get() = ${validName}Value.get()$opt"
     }
 }
 
@@ -201,7 +221,11 @@ format PropertyAccessorSglRef {
             isOptional -> ''
             else -> " ?: error(\"Property ${validName} is not optional, therefore it must be set before is is accessed.\")"
         }
-        "override val ${validName}: $validTypeName get() = ${validName}Reference.resolved$opt"
+        ovr := when {
+            isAssociationOwned -> ''
+            else -> 'override '
+        }
+        "${ovr}val ${validName}: $validTypeName get() = ${validName}Reference.resolved$opt"
     }
 }
 
@@ -211,8 +235,63 @@ format PropertyGetterSglCmp {
         $attribute
     "
     MofProperty -> {
+        additions := when {
+             isSubsetting -> {
+                 changes := subsettedProperty.map({it ->
+                     when {
+                        it.isSingle -> when {
+                            it.isReference -> "new?.let { this.${it.validName}Reference.mutable.set(new._identity, new) }"
+                            it.isComposite -> "new?.let { this.${it.validName}Value.mutable.set(new) }"
+                            else -> 'ERROR'
+                        }
+                        it.isCollection -> when {
+                            it.isReference -> "new?.let { this.${it.validName}Reference.mutable.add(ReferenceImmutable(new._identity, new)) }"
+                            it.isComposite -> "new?.let{ this.${it.validName}.mutable.add(new) }"
+                            else -> 'ERROR'
+                        }
+                        else -> 'ERROR'
+                     }
+                 })
+                 "$[changes sep $EOL]"
+             }
+             else -> ''
+        }
+        removals := when {
+            isSubsetted -> {
+                 changes := subsettingProperty.map({it ->
+                     when {
+                        it.isSingle -> when {
+                            it.isReference -> "if(this.${it.validName}Reference.reference==old?._identity) this.${it.validName}Reference.mutable.clear()"
+                            it.isComposite -> "if(this.${it.validName}==old) this.${it.validName}Value.mutable.set(null)"
+                            else -> 'ERROR'
+                        }
+                        it.isCollection -> when {
+                            it.isReference -> "old?.let{ this.${it.validName}Reference.mutable.remove(ReferenceImmutable(old._identity, old)) }"
+                            it.isComposite -> "old?.let{ this.${it.validName}.mutable.remove(old) }"
+                            else -> 'ERROR'
+                        }
+                        else -> 'ERROR'
+                     }
+                 })
+                "$[changes sep $EOL]"
+            }
+            else -> ''
+        }
+        onChanged := when {
+            isSubsetting or isSubsetted -> "
+                { old, new ->
+                    $removals
+                    $additions
+                }
+            "
+            else -> ''
+        }
+        ovr := when {
+            isAssociationOwned -> ''
+            else -> 'override '
+        }
         accessor := "${$self via PropertyAccessorSglCmp}"
-        mutable := "override val ${validName}Value: Value<${validTypeNameNotNullable}?> = ManagedValue(null, \"${parentClass.validName}.${validName}\", ${validTypeNameNotNullable}::class)"
+        mutable := "${ovr}val ${validName}Value: Value<${validTypeNameNotNullable}?> = ManagedValue(null, \"${parentClass.validName}.${validName}\", ${validTypeNameNotNullable}::class, $onChanged)"
         "
             $mutable
             $accessor
@@ -226,8 +305,23 @@ format PropertyGetterSglRef {
         $attribute
     "
     MofProperty -> {
+        removals := ''
+        additions := ''
+        onChanged := when {
+            isSubsetting or isSubsetted -> "
+                { old, new ->
+                    $removals
+                    $additions
+                }
+            "
+            else -> ''
+        }
+        ovr := when {
+            isAssociationOwned -> ''
+            else -> 'override '
+        }
         accessor := "${$self via PropertyAccessorSglRef}"
-        mutable := "override val ${validName}Reference: Reference<Any, ${validTypeNameNotNullable}> = ManagedReference(null, \"${parentClass.validName}.${validName}\", ${validTypeNameNotNullable}::class)"
+        mutable := "${ovr}val ${validName}Reference: Reference<Any, ${validTypeNameNotNullable}> = ManagedReference(null, \"${parentClass.validName}.${validName}\", ${validTypeNameNotNullable}::class, $onChanged)"
         "
             $mutable
             $accessor
@@ -242,8 +336,54 @@ format PropertyGetterColCmp {
         $attribute
     "
      MofProperty -> {
-        impl := "= Managed${colTypeName}(\"${parentClass.validName}.${validName}\",${type.validName}::class)"
-        "override val ${validName}: $validTypeName $impl"
+        addCascade := when {
+            isSubsetting -> {
+                adds := subsettedProperty.map({it ->
+                    when {
+                       it.isSingle -> when {
+                           it.isReference -> "this.${it.validName}Reference.mutable.set(ReferenceImmutable(item._identity, item))"
+                           it.isComposite -> "this.${it.validName}Value.mutable.set(item)"
+                           else -> 'ERROR'
+                       }
+                       it.isCollection -> when {
+                           it.isReference -> "this.${it.validName}Reference.mutable.add(ReferenceImmutable(item._identity, item))"
+                           it.isComposite -> "this.${it.validName}.mutable.add(item)"
+                           else -> 'ERROR'
+                       }
+                       else -> 'ERROR'
+                    }
+                })
+                "onAdded = { item -> $[adds sep $EOL] },"
+            }
+            else -> ''
+        }
+        removeCascade := when {
+            isSubsetted -> {
+                removes := subsettingProperty.map({it ->
+                    when {
+                       it.isSingle -> when {
+                           it.isReference -> "this.${it.validName}Reference.mutable.clear()"
+                           it.isComposite -> "this.${it.validName}Value.mutable.set(null)"
+                           else -> 'ERROR'
+                       }
+                       it.isCollection -> when {
+                           it.isReference -> "this.${it.validName}Reference.mutable.remove(ReferenceImmutable(item._identity, item))"
+                           it.isComposite -> "this.${it.validName}.mutable.remove(item)"
+                           else -> 'ERROR'
+                       }
+                       else -> 'ERROR'
+                    }
+                })
+                "onRemoved = { item -> $[removes sep $EOL] },"
+            }
+            else -> ''
+        }
+        ovr := when {
+            isAssociationOwned -> ''
+            else -> 'override '
+        }
+        impl := "= Managed${colTypeName}(\"${parentClass.validName}.${validName}\",${type.validName}::class, $addCascade $removeCascade)"
+        "${ovr}val ${validName}: $validTypeName $impl"
      }
 }
 
@@ -255,21 +395,53 @@ format PropertyGetterColRef {
     MofProperty -> {
         addCascade := when {
             isSubsetting -> {
-              adds := subsettedProperty.map({it -> "this.${it.validName}Reference.mutable.add(item)"})
-              "onAdd = { item -> $[adds sep $EOL] },"
+                adds := subsettedProperty.map({it ->
+                    when {
+                       it.isSingle -> when {
+                           it.isReference -> "this.${it.validName}Reference.mutable.set(item.reference, item.resolved)"
+                           it.isComposite -> "this.${it.validName}Value.mutable.set(item.resolved)"
+                           else -> 'ERROR'
+                       }
+                       it.isCollection -> when {
+                           it.isReference -> "this.${it.validName}Reference.mutable.add(item)"
+                           it.isComposite -> "this.${it.validName}.mutable.add(item.resolved)"
+                           else -> 'ERROR'
+                       }
+                       else -> 'ERROR'
+                    }
+                })
+                "onAdded = { item -> $[adds sep $EOL] },"
             }
             else -> ''
         }
         removeCascade := when {
             isSubsetted -> {
-                removes := subsettingProperties.map({it -> "this.${it.validName}Reference.mutable.remove(item)"})
-                "onRemove = { item -> $[removes sep $EOL] },"
+                removes := subsettingProperty.map({it ->
+                    when {
+                       it.isSingle -> when {
+                           it.isReference -> "this.${it.validName}Reference.mutable.clear()"
+                           it.isComposite -> "this.${it.validName}Value.mutable.set(null)"
+                           else -> 'ERROR'
+                       }
+                       it.isCollection -> when {
+                           it.isReference -> "this.${it.validName}Reference.mutable.remove(item)"
+                           it.isComposite -> "this.${it.validName}.mutable.remove(item.resolved)"
+                           else -> 'ERROR'
+                       }
+                       else -> 'ERROR'
+                    }
+                })
+                "onRemoved = { item -> $[removes sep $EOL] },"
             }
             else -> ''
         }
+        ovr := when {
+            isAssociationOwned -> ''
+            else -> 'override '
+        }
         impl := "= Managed${colTypeName}(\"${parentClass.validName}.${validName}\",${type.validName}::class, $addCascade $removeCascade)"
-        mutable := "override val ${validName}Reference: ${colTypeName}<Reference<Any, ${type.validName}>> $impl"
-        accessor := "override val ${validName}: $validTypeName get() = ${validName}Reference.map{it.resolved ?: error(\"In property '${validName}' of object '\${_identity}:${parentClass.validName}', reference '\$it' is not resolved.\") }.to${colTypeName}()"
+        mutable := "${ovr}val ${validName}Reference: ${colTypeName}<Reference<Any, ${type.validName}>> $impl"
+        accessor := "${ovr}val ${validName}: $validTypeName get() = ${validName}Reference.map{it.resolved ?: error(\"In property '${validName}' of object '\${_identity}:${parentClass.validName}', reference '\$it' is not resolved.\") }.to${colTypeName}()"
         "
             $mutable
             $accessor
@@ -299,6 +471,10 @@ format PropertyGetter {
     }
 }
 
+format PropertyAssociationOwned {
+    MofProperty -> "// ${$self via UmlPropertySyntax}"
+}
+
 format PackageImport {
     MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.*"
 }
@@ -324,9 +500,14 @@ format ApiPackageFile {
             import net.akehurst.kotlinx.utils.ManagedReference
             import net.akehurst.kotlinx.utils.ManagedValue
             import net.akehurst.kotlinx.utils.Reference
+            import net.akehurst.kotlinx.utils.ReferenceExt.mutable
             import net.akehurst.kotlinx.utils.ReferenceImmutable
             import net.akehurst.kotlinx.utils.Value
             import net.akehurst.kotlinx.utils.ValueImmutable
+            import net.akehurst.kotlinx.collections.CollectionExt.mutable
+            import net.akehurst.kotlinx.collections.ListExt.mutable
+            import net.akehurst.kotlinx.collections.SetExt.mutable
+            import net.akehurst.kotlinx.collections.OrderedSetExt.mutable
             $[allImport sep $EOL via PackageImport]
             import ${TARGET_PACKAGE}.api.${qualifiedName}.*
             import ${TARGET_PACKAGE}.api.${qualifiedName}.${validName}_PackageFactory
@@ -337,10 +518,13 @@ format ApiPackageFile {
     // no need for MofEnum
     MofClass -> "
         data class ${validName}Ram(override val _factory: ${parentPackage.validName}_PackageFactory, override val _identity:Any) : ${validName} {
-            $[allNormalisedAttribute sep $EOL via PropertyGetter]
+            $[allNormalisedOwnedAttribute sep $EOL via PropertyGetter]
 
             // --- Redefined Properties ---
             $[bridgingAttributes sep $EOL via PropertyBridge]
+
+            // --- association owned (non-navigable) ends
+            $[allNormalisedAssociationOwnedAttribute sep $EOL via PropertyGetter]
 
             override fun toString(): String = \"${validName} '\${_identity}'\"
         }

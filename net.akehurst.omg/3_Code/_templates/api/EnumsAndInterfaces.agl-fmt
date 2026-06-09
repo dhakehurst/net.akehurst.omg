@@ -43,7 +43,7 @@ format UmlPropertySyntax {
           isSubsetting -> ', subsets ' + subsettedProperty.map({it -> it.parentClass.name +'.'+ it.name}).join
           else -> ''
         }
-        "$name: $typeName [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}] {$agg$cons$redef$subs}"
+        "$name: ${type.name} [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}] {$agg$cons$redef$subs}"
     }
 }
 

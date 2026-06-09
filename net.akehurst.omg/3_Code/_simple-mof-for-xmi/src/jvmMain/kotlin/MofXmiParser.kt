@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package generator
+package net.akehurst.omg._simple_mof_for_xmi
 
 import net.akehurst.omg._simple_mof_for_xmi.*
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
-
 
 class MofXmiParser(
     modelName: String,
@@ -307,6 +306,7 @@ class MofXmiParser(
             // or determined in a later linking step.
             val attr = parseProperty(ownedEndElement, null, mofAssociation.xmiId)
             setRef(attr.xmiId, attr) // Ensure property is also in the global map
+            attr.isAssociationOwned = true
             memberEnds.add(attr)
         }
         // Process 'memberEnd' which are references to properties defined elsewhere (typically on classes)
@@ -348,14 +348,18 @@ class MofXmiParser(
                     error("Error, there must be an 'other' end for an association. end=$end, memberEnds = $memberEnds")
                 }
 
-                null == end.parentClass -> otherEnd.typeXmiId?.let { end.parentClass = getRef(it) as? MofClass }
-                    ?: otherEnd.typeHref?.let { ExternalReferenceClass(model, it, it.substringAfter("#")) }
-
+                null == end.parentClass -> {
+                    end.parentClass = otherEnd.typeXmiId?.let {  getRef(it) as? MofClass }
+                        ?: otherEnd.typeHref?.let { ExternalReferenceClass(model, it, it.substringAfter("#")) }
+                    end.parentClass!!.associationOwnedAttribute.add(end)
+                }
                 else -> {
                     val otherClass = getRef(otherEnd.typeXmiId!!) as MofClass
+
                     check(end.parentClass == otherClass) { "parentClass is wrong" }
                 }
             }
+
         }
     }
 

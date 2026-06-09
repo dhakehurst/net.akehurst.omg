@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// In work - not sure if it is good idea or not ! maybe easier just with the model-to-text solution
+
 namespace net.akehurst.omg.mof-to-code
 
 transform(mof:MOF, cod:Code) {

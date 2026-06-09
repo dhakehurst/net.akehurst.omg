@@ -16,13 +16,16 @@
 
 package generator
 
+import net.akehurst.omg._simple_mof_for_xmi.GeneratorFromTemplate
+import net.akehurst.omg._simple_mof_for_xmi.MofModel
+import net.akehurst.omg._simple_mof_for_xmi.MofXmiParser
+import net.akehurst.omg._simple_mof_for_xmi.SimpleMof
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.tasks.*
 import java.io.File
-import net.akehurst.omg._simple_mof_for_xmi.*
 
 @CacheableTask
 abstract class GenerateTask : DefaultTask() {

@@ -66,7 +66,7 @@ object SimpleMof {
                 propertyOf(setOf(VAL), "isAbstract", "Boolean", execution = MofType::isAbstract)
                 propertyOf(setOf(VAL), "isPrimitive", "Boolean", execution = MofType::isPrimitive)
                 propertyOf(setOf(VAL), "ownedAttribute", "List", execution = MofType::ownedAttribute) { typeArgument("MofProperty") }
-                propertyOf(setOf(VAL), "allAttributes", "Set", execution = MofType::allAttributes) { typeArgument("MofProperty") }
+                //propertyOf(setOf(VAL), "allAttributes", "Set", execution = MofType::allOwnedAttributes) { typeArgument("MofProperty") }
                 propertyOf(setOf(VAL), "ownedRedefiningAttribute", "List", execution = MofType::ownedRedefiningAttribute) { typeArgument("MofProperty") }
                 propertyOf(setOf(VAL), "superTypes", "Set", execution = MofType::superTypes) { typeArgument("MofType") }
                 propertyOf(setOf(VAL), "allSuperTypes", "Set", execution = MofType::allSuperTypes) { typeArgument("MofType") }
@@ -97,20 +97,18 @@ object SimpleMof {
                     parameter(setOf(REF, VAL), "parentPackage", "MofPackage", true, propertyExecution = MofClass::parentPackage) {}
                 }
 
-                propertyOf(setOf(DER), "allNormalisedAttribute", "List", execution = MofClass::allNormalisedAttribute) {
+                propertyOf(setOf(DER), "allNormalisedOwnedAttribute", "List", execution = MofClass::allNormalisedOwnedAttribute) {
                     typeArgument("MofClassAttributeImplInfo")
                 }
                 propertyOf(setOf(DER), "bridgingAttributes", "Set", execution = MofClass::bridgingAttributes) {
                     typeArgument("MofAttributeBridging")
                 }
-                propertyOf(setOf(DER), "allNormalisedAttribute2", "Map", execution = MofClass::allNormalisedAttribute2) {
-                    typeArgument("MofClass")
-                    typeArgument("List") {
-                        typeArgument("MofProperty")
-                    }
+                propertyOf(setOf(DER), "allNormalisedAssociationOwnedAttribute", "List", execution = MofClass::allNormalisedAssociationOwnedAttribute) {
+                    typeArgument("MofClassAttributeImplInfo")
                 }
                 propertyOf(setOf(DER), "allCompositeAttribute", "List", execution = MofClass::allCompositeAttribute) { typeArgument("MofProperty") }
                 propertyOf(setOf(DER), "allReferenceAttribute", "List", execution = MofClass::allReferenceAttribute) { typeArgument("MofProperty") }
+                propertyOf(setOf(DER), "allAssociationOwnedAttribute", "Set", execution = MofClass::allAssociationOwnedAttribute) { typeArgument("MofProperty") }
 
             }
             data("MofClassAttributeImplInfo") {
