@@ -81,7 +81,7 @@ format PackageFactoryFile {
     }
 
     MofClass -> "
-      override fun ${validName}_construct(identity:Any) = ${validName}Ram(this, identity).also{ this[${validName}::class, identity] = it }
+      override fun ${validName}_construct(identity:Any): ${validName} = ${validName}Ram(this, identity).also{ this[${validName}::class, identity] = it }
     "
 }
 

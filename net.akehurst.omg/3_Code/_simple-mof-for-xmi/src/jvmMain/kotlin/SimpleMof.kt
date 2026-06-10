@@ -100,11 +100,14 @@ object SimpleMof {
                 propertyOf(setOf(DER), "allNormalisedOwnedAttribute", "List", execution = MofClass::allNormalisedOwnedAttribute) {
                     typeArgument("MofClassAttributeImplInfo")
                 }
-                propertyOf(setOf(DER), "bridgingAttributes", "Set", execution = MofClass::bridgingAttributes) {
+                propertyOf(setOf(DER), "bridgingOwnedAttributes", "Set", execution = MofClass::bridgingOwnedAttributes) {
                     typeArgument("MofAttributeBridging")
                 }
                 propertyOf(setOf(DER), "allNormalisedAssociationOwnedAttribute", "List", execution = MofClass::allNormalisedAssociationOwnedAttribute) {
                     typeArgument("MofClassAttributeImplInfo")
+                }
+                propertyOf(setOf(DER), "bridgingAssociationOwnedAttributes", "Set", execution = MofClass::bridgingAssociationOwnedAttributes) {
+                    typeArgument("MofAttributeBridging")
                 }
                 propertyOf(setOf(DER), "allCompositeAttribute", "List", execution = MofClass::allCompositeAttribute) { typeArgument("MofProperty") }
                 propertyOf(setOf(DER), "allReferenceAttribute", "List", execution = MofClass::allReferenceAttribute) { typeArgument("MofProperty") }

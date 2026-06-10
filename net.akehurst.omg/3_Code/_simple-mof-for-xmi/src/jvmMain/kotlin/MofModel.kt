@@ -18,6 +18,7 @@ package net.akehurst.omg._simple_mof_for_xmi
 
 import net.akehurst.language.collections.transitiveClosure
 import net.akehurst.omg._simple_mof_for_xmi.MofClass.Companion.isSubtypeOf
+import std.extensions.decapitalise
 import kotlin.collections.plus
 import kotlin.collections.toSet
 
@@ -146,9 +147,10 @@ data class MofPackage(
     val packageImport: Set<MofPackage> by lazy {
         val frmInterfaceSupers = interfaces.flatMap { intf -> intf.superTypes.mapNotNull { it.parentPackage } }.toSet()
         val frmInterfaceAttrs = interfaces.flatMap { intf -> intf.allOwnedAttributes.mapNotNull { attr -> attr.type.parentPackage } }.toSet()
-        val frmClsSupers = classes.flatMap { intf -> intf.superTypes.mapNotNull { it.parentPackage } }.toSet()
-        val frmClsAttrs = classes.flatMap { intf -> intf.allOwnedAttributes.mapNotNull { attr -> attr.type.parentPackage } }.toSet()
-        val imports = (frmInterfaceSupers + frmInterfaceAttrs + frmClsSupers + frmClsAttrs) - this
+        val frmClsSupers = classes.flatMap { cls -> cls.superTypes.mapNotNull { it.parentPackage } }.toSet()
+        val frmClsOwnedAttrs = classes.flatMap { cls -> cls.allOwnedAttributes.mapNotNull { attr -> attr.type.parentPackage } }.toSet()
+        val frmAssOwnedAttrs = classes.flatMap { cls -> cls.allAssociationOwnedAttribute.mapNotNull { attr -> attr.type.parentPackage } }.toSet()
+        val imports = (frmInterfaceSupers + frmInterfaceAttrs + frmClsSupers + frmClsOwnedAttrs + frmAssOwnedAttrs).toSet() - this
         imports.filterNot { pkg -> (model.generateParameters["EXCLUDE_PACKAGE"] as? List<String>)?.let { it.contains(pkg.qualifiedName) } ?: false }.toSet()
     }
 
@@ -216,7 +218,7 @@ interface MofType {
     var parentPackage: MofPackage?
 
     val ownedAttribute: List<MofProperty>
-    val associationOwnedAttribute: List<MofProperty>
+    val associationOwnedAttribute: Set<MofProperty>
 
     // -- derived --
     val validName: String
@@ -251,7 +253,7 @@ class MofEnum(
     override var parentPackage: MofPackage? = null
     var comment: String? = null
     override val ownedAttribute: List<MofProperty> = emptyList()
-    override val associationOwnedAttribute: List<MofProperty> = emptyList()
+    override val associationOwnedAttribute: Set<MofProperty> = emptySet()
 
     // --- derived ---
     override val validName: String by lazy { kotlinValidName(name) }
@@ -373,6 +375,34 @@ abstract class MofAbstractType() : MofType {
         }
     }
 
+    val bridgingOwnedAttributes: Set<MofAttributeBridging> by lazy {
+        val byName = mutableMapOf<String, MofAttributeBridging>()
+        allNormalisedOwnedAttribute.forEach { (cls, props) ->
+            props.forEach { p ->
+                p.bridges.forEach { (n, o) ->
+                    if (byName.containsKey(o.validName)) {
+                        byName[o.validName]!!.redefinedBy.add(n)
+                    } else {
+                        byName[o.validName] = MofAttributeBridging(o).also {
+                            it.redefinedBy.add(n)
+                        }
+                    }
+                }
+            }
+        }
+        byName.values.toSet()
+    }
+
+    val allNormalisedAttributeFlat: Set<MofProperty> by lazy {
+        allNormalisedOwnedAttribute.flatMap { c -> c.attributes.map { r -> r.attribute } }.toSet()
+    }
+
+    override val associationOwnedAttribute: MutableSet<MofProperty> = mutableSetOf()
+
+    val allAssociationOwnedAttribute by lazy {
+        (allSuperTypes.flatMap { it.associationOwnedAttribute } + associationOwnedAttribute).toSet()
+    }
+
     override val allNormalisedAssociationOwnedAttribute: List<MofClassAttributeImplInfo> by lazy {
         // 2. Recursively get the normalized properties from all superclasses
         val inheritedProperties = superTypes.flatMap { st -> st.allNormalisedAssociationOwnedAttribute.flatMap { c -> c.attributes.map { r -> r.attribute } } }.toSet()
@@ -435,9 +465,9 @@ abstract class MofAbstractType() : MofType {
         }
     }
 
-    val bridgingAttributes: Set<MofAttributeBridging> by lazy {
+    val bridgingAssociationOwnedAttributes: Set<MofAttributeBridging> by lazy {
         val byName = mutableMapOf<String, MofAttributeBridging>()
-        allNormalisedOwnedAttribute.forEach { (cls, props) ->
+        allNormalisedAssociationOwnedAttribute.forEach { (cls, props) ->
             props.forEach { p ->
                 p.bridges.forEach { (n, o) ->
                     if (byName.containsKey(o.validName)) {
@@ -451,16 +481,6 @@ abstract class MofAbstractType() : MofType {
             }
         }
         byName.values.toSet()
-    }
-
-    val allNormalisedAttributeFlat: Set<MofProperty> by lazy {
-        allNormalisedOwnedAttribute.flatMap { c -> c.attributes.map { r -> r.attribute } }.toSet()
-    }
-
-    override val associationOwnedAttribute: MutableList<MofProperty> = mutableListOf()
-
-    val allAssociationOwnedAttribute by lazy {
-        (allSuperTypes.flatMap { it.associationOwnedAttribute } + associationOwnedAttribute).toSet()
     }
 }
 
@@ -537,7 +557,7 @@ class ExternalReferenceClass(
 
 class MofProperty(
     val model: MofModel,
-    val name: String,
+    val nameInXmi: String,
     val xmiId: String,
 ) {
     var parentClass: MofClass? = null
@@ -557,8 +577,13 @@ class MofProperty(
     val redefinedPropertyRef: Set<String> = mutableSetOf()
     val subsettedPropertyRef: Set<String> = mutableSetOf()
     var opposite: MofProperty? = null
+    var association:MofAssociation? = null
 
     // --- derived ---
+    val name: String get() = when {
+        isAssociationOwned -> association!!.name!!+"_"+nameInXmi.ifBlank { type.name.decapitalise }
+        else -> nameInXmi.ifBlank { type.name.decapitalise }
+    }
     val attrName by lazy {
         when {
             (1 == upperBound) -> name
@@ -630,7 +655,7 @@ class MofProperty(
         get() = parentClass?.allSuperTypes?.any { sc ->
             sc.allOwnedAttributes.any { it.validName == this.validName }
         } ?: false
-
+    val hasOpposite:Boolean get() = opposite != null
     val isNameRedefined get() = allRedefinedProperty.any { it.name != this.name }
     val isTypeRedefined get() = allRedefinedProperty.any { it.type != this.type }
     val isValidNameRedefined get() = allRedefinedProperty.any { it.validName != this.validName }
@@ -675,6 +700,8 @@ class MofProperty(
     }
 
     val isSubsetting get() = subsettedPropertyRef.isNotEmpty()
+
+    /** properties that this property subsets */
     val subsettedProperty: Set<MofProperty> by lazy {
         subsettedPropertyRef.map {
             model.findPropertyById(it) ?: error("Cannot find subsettedPropertyRef '$it' in '$qualifiedName'")
@@ -682,6 +709,7 @@ class MofProperty(
     }
 
     val isSubsetted get() = subsettingProperty.isNotEmpty()
+    /** properties that subset this property */
     val subsettingProperty: Set<MofProperty> by lazy {
         parentClass!!.allOwnedAttributes.filter { it.subsettedProperty.contains(this) }.toSet() +
                 parentClass!!.allAssociationOwnedAttribute.filter { it.subsettedProperty.contains(this) }.toSet()

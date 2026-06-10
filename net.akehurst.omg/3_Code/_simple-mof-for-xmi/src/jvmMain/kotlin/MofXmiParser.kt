@@ -307,6 +307,7 @@ class MofXmiParser(
             val attr = parseProperty(ownedEndElement, null, mofAssociation.xmiId)
             setRef(attr.xmiId, attr) // Ensure property is also in the global map
             attr.isAssociationOwned = true
+            attr.association = mofAssociation
             memberEnds.add(attr)
         }
         // Process 'memberEnd' which are references to properties defined elsewhere (typically on classes)
@@ -316,6 +317,7 @@ class MofXmiParser(
                 if (referencedProperty != null && !memberEnds.any { it.xmiId == referencedProperty.xmiId }) {
                     // Ensure it's correctly marked with its association
                     referencedProperty.associationXmiId = referencedProperty.associationXmiId ?: mofAssociation.xmiId
+                    referencedProperty.association = mofAssociation
                     memberEnds.add(referencedProperty)
                     // Update the original property in the class's attribute list if necessary
                     // val ownerClass = referencedProperty.parentClass
@@ -421,7 +423,7 @@ class MofXmiParser(
         }
         val prop = MofProperty(
             model,
-            name = name,
+            nameInXmi = name,
             xmiId = xmiId
         ).also { self ->
             self.typeXmiId = typeXmiId

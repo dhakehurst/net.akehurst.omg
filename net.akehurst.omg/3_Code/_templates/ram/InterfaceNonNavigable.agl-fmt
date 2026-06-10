@@ -18,10 +18,6 @@ namespace net.akehurst.omg.mof.gen.template
 
 import net.akehurst.omg.mof.gen.simple
 
-format PackageImport {
-    MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.*"
-}
-
 format UmlPropertySyntax {
     MofProperty -> {
         agg := when {
@@ -43,7 +39,7 @@ format UmlPropertySyntax {
           isSubsetting -> ', subsets ' + subsettedProperty.map({it -> it.parentClass.name +'.'+ it.name}).join
           else -> ''
         }
-        "$name: ${type.name} [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}] {$agg$cons$redef$subs}"
+        "$name: ${type.name} [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}] {$agg$cons$redef$subs}  xmi:id=\"$xmiId\""
     }
 }
 
@@ -83,8 +79,12 @@ format PropertyAccessors {
     }
 }
 
-format ApiPackageFile {
-    #output: 'MofPackage -> "api/$qualifiedPath/${name}_Types.kt"'
+format PackageImport {
+    MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.*"
+}
+
+format InterfaceNonNavigablePackage {
+    #output: 'MofPackage -> "ram/$qualifiedPath/${name}_TypesNonNavigable.kt"'
 
     MofModel -> "
         ${packageList.filter({it -> false == it.isEmpty})}
@@ -103,67 +103,22 @@ format ApiPackageFile {
             import net.akehurst.kotlinx.utils.Value
             $[allImport sep $EOL via PackageImport]
 
-            $[enums sep $EOL]
-            $[interfaces sep $EOL]
-            $[classes sep $EOL]
-        "
-    }
-
-    MofEnum -> "
-        /**
-         * xmi:id=\"$xmiId\"
-         * $comment
-         */
-        enum class ${validName} { }
-    "
-    MofInterface -> {
-        supTypes := when {
-          superTypes.isEmpty -> ''
-          else -> " : $[superTypes.map({it -> it.validName}) sep ',']"
-        }
-        id := when {
-          superTypes.isEmpty -> "
-              val _factory: HierarchicalFactory
-              val _identity: Any
-          "
-          else -> ''
-        }
-        "
-          /**
-           * xmi:id=\"$xmiId\"
-           * $comment
-           */
-          interface ${validName}$supTypes {
-             $id
-             $[ownedAttribute sep $EOL via PropertyAccessors]
-          }
+            $[classes.filter({it -> false==it.isPrimitive}) sep $EOL]
         "
     }
     MofClass -> {
         supTypes := when {
           superTypes.isEmpty -> ''
-          else -> " : $[superTypes.map({it -> it.validName}) sep ',']"
-        }
-        id := when {
-          superTypes.isEmpty -> "
-              val _factory: HierarchicalFactory
-              val _identity: Any
-          "
-          else -> ''
-        }
-        abs := when {
-          isAbstract -> 'abstract'
-          else -> ''
+          else -> ", $[superTypes.map({it -> "${it.validName}_NN"}) sep ',']"
         }
         "
           /**
            * xmi:id=\"$xmiId\"
-           * $comment
-           * ${abs}
+           * an interface containing the non-navigable association ends (properties)
+           * required so that opposite ends of associations can be set
            */
-          interface ${validName}$supTypes {
-             $id
-             $[ownedAttribute sep $EOL via PropertyAccessors]
+          internal interface ${validName}_NN: ${validName}$supTypes {
+             $[associationOwnedAttribute sep $EOL via PropertyAccessors]
           }
         "
     }
