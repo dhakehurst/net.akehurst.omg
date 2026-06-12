@@ -20,9 +20,9 @@ tasks.named<generator.GenerateTask>("generate") {
 //    sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/SysML_2-0_ptc-25-02-15.xmi"))
     // original xmi does not specify aggregations!
     sourceXmiPaths = listOf(
-        layout.projectDirectory.file("../specs/sysml_patched.xmi"),
+        layout.projectDirectory.file("../../../uml/v2_5_1/specs/UML_2-5-1_PT_ptc-18-01-02.xmi"), // for primitive types
         layout.projectDirectory.file("../../../kerml/v1_0/specs/kerml_patched.xmi"),
-        layout.projectDirectory.file("../../../uml/v2_5_1/specs/UML_2-5-1_PT_ptc-18-01-02.xmi") // for primitive types
+        layout.projectDirectory.file("../specs/sysml_patched.xmi"),
     )
     generateDir.set(layout.projectDirectory.dir("../../../_templates/api"))
     parameters = mapOf(

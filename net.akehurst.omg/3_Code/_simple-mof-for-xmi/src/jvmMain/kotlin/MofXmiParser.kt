@@ -302,7 +302,7 @@ class MofXmiParser(
         // Process 'ownedEnd' which are full property definitions
         getChildrenByTagName(associationElement, "ownedEnd").forEach { ownedEndElement ->
             // The parent class for an ownedEnd of an association is conceptually the type of the *other* end.
-            // This is complex to resolve directly here. For now, parentClass on MofProperty for association ends might be null
+            // This is complex to resolve directly here. For now, parentType on MofProperty for association ends might be null
             // or determined in a later linking step.
             val attr = parseProperty(ownedEndElement, null, mofAssociation.xmiId)
             setRef(attr.xmiId, attr) // Ensure property is also in the global map
@@ -320,8 +320,10 @@ class MofXmiParser(
                     referencedProperty.association = mofAssociation
                     memberEnds.add(referencedProperty)
                     // Update the original property in the class's attribute list if necessary
-                    // val ownerClass = referencedProperty.parentClass
+                    // val ownerClass = referencedProperty.parentType
                     // ownerClass?.attributes?.replaceAll { if (it.xmiId == updatedRefProperty.xmiId) updatedRefProperty else it }
+                } else {
+                    // memberEnd already added
                 }
             }
         }
@@ -334,13 +336,15 @@ class MofXmiParser(
                 referencedProperty.associationXmiId = referencedProperty.associationXmiId ?: mofAssociation.xmiId
                 memberEnds.add(referencedProperty)
                 // Update the original property in the class's attribute list if necessary
-                // val ownerClass = referencedProperty.parentClass
+                // val ownerClass = referencedProperty.parentType
                 // ownerClass?.attributes?.replaceAll { if (it.xmiId == updatedRefProperty.xmiId) updatedRefProperty else it }
+            } else {
+                // memberEnd already added
             }
         }
         mofAssociation.memberEnds = memberEnds.distinctBy { it.xmiId }
 
-        // set the parentClass of memberEnds if not set
+        // set the parentType of memberEnds if not set
         // ends 'owned' by the association are not navigable - so do not imply a property on the otherEnd class
         memberEnds.forEach { end ->
             val otherEnd = memberEnds.firstOrNull { it.xmiId != end.xmiId }
@@ -350,15 +354,22 @@ class MofXmiParser(
                     error("Error, there must be an 'other' end for an association. end=$end, memberEnds = $memberEnds")
                 }
 
-                null == end.parentClass -> {
-                    end.parentClass = otherEnd.typeXmiId?.let {  getRef(it) as? MofClass }
-                        ?: otherEnd.typeHref?.let { ExternalReferenceClass(model, it, it.substringAfter("#")) }
-                    end.parentClass!!.associationOwnedAttribute.add(end)
+                null == end.parentType -> {
+                    val pt = otherEnd.typeXmiId?.let {  model.findTypeById(it) }
+                        ?: otherEnd.typeHref?.let {  model.findTypeById(it) }
+                    when(pt) {
+                        is MofClass -> {
+                            end.parentType = pt
+                            pt.associationOwnedAttribute.add(end)
+                        }
+                        else -> error("Error finding class for '${otherEnd.typeXmiId ?: otherEnd.typeHref}', not foud or its not a class.")
+                    }
+
                 }
                 else -> {
                     val otherClass = getRef(otherEnd.typeXmiId!!) as MofClass
 
-                    check(end.parentClass == otherClass) { "parentClass is wrong" }
+                    check(end.parentType == otherClass) { "parentType is wrong" }
                 }
             }
 
@@ -481,7 +492,7 @@ class MofXmiParser(
             parameters = params,
             returnParameter = returnParam
         )
-        op.parentClass = ownerClass
+        op.parentType = ownerClass
         setRef(xmiId, op) // Register op
         return op
     }

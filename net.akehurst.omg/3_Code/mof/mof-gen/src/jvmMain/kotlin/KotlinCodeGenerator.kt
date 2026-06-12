@@ -85,15 +85,15 @@ class KotlinCodeGenerator(private val model: MofModel) {
                 // If this property is an end of an association and its type is NOT this class,
                 // AND (it's an ownedAttribute of this class OR the other end is this class and this end is navigable)
                 // This logic is complex. For simplicity, we assume properties are already in cls.attributes if they belong there.
-                // A more robust way is to check if prop.parentClass points to 'cls'.
+                // A more robust way is to check if prop.parentType points to 'cls'.
                 // Or, if prop is an ownedEnd of 'assoc', and its 'type' is cls.name, then the *other* end of 'assoc' might be a property on cls.
                 // The current parser puts ownedAttributes into cls.attributes.
-                // For ownedEnds of associations, they are parsed as MofProperty but their .parentClass might be null.
+                // For ownedEnds of associations, they are parsed as MofProperty but their .parentType might be null.
                 // We need to decide on which class to generate the property for an association's ownedEnd.
                 // Typically, an ownedEnd implies navigability from the class at the *other* end of the association.
-                // Let's assume for now that if a MofProperty has an associationXmiId and its parentClass is this cls, it's already handled.
-                // If its parentClass is null but it's an ownedEnd of an association, we need to determine its "effective" owner for generation.
-                if (prop.parentClass == null && prop.associationXmiId == assoc.xmiId) {
+                // Let's assume for now that if a MofProperty has an associationXmiId and its parentType is this cls, it's already handled.
+                // If its parentType is null but it's an ownedEnd of an association, we need to determine its "effective" owner for generation.
+                if (prop.parentType == null && prop.associationXmiId == assoc.xmiId) {
                     // This is an ownedEnd of an association. Determine if it should be on this class.
                     // This usually means the *other* end of the association points to this class.
                     // For example, if A_element_tag has ownedEnd 'tag' of type 'Tag', and memberEnd 'element' of type 'Element',
@@ -173,7 +173,7 @@ class KotlinCodeGenerator(private val model: MofModel) {
         if (prop.isDerived) {
             // Derived properties in interfaces are just declared. In classes, they need a getter.
             // For simplicity, if it's a class and derived, we'll make it abstract or provide a TODO getter.
-            if (prop.parentClass?.isAbstract == false) {
+            if (prop.parentType?.isAbstract == false) {
                 propertyString = "    $visibility $mutability $propName: $finalTypeName$comment\n        get() = TODO(\"Derived property ${prop.name}\")\n"
             }
         }
@@ -196,7 +196,7 @@ class KotlinCodeGenerator(private val model: MofModel) {
         val comment = " // XMI ID: ${op.xmiId}"
 
         var signature = "    $visibility fun $funName($paramsString): $returnTypeString$comment"
-        if (op.parentClass?.isAbstract == true || op.isQuery && op.parentClass?.isAbstract == false) { // Abstract methods in interfaces, or query methods in open classes
+        if (op.parentType?.isAbstract == true || op.isQuery && op.parentType?.isAbstract == false) { // Abstract methods in interfaces, or query methods in open classes
             return "$signature\n\n" // No body for abstract/interface methods
         } else {
             return "$signature {\n        TODO(\"Implement $funName\")\n    }\n\n"

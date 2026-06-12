@@ -16,6 +16,7 @@
 
 package net.akehurst.omg._simple_mof_for_xmi
 
+import net.akehurst.kotlinx.utils.cast
 import net.akehurst.language.types.builder.typesDomain
 
 object SimpleMof {
@@ -113,6 +114,9 @@ object SimpleMof {
                 propertyOf(setOf(DER), "allReferenceAttribute", "List", execution = MofClass::allReferenceAttribute) { typeArgument("MofProperty") }
                 propertyOf(setOf(DER), "allAssociationOwnedAttribute", "Set", execution = MofClass::allAssociationOwnedAttribute) { typeArgument("MofProperty") }
 
+                propertyOf(setOf(DER), "allNormalisedAttribute", "List", execution = MofClass::allNormalisedAttribute) { typeArgument("MofClassAttributeImplInfo") }
+                propertyOf(setOf(DER), "bridgingAttributes", "Set", execution = MofClass::bridgingAttributes) { typeArgument("MofAttributeBridging") }
+
             }
             data("MofClassAttributeImplInfo") {
                 constructor_ {
@@ -156,6 +160,14 @@ object SimpleMof {
                 propertyOf(setOf(DER), "allRedefinedProperty", "Set", execution = MofProperty::allRedefinedProperty) { typeArgument("MofProperty") }
                 propertyOf(setOf(DER), "subsettingProperty", "Set", execution = MofProperty::subsettingProperty) { typeArgument("MofProperty") }
                 propertyOf(setOf(DER), "subsettedProperty", "Set", execution = MofProperty::subsettedProperty) { typeArgument("MofProperty") }
+                methodPrimitive("validSubset", "Boolean", false) {
+                    parameter("other", "MofProperty")
+                    execution { self, args ->  self.cast<MofProperty>().validSubset(args[0]!!.cast<MofProperty>())}
+                }
+                methodPrimitive("invalidSubset", "Boolean", false) {
+                    parameter("other", "MofProperty")
+                    execution { self, args ->  self.cast<MofProperty>().invalidSubset(args[0]!!.cast<MofProperty>())}
+                }
             }
             data("MofOperation", implementation = MofOperation::class) {
                 constructor_ {

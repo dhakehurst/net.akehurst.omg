@@ -20,6 +20,7 @@ import net.akehurst.language.agl.Agl
 import net.akehurst.language.agl.expressions.processor.ObjectGraphAccessorMutatorByReflection
 import net.akehurst.language.agl.processor.FormatOptionsDefault
 import net.akehurst.language.agl.processor.FormatResultDefault
+import net.akehurst.language.agl.syntaxAnalyser.LocationMapDefault
 import net.akehurst.language.api.processor.FormatString
 import net.akehurst.language.issues.api.LanguageProcessorPhase
 import net.akehurst.language.issues.ram.IssueHolder
@@ -33,12 +34,15 @@ class GeneratorFromTemplate(
     private val templateString: String,
     private val types: TypesDomain,
 ) {
-    val issues = IssueHolder(LanguageProcessorPhase.FORMAT)
-    val template = Agl.formatDomain(FormatString(templateString), types).let {
+    private val _issues = IssueHolder(LanguageProcessorPhase.FORMAT)
+    private val _formatResult = Agl.formatDomain(FormatString(templateString), types).let {
         check(it.allIssues.errors.isEmpty()) { it.allIssues.toString() }
-        it.asm ?: error("Should not be null")
+        it
     }
-    val objectGraph = ObjectGraphAccessorMutatorByReflection(types, issues)
+    private val _template = _formatResult.asm ?: error("Should not be null")
+    private val _locationMap = _formatResult.syntaxAnalysis?.locationMap ?: LocationMapDefault()
+
+    val objectGraph = ObjectGraphAccessorMutatorByReflection(types, _issues,_locationMap)
 
     fun generateToFiles(model: MofModel, parameters: Map<String, Any>, outputDir: File) {
         if (!outputDir.exists()) outputDir.mkdirs()
@@ -62,8 +66,8 @@ class GeneratorFromTemplate(
         model.generateParameters = parameters
         val self = objectGraph.toTypedObject(model, StdLibDefault.NothingType)
         val typedParams = parameters.map { (k, v) -> Pair(k, objectGraph.toTypedObject(v, StdLibDefault.AnyType)) }.toMap()
-        val options = FormatOptionsDefault(environment = typedParams)
-        val result = Agl.format(template, objectGraph, self, options)
+        val options = FormatOptionsDefault(environment = typedParams, locationMap = _locationMap)
+        val result = Agl.format(_template, objectGraph, self, options)
         check(result.issues.errors.isEmpty()) { result.issues.toString() }
         return result.output
     }

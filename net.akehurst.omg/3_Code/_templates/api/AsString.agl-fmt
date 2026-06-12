@@ -34,7 +34,7 @@ format AbstractAsStringFun {
 format AppendPropertyComposite {
   MofProperty -> {
       asStr := when {
-        type.parentPackage == parentClass.parentPackage -> 'this'
+        type.parentPackage == parentType.parentPackage -> 'this'
         else -> "rootAsString.${type.parentPackage.qualifiedName}"
       }
       when {

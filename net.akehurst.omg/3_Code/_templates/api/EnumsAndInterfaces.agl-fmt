@@ -24,10 +24,7 @@ format PackageImport {
 
 format UmlPropertySyntax {
     MofProperty -> {
-        agg := when {
-          isComposite -> 'composite '
-          else -> 'reference '
-        }
+        agg := isComposite ? 'composite ' : 'reference '
         cons := when {
             (false == isUnique) and (false == isOrdered) -> ''
             (true == isUnique) and (false == isOrdered) -> 'unique '
@@ -35,39 +32,24 @@ format UmlPropertySyntax {
             (true == isUnique) and (true == isOrdered) -> 'ordered unique '
             else -> '{ERROR}'
         }
-        redef := when {
-          isRedefining -> ', redefines ' + redefinedProperty.map({it -> it.parentClass.name +'.'+ it.name}).join
-          else -> ''
-        }
-        subs := when {
-          isSubsetting -> ', subsets ' + subsettedProperty.map({it -> it.parentClass.name +'.'+ it.name}).join
-          else -> ''
-        }
-        "$name: ${type.name} [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}] {$agg$cons$redef$subs}"
+        redef := isRedefining? ', redefines ' + redefinedProperty.map({it -> it.parentType.name +'.'+ it.name}).join : ''
+        subs := isSubsetting ? ', subsets ' + subsettedProperty.map({it -> it.parentType.name +'.'+ it.name}).join : ''
+        opp := $nothing == opposite ? '' : 'opposite '+ opposite.parentType.name+'.' + opposite.name
+        "${parentType.name}.$name: ${type.name} [$lowerBound..${when{ (-1==upperBound) -> '*' else -> upperBound}}] {$agg$cons$redef$subs} $opp"
     }
 }
 
 format PropertyAccessors {
     // Always use 'val' for properties so that subclasses can override with a subtype
     MofProperty -> {
-        ovr := when {
-          isOverride ->  'override '
-          else -> ''
-        }
-        opp := when {
-          $nothing == opposite -> ''
-          else -> ' opposite '+ opposite.parentClass.name+'.' + opposite.name
-        }
+        ovr := isOverride ? 'override ' : ''
         mutatableAccessor := when {
             isSingle -> when {
               isComposite -> "${ovr}val ${validName}Value: Value<${validTypeNameNotNullable}?>"
               isReference -> "${ovr}val ${validName}Reference: Reference<Any,$validTypeNameNotNullable>"
               else -> ''
             }
-            isCollection -> when {
-              isReference -> "${ovr}val ${validName}Reference: $colTypeName<Reference<Any,${type.validName}>>"
-              else -> ''
-            }
+            isCollection -> isReference ? "${ovr}val ${validName}Reference: $colTypeName<Reference<Any,${type.validName}>>" : ''
             else -> 'ERROR'
         }
         "
@@ -75,7 +57,6 @@ format PropertyAccessors {
            * xmi:id=\"$xmiId\"
            * $comment
            * ${$self via UmlPropertySyntax}
-           * $opp
            */
           ${ovr}val ${validName}: $validTypeName
           ${mutatableAccessor}
@@ -86,9 +67,7 @@ format PropertyAccessors {
 format ApiPackageFile {
     #output: 'MofPackage -> "api/$qualifiedPath/${name}_Types.kt"'
 
-    MofModel -> "
-        ${packageList.filter({it -> false == it.isEmpty})}
-    "
+    MofModel -> "${packageList.filter({it -> false == it.isEmpty})}"
     MofPackage -> when {
         EXCLUDE_PACKAGE.contains(qualifiedName) -> ''
         else -> "
@@ -117,17 +96,11 @@ format ApiPackageFile {
         enum class ${validName} { }
     "
     MofInterface -> {
-        supTypes := when {
-          superTypes.isEmpty -> ''
-          else -> " : $[superTypes.map({it -> it.validName}) sep ',']"
-        }
-        id := when {
-          superTypes.isEmpty -> "
+        supTypes :=  superTypes.isEmpty ? '' : " : $[superTypes.map({it -> it.validName}) sep ',']"
+        id := superTypes.isEmpty ? "
               val _factory: HierarchicalFactory
               val _identity: Any
-          "
-          else -> ''
-        }
+          " : ''
         "
           /**
            * xmi:id=\"$xmiId\"
