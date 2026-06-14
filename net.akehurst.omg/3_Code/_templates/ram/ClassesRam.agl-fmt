@@ -623,7 +623,7 @@ format PropertyGetterColRef {
             else -> ''
         }
         impl := "
-            = Managed${colTypeName}(
+            = ManagedReference${colTypeName}(
                 \"${parentType.validName}.${validName}\",${type.validName}::class,
                  $onAdded
                  $onRemoved
@@ -705,16 +705,10 @@ format RamPackageFile {
         import ${TARGET_PACKAGE}.api.${parentPackage.qualifiedName}.${parentPackage.validName}_PackageFactory
 
         internal data class ${validName}Ram(override val _factory: ${parentPackage.validName}_PackageFactory, override val _identity:Any) : ${validName}_NN {
-            $[allNormalisedOwnedAttribute sep $EOL via PropertyGetter]
+            $[allNormalisedAttribute sep $EOL via PropertyGetter]
 
             // --- Redefined Properties ---
-            $[bridgingOwnedAttributes sep $EOL via PropertyBridge]
-
-            // --- Association owned (non-navigable) ends
-            $[allNormalisedAssociationOwnedAttribute sep $EOL via PropertyGetter]
-
-            // --- Association owned Redefined Properties ---
-            $[bridgingAssociationOwnedAttributes sep $EOL via PropertyBridge]
+            $[bridgingAttributes sep $EOL via PropertyBridge]
 
             override fun toString(): String = \"${validName} '\${_identity}'\"
         }

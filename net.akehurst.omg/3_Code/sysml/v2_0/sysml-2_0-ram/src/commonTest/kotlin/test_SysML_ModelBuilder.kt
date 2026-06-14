@@ -91,7 +91,17 @@ class test_SysML_ModelBuilder {
                     ownedMemberOrderedSet {
                         EnumerationDefinition("Enum1") {
                             name("Enum1")
-                            own
+                            ownedAttributeOrderedSet {
+                                EnumerationUsage("RED") {
+                                    name("RED")
+                                }
+                                EnumerationUsage("GREEN") {
+                                    name("GREEN")
+                                }
+                                EnumerationUsage("BLUE") {
+                                    name("BLUE")
+                                }
+                            }
                         }
                     }
                 }
