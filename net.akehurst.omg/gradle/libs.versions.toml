@@ -1,9 +1,9 @@
 [versions]
-project = "2.1.21-SNAPSHOT"
+project = "2.4.0-SNAPSHOT"
 
-kotlin = "2.2.21"
-dokka = "2.1.0"
-buildconfig = "5.7.1"
+kotlin = "2.4.0"
+dokka = "2.2.0"
+buildconfig = "6.1.2"
 kotlinx-serialization = "1.9.0"
 vanniktech = "0.35.0"
 compose = "1.9.3"
@@ -12,8 +12,8 @@ material-icons = "1.7.3"
 korlibs = "6.0.1"
 kotlinx-coroutines = "1.10.1"
 
-nak-kotlinx = "2.2.21-SNAPSHOT"
-nal-agl = "4.2.2.21-SNAPSHOT"
+nak-kotlinx = "2.4.0-SNAPSHOT"
+nal-agl = "4.2.4.0-SNAPSHOT"
 
 [libraries]
 korlibs-korio = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }

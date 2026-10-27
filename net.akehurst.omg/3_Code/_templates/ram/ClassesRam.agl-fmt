@@ -302,11 +302,13 @@ format PropertyGetterSglRef {
                         $self.invalidSubset(it) -> "// FIXME: ERROR in XMI model: ${$self.name} cannot subset ${it.name}"
                         it.isSingle -> when {
                             it.isReference -> "this.${it.validName}Reference.mutable.set(new.reference, new.resolved)"
-                            it.isComposite -> "this.${it.validName}Value.mutable.set(new.resolved$err)"
+                            // the key can be set before it is resolved (that also calls onChanged), so only set once resolved
+                            it.isComposite -> "new.resolved?.let { this.${it.validName}Value.mutable.set(it) }"
                             else -> 'ERROR'
                         }
                         it.isCollection -> when {
-                            it.isReference -> "this.${it.validName}Reference.mutable.add(new)"
+                            // old and new are fixed snapshots: replace the old one, so the superset gets the new key and resolved object
+                            it.isReference -> "this.${it.validName}Reference.mutable.remove(old); if (null != new.reference) this.${it.validName}Reference.mutable.add(new)"
                             it.isComposite -> "new.resolved?.let{ this.${it.validName}.mutable.add(it) }"
                             else -> 'ERROR'
                         }
