@@ -25,7 +25,8 @@ tasks.named<generator.GenerateTask>("generate") {
     generateDir.set(layout.projectDirectory.dir("../../../_templates/api"))
     parameters = mapOf(
         "TARGET_PACKAGE" to "net.akehurst.omg.kerml.v1_0",
-        "COPYRIGHT" to file(layout.projectDirectory.dir("../../../_templates/text/COPYRIGHT.txt")).readText()
+        "COPYRIGHT" to file(layout.projectDirectory.dir("../../../_templates/text/COPYRIGHT.txt")).readText(),
+        "EXCLUDE_PACKAGE" to emptyList<String>()
     )
     referencedTypeMapping = mapOf(
         "String" to "String",
