@@ -624,14 +624,14 @@ format PropertyGetterColRef {
             "
             else -> ''
         }
+        typeName := type.isPrimitive ? type.validName : type.validName+'_NN'
         impl := "
             = ManagedReference${colTypeName}(
-                \"${parentType.validName}.${validName}\",${type.validName}::class,
+                \"${parentType.validName}.${validName}\",${typeName}::class,
                  $onAdded
                  $onRemoved
             )
         "
-        typeName := type.isPrimitive ? type.validName : type.validName+'_NN'
         mutable := "override val ${validName}Reference: ${colTypeName}<Reference<Any, ${typeName}>> $impl"
         accessor := "override val ${validName}: $validTypeName get() = ${validName}Reference.map{it.resolved ?: error(\"In property '${validName}' of object '\${_identity}:${parentType.validName}', reference '\$it' is not resolved.\") }.to${colTypeName}()"
         "
@@ -689,6 +689,10 @@ format RamPackageFile {
         import net.akehurst.kotlinx.collections.ManagedList
         import net.akehurst.kotlinx.collections.ManagedOrderedSet
         import net.akehurst.kotlinx.collections.ManagedSet
+        import net.akehurst.kotlinx.collections.ManagedReferenceCollection
+        import net.akehurst.kotlinx.collections.ManagedReferenceList
+        import net.akehurst.kotlinx.collections.ManagedReferenceSet
+        import net.akehurst.kotlinx.collections.ManagedReferenceOrderedSet
         import net.akehurst.kotlinx.utils.ManagedReference
         import net.akehurst.kotlinx.utils.ManagedValue
         import net.akehurst.kotlinx.utils.Reference
