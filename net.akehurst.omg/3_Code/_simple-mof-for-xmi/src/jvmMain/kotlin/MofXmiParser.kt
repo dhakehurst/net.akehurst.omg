@@ -484,17 +484,30 @@ class MofXmiParser(
             val paramXmiId = paramElement.getAttribute("xmi:id")
             val direction = paramElement.getAttribute("direction").ifEmpty { "in" }
 
-            var paramTypeXmiId: String? = null
+            // the type is a 'type' attribute (UML) or a 'type' child element
+            var paramTypeXmiId: String? = paramElement.getAttribute("type").ifEmpty { null }
             var paramTypeHref: String? = null
             getChildrenByTagName(paramElement, "type").firstOrNull()?.let { typeElem ->
                 paramTypeXmiId = typeElem.getAttribute("xmi:idref").ifEmpty { null }
                 paramTypeHref = typeElem.getAttribute("href").ifEmpty { null }
             }
 
-            val mofParam = MofParameter(model, paramName, paramXmiId, paramTypeXmiId, paramTypeHref, direction)
+            // KerML/SysML mark the result parameter by an empty name instead of direction="return"
+            val dir = if (paramElement.getAttribute("direction").isEmpty() && paramName.isBlank()) "return" else direction
+            val mofParam = MofParameter(model, paramName, paramXmiId, paramTypeXmiId, paramTypeHref, dir).also { mp ->
+                getChildrenByTagName(paramElement, "lowerValue").firstOrNull()?.let { lv ->
+                    mp.lowerBound = lv.getAttribute("value").toIntOrNull() ?: 0
+                }
+                getChildrenByTagName(paramElement, "upperValue").firstOrNull()?.let { uv ->
+                    val v = uv.getAttribute("value")
+                    mp.upperBound = v.toIntOrNull() ?: (if (v == "*") -1 else 1)
+                }
+                paramElement.getAttribute("isOrdered").let { if (it.isNotEmpty()) mp.isOrdered = it.toBoolean() }
+                paramElement.getAttribute("isUnique").let { if (it.isNotEmpty()) mp.isUnique = it.toBoolean() }
+            }
             setRef(paramXmiId, mofParam) // Register param
 
-            if (direction == "return") {
+            if (dir == "return") {
                 returnParam = mofParam
             } else {
                 params.add(mofParam)
@@ -511,6 +524,13 @@ class MofXmiParser(
             returnParameter = returnParam
         )
         op.parentType = ownerClass
+        // the body: KerML/SysML have a bodyCondition child; UML has a bodyCondition attribute naming an ownedRule
+        val bodyRef = operationElement.getAttribute("bodyCondition")
+        op.bodyCondition = getChildrenByTagName(operationElement, "bodyCondition").firstOrNull()?.let { parseConstraint(it) }
+            ?: getChildrenByTagName(operationElement, "ownedRule").firstOrNull { it.getAttribute("xmi:id") == bodyRef && bodyRef.isNotEmpty() }?.let { parseConstraint(it) }
+        getChildrenByTagName(operationElement, "redefinedOperation").forEach { r ->
+            r.getAttribute("xmi:idref").ifBlank { r.getAttribute("href").substringAfter("#") }.takeIf { it.isNotBlank() }?.let { op.redefinedOperationRef.add(it) }
+        }
         setRef(xmiId, op) // Register op
         return op
     }

@@ -947,6 +947,94 @@ class MofOperation(
     // Helper to get the parent class
     var parentType: MofClass? = null
 
+    /** the OCL body condition, if any */
+    var bodyCondition: MofConstraint? = null
+    val redefinedOperationRef: MutableSet<String> = mutableSetOf()
+
+    // --- derived ---
+    /**
+     * A parameterless operation must not have the JVM name of a property getter (e.g. getName() and property 'name'),
+     * so such an operation gets a trailing '_'.
+     */
+    val validName: String by lazy {
+        val n = kotlinValidName(name)
+        val getterNames = model.allClasses.flatMap { it.attribute }.map { p ->
+            val v = p.validName
+            if (v.startsWith("is") && v.length > 2 && v[2].isUpperCase()) v else "get" + v.replaceFirstChar { it.uppercase() }
+        }.toSet()
+        if (parameters.isEmpty() && n in getterNames) "${n}_" else n
+    }
+
+    /** the OCL expression of the body: the body condition without a leading 'result =' */
+    val bodyOcl: String? by lazy {
+        bodyCondition?.body?.let { b -> Regex("^\\s*result\\s*=\\s*(.*)$", RegexOption.DOT_MATCHES_ALL).find(b)?.groupValues?.get(1) ?: b }?.trim()
+    }
+
+    /** generated when it has a body, or is a query (then possibly as a TODO) */
+    val isGenerated: Boolean get() = null != bodyCondition || isQuery
+
+    /** the operation of a supertype that this one overrides in Kotlin, if any */
+    val overridden: MofOperation? by lazy {
+        parentType?.allSuperTypes?.firstNotNullOfOrNull { st -> (st as? MofAbstractType)?.operations?.firstOrNull { it.isGenerated && it.signature == signature } }
+    }
+
+    /**
+     * The collection kind of the result. Kotlin needs an override to return a subtype, so when the XMI gives a
+     * kind that is not a subtype of the overridden one (e.g. Set for OrderedSet), the overridden kind is used.
+     */
+    val resultColTypeName: String by lazy {
+        val own = returnParameter?.colTypeName ?: "Collection"
+        val sup = overridden?.resultColTypeName
+        val subtypeOf = mapOf(
+            "OrderedSet" to setOf("OrderedSet", "Set", "Collection"), "Set" to setOf("Set", "Collection"),
+            "List" to setOf("List", "Collection"), "Collection" to setOf("Collection")
+        )
+        if (null == sup || subtypeOf[own]!!.contains(sup)) own else sup
+    }
+
+    /** Kotlin needs an override to keep a non-null result non-null, so the result is optional only if the overridden one is */
+    val resultOptional: Boolean by lazy { (returnParameter?.isOptional ?: false) && (overridden?.resultOptional ?: true) }
+
+    val returnTypeName: String
+        get() = returnParameter?.let { r ->
+            val t = r.type?.validName ?: "Any"
+            when {
+                r.isCollection -> "$resultColTypeName<$t>"
+                resultOptional -> "$t?"
+                else -> t
+            }
+        } ?: "Unit"
+
+    /** Kotlin parameter list, e.g. 'name: String?, other: Element' */
+    val parameterDecl: String get() = parameters.mapIndexed { i, p -> "${p.kotlinName(i)}: ${p.validTypeName}" }.joinToString(", ")
+
+    /** signature used to decide on Kotlin 'override': name and parameter types */
+    val signature: String get() = "$validName(${parameters.joinToString(",") { it.validTypeName }})"
+
+    /** true when a supertype declares an operation with the same Kotlin signature */
+    val isOverride: Boolean by lazy {
+        parentType?.allSuperTypes?.any { st -> (st as? MofAbstractType)?.operations?.any { it.isGenerated && it.signature == signature } ?: false } ?: false
+    }
+
+    private val translation: Pair<String?, String?> by lazy {
+        bodyOcl?.let { OclToKotlin(model).translateOperationOrReason(this, it) } ?: Pair(null, "no OCL body")
+    }
+
+    /** the Kotlin body: translated from the OCL, or a TODO */
+    val bodyKotlin: String get() = translation.first ?: "TODO(\"Operation '${parentType?.qualifiedName}.$name' is not implemented\")"
+
+    /** documentation: the original OCL body condition and why it was not translated; safe for a Kotlin block comment */
+    val bodyDoc: String
+        get() {
+            val c = bodyCondition
+            val lines = when (c) {
+                null -> mutableListOf("No OCL body in the source XMI.")
+                else -> mutableListOf("OCL body condition '${c.name}'${c.language?.let { " ($it)" } ?: ""}:", "<pre>") + c.body.trimEnd().lines() + "</pre>"
+            }.toMutableList()
+            if (null != c) translation.second?.let { lines.add("Not translated: $it.") }
+            return lines.joinToString("\n * ") { it.replace("*/", "* /").replace("/*", "/ *") }
+        }
+
     override fun hashCode(): Int = arrayOf(parentType, name).contentHashCode()
     override fun equals(other: Any?): Boolean = when {
         other !is MofOperation -> false
@@ -966,7 +1054,35 @@ data class MofParameter(
     val typeXmiId: String?,
     val typeHref: String?,
     val direction: String = "in" // "in", "out", "inout", "return"
-)
+) {
+    var lowerBound: Int = 1
+    var upperBound: Int = 1 // -1 for unbounded (*)
+    var isOrdered: Boolean = false
+    var isUnique: Boolean = true
+
+    val type: MofType? by lazy { typeXmiId?.let { model.findTypeById(it) } ?: typeHref?.let { model.findTypeById(it) } }
+    val isSingle: Boolean get() = 1 == upperBound
+    val isCollection: Boolean get() = isSingle.not()
+    val isOptional: Boolean get() = 0 == lowerBound && isSingle
+    val colTypeName: String
+        get() = when {
+            isUnique && isOrdered -> "OrderedSet"
+            isUnique -> "Set"
+            isOrdered -> "List"
+            else -> "Collection"
+        }
+    val validTypeName: String
+        get() {
+            val t = type?.validName ?: "Any"
+            return when {
+                isCollection -> "$colTypeName<$t>"
+                isOptional -> "$t?"
+                else -> t
+            }
+        }
+
+    fun kotlinName(index: Int): String = if (name.isBlank()) "p$index" else kotlinValidName(name)
+}
 
 data class MofAssociation(
     val model: MofModel,

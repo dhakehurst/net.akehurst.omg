@@ -62,35 +62,63 @@ class OclToKotlin(private val model: MofModel) {
     }
 
     private fun translateOrThrow(prop: MofProperty, ocl: String): String {
-        selfType = prop.parentType ?: throw Untranslatable("no owner")
+        val owner = prop.parentType ?: throw Untranslatable("no owner")
+        val e = parseAll(owner, "self", emptyMap(), ocl)
+        return convertTo(Target(prop.type, prop.isCollection, if (prop.isCollection) prop.colTypeName else "", prop.isOptional, prop.qualifiedName), e)
+    }
+
+    /**
+     * Translates the OCL body of an operation into the Kotlin body of a default method of the api interface:
+     * 'self' is 'this' and the parameters are in scope by name.
+     * @return the Kotlin code, or null and the reason the OCL could not be translated
+     */
+    fun translateOperationOrReason(op: MofOperation, ocl: String): Pair<String?, String?> = try {
+        val owner = op.parentType ?: throw Untranslatable("no owner")
+        val ret = op.returnParameter ?: throw Untranslatable("no result")
+        val retType = ret.type ?: throw Untranslatable("unknown result type")
+        val params = op.parameters.mapIndexed { i, p ->
+            val t = p.type ?: throw Untranslatable("unknown parameter type")
+            p.name to KExpr(p.kotlinName(i), t, p.isCollection, p.isOptional, isBoolean = t.name == "Boolean" && p.isSingle)
+        }.toMap()
+        val e = parseAll(owner, "this", params, ocl)
+        Pair(convertTo(Target(retType, ret.isCollection, if (ret.isCollection) op.resultColTypeName else "", op.resultOptional, op.toString()), e), null)
+    } catch (e: Untranslatable) {
+        Pair(null, e.message)
+    }
+
+    private fun parseAll(owner: MofType, selfCode: String, vars: Map<String, KExpr>, ocl: String): KExpr {
+        selfType = owner
         varCount = 0
         tokens = tokenize(ocl)
         pos = 0
-        val self = KExpr("self", selfType, false, false)
-        val e = parseExpr(Scope(null, emptyMap(), null).let { Scope(it, mapOf("self" to self), null) })
+        val self = KExpr(selfCode, selfType, false, false)
+        val e = parseExpr(Scope(Scope(null, mapOf("self" to self), null), vars, null))
         if (pos != tokens.size) throw Untranslatable("unexpected '${tokens[pos].text}'")
-        return convertTo(prop, e)
+        return e
     }
+
+    /** what a translated expression must be converted to */
+    private data class Target(val type: MofType, val isCollection: Boolean, val colTypeName: String, val isOptional: Boolean, val what: String)
 
     // --- conversion to the property type ---
 
-    private fun convertTo(prop: MofProperty, e: KExpr): String {
-        val target = prop.type
+    private fun convertTo(t: Target, e: KExpr): String {
+        val target = t.type
         return when {
-            prop.isCollection -> {
+            t.isCollection -> {
                 val c = e.asCollection()
                 val elems = when {
                     null != c.type && c.type.isSubtypeOf(target) -> c.code
                     else -> "${c.code}.map { it as ${target.validName} }"
                 }
-                when (prop.colTypeName) {
+                when (t.colTypeName) {
                     "Set" -> "$elems.toSet()"
                     "OrderedSet" -> "$elems.toOrderedSet()"
                     else -> "$elems.toList()"
                 }
             }
 
-            e.isCollection -> throw Untranslatable("collection given for single valued property")
+            e.isCollection -> throw Untranslatable("collection given for single value")
             else -> {
                 val typed = when {
                     e.isBoolean || e.isInt -> e.code
@@ -98,8 +126,8 @@ class OclToKotlin(private val model: MofModel) {
                     else -> "(${e.code} as ${target.validName}?)"
                 }
                 when {
-                    prop.isOptional -> typed
-                    e.nullable || typed != e.code -> "($typed ?: error(\"Derivation of '${prop.qualifiedName}' gave null\"))"
+                    t.isOptional -> typed
+                    e.nullable || typed != e.code -> "($typed ?: error(\"'${t.what}' gave null\"))"
                     else -> typed
                 }
             }
@@ -254,7 +282,11 @@ class OclToKotlin(private val model: MofModel) {
             pos++
             val right = parseRelational(scope)
             if (left.isCollection || right.isCollection) throw Untranslatable("collection equality")
-            left = bool("(${left.code} $op ${right.code})")
+            // api integers are Long, so an integer literal compared with a non literal is a Long literal
+            val lit = Regex("^\\(?-?\\d+\\)?$")
+            val l = if (lit.matches(left.code) && !right.isInt) "${left.code}L" else left.code
+            val r = if (lit.matches(right.code) && !left.isInt) "${right.code}L" else right.code
+            left = bool("($l $op $r)")
         }
         return left
     }
@@ -410,7 +442,13 @@ class OclToKotlin(private val model: MofModel) {
         val name = nextId()
         val itr = scope.implicitIterator
         if (isSym("(") && null != itr && name in oclTypeOps) return oclTypeOp(itr, name) // e.g. select(oclIsKindOf(Package))
-        if (isSym("(")) throw Untranslatable("operation call '$name'")
+        if (isSym("(")) {
+            // an operation of the implicit iterator or of self
+            itr?.type?.let { t -> findOperation(t, name, peekArgCount()) }?.let { return callOperation(itr, it, scope) }
+            val self = scope.lookup("self")!!
+            val op = findOperation(selfType, name, peekArgCount()) ?: throw Untranslatable("unknown operation '$name'")
+            return callOperation(self, op, scope)
+        }
         if (isSym("::")) throw Untranslatable("enumeration literal")
         scope.lookup(name)?.let { return it }
         scope.implicitIterator?.let { itr ->
@@ -425,7 +463,9 @@ class OclToKotlin(private val model: MofModel) {
         val name = nextId()
         if (isSym("(")) {
             if (name in oclTypeOps) return oclTypeOp(recv, name)
-            throw Untranslatable("operation call '$name'")
+            val t = recv.type ?: throw Untranslatable("operation call on unknown type")
+            val op = findOperation(t, name, peekArgCount()) ?: throw Untranslatable("unknown operation '$name' of '${t.name}'")
+            return callOperation(recv, op, scope)
         }
         val type = recv.type ?: throw Untranslatable("navigation from unknown type")
         val p = findProperty(type, name) ?: throw Untranslatable("unknown property '$name' of '${type.name}'")
@@ -589,6 +629,79 @@ class OclToKotlin(private val model: MofModel) {
         a.isSubtypeOf(b) -> b
         b.isSubtypeOf(a) -> a
         else -> throw Untranslatable("unrelated element types")
+    }
+
+    /** the number of arguments of the call whose '(' is the next token (counts top level commas) */
+    private fun peekArgCount(): Int {
+        var depth = 0
+        var count = 0
+        var i = pos
+        while (i < tokens.size) {
+            val t = tokens[i]
+            if (t.kind == "sym" && (t.text == "(" || t.text == "{")) depth++
+            if (t.kind == "sym" && (t.text == ")" || t.text == "}")) {
+                depth--
+                if (0 == depth) return if (i == pos + 1) 0 else count + 1
+            }
+            if (1 == depth && t.kind == "sym" && t.text == ",") count++
+            i++
+        }
+        throw Untranslatable("unterminated call")
+    }
+
+    /** a generated operation named [name] with [argCount] parameters visible on [type]; the most specific one */
+    private fun findOperation(type: MofType, name: String, argCount: Int): MofOperation? {
+        val candidates = (listOf(type) + type.allSuperTypes)
+            .flatMap { (it as? MofAbstractType)?.operations ?: emptyList() }
+            .filter { it.name == name && it.isGenerated && it.parameters.size == argCount }
+        return candidates.firstOrNull { c -> candidates.all { o -> c.parentType!!.isSubtypeOf(o.parentType!!) } }
+            ?: candidates.firstOrNull()
+    }
+
+    /** a call of [op] on [recv]; the next token is '(' */
+    private fun callOperation(recv: KExpr, op: MofOperation, scope: Scope): KExpr {
+        expectSym("(")
+        val args = op.parameters.mapIndexed { i, p ->
+            if (i > 0) expectSym(",")
+            val a = parseExpr(scope)
+            when {
+                p.isCollection -> {
+                    val c0 = a.asCollection()
+                    // an empty literal needs its element type
+                    val c = if ("emptyList()" == c0.code) c0.copy(code = "emptyList<${p.type?.validName ?: "Any"}>()") else c0
+                    when (p.colTypeName) {
+                        "Set" -> "${c.code}.toSet()"
+                        "OrderedSet" -> "${c.code}.toOrderedSet()"
+                        else -> "${c.code}.toList()"
+                    }
+                }
+
+                a.isCollection -> throw Untranslatable("collection argument for single valued parameter")
+                "null" == a.code && !p.isOptional -> throw Untranslatable("null argument for a required parameter")
+                a.nullable && !p.isOptional -> "(${a.code} ?: error(\"argument '${p.name}' of '${op.name}' is null\"))"
+                else -> a.code
+            }
+        }
+        expectSym(")")
+        val ret = op.returnParameter ?: throw Untranslatable("operation '${op.name}' has no result")
+        val rt = ret.type ?: throw Untranslatable("operation '${op.name}' has an unknown result type")
+        if (rt is MofEnum) throw Untranslatable("enumeration typed result")
+        val call = "${op.validName}(${args.joinToString(", ")})"
+        val isBool = rt.name == "Boolean" && ret.isSingle
+        return when {
+            recv.isCollection -> when {
+                ret.isCollection -> KExpr("${recv.code}.flatMap { it.$call }", rt, true, false)
+                else -> KExpr("${recv.code}.mapNotNull { it.$call }", rt, true, false)
+            }
+
+            recv.nullable -> when {
+                ret.isCollection -> KExpr("(${recv.code}?.$call ?: emptyList())", rt, true, false)
+                else -> KExpr("${recv.code}?.$call", rt, false, true, isBool)
+            }
+
+            ret.isCollection -> KExpr("${recv.code}.$call", rt, true, false)
+            else -> KExpr("${recv.code}.$call", rt, false, ret.isOptional, isBool)
+        }
     }
 
     /** the property named [name] (as in the XMI) visible on [type]; the most specific one when redefined */

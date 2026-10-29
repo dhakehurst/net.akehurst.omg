@@ -181,6 +181,16 @@ are computed, never set. Models are built by setting the stored attributes they 
 - [REQ-2.11.7] The Resolver SHALL only traverse stored attributes.
 - [REQ-2.11.8] The AsString output SHALL only include stored attributes.
 
+### 2.12 Operations (API)
+- [REQ-2.12.1] Each operation of a class that has an OCL body (or is a query) SHALL be generated as a function of the API interface, with a default body.
+  - [REQ-2.12.1.1] The body SHALL be translated from the OCL body condition where the generator can (UML: `result = <expression>`; KerML/SysML: `<expression>`), using only the API, so that it is the same for every realisation.
+  - [REQ-2.12.1.2] When the OCL cannot be translated, the body SHALL be a `TODO(...)` naming the operation; the documentation SHALL include the original OCL and the reason.
+- [REQ-2.12.2] An operation with the same Kotlin signature as an operation of a supertype SHALL be generated as an `override` (this realises operation redefinition).
+  - [REQ-2.12.2.1] If the XMI gives an overriding operation a result that Kotlin does not accept as an override (a collection kind that is not a subtype, or optional where the overridden result is required), the overridden result type SHALL be used.
+- [REQ-2.12.3] Parameter and result types SHALL follow the attribute typing rules (REQ-3.5.1.6); a result parameter is the one with `direction="return"` or, in KerML/SysML, the one with no name.
+- [REQ-2.12.4] A parameterless operation whose JVM name equals a property getter (e.g. `getName()` and property `name`) SHALL be generated with a trailing `_`.
+- [REQ-2.12.5] Derivations (REQ-2.11.4) and operation bodies MAY call generated operations.
+
 ## 3. Realisation Requirements
 
 This section defines implementation-level requirements for any Kotlin realisation of the generated API.
