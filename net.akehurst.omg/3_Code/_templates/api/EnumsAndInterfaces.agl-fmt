@@ -94,6 +94,7 @@ format ApiPackageFile {
 
             import net.akehurst.kotlinx.collections.OrderedSet
             import net.akehurst.kotlinx.collections.toOrderedSet
+            import net.akehurst.kotlinx.collections.transitiveClosure
             import net.akehurst.kotlinx.utils.Derived
             import net.akehurst.kotlinx.utils.HierarchicalFactory
             import net.akehurst.kotlinx.utils.Reference

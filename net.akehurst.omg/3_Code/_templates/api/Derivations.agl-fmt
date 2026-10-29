@@ -53,6 +53,7 @@ format ApiPackageDerivationsFile {
 
             import net.akehurst.kotlinx.collections.OrderedSet
             import net.akehurst.kotlinx.collections.toOrderedSet
+            import net.akehurst.kotlinx.collections.transitiveClosure
             $[allImportWithSubtypes sep $EOL via PackageImport]
             // derivations may use any package of the model
             $[model.packageList.filter({it -> false == it.isEmpty}).filter({it -> false == EXCLUDE_PACKAGE.contains(it.qualifiedName)}) sep $EOL via PackageImport]

@@ -528,6 +528,17 @@ class OclToKotlin(private val model: MofModel) {
                 KExpr("${recv.code}.filterIsInstance<${t.validName}>()", t, true, false)
             }
 
+            "closure" -> {
+                // OCL: the elements reached by applying the body transitively, starting from the source;
+                // the source elements are included only when reached. The body type must conform to the source element type.
+                val (v, body) = iteratorBody(recv, scope)
+                val bt = body.type ?: throw Untranslatable("closure body of unknown type")
+                if (null == recv.type || !bt.isSubtypeOf(recv.type)) throw Untranslatable("closure body type does not conform to the source")
+                val first = if (body.isCollection) "${recv.code}.flatMap { $v -> ${body.code} }" else "${recv.code}.mapNotNull { $v -> ${body.code} }"
+                val step = if (body.isCollection) "(${body.code}).toList()" else "listOfNotNull(${body.code})"
+                KExpr("$first.distinct().transitiveClosure { $v -> $step }", bt, true, false)
+            }
+
             "select", "reject", "forAll", "exists", "collect" -> {
                 val (v, body) = iteratorBody(recv, scope)
                 when (op) {
