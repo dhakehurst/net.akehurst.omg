@@ -99,10 +99,10 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
   - [REQ-2.6.6.2] Adding/setting into `p` SHALL ensure membership in `q`.
     - [REQ-2.6.6.2.1] If `q` is stored (not derived), the value SHALL be added to `q`.
     - [REQ-2.6.6.2.2] If `q` is derived or a derived union, membership holds because `q` is computed (see 2.11); nothing SHALL be pushed into `q`.
-  - [REQ-2.6.6.3] Removing/unsetting from `q` SHALL be rejected if `p ⊆ q` would be violated.
-    - [REQ-2.6.6.3.1] Rejection means the operation fails (no cascade removal from `p` occurs).
-    - [REQ-2.6.6.3.2] Error message SHALL identify which subset(s) would be violated.
-  - [REQ-2.6.6.4] Violations SHALL throw `IllegalStateException`.
+  - [REQ-2.6.6.3] Removing/unsetting a value from a stored `q` SHALL also remove/unset it from each stored subset `p` of `q` that holds it (cascade), so that `p ⊆ q` holds.
+    - [REQ-2.6.6.3.1] UML 2.5.1 (9.5.3) and MOF 2.5.1 (15.3.2) state only the invariant; the cascade follows Eclipse UML2 (`SubsetSupersetEObjectEList.subsetRemove`).
+    - [REQ-2.6.6.3.2] The cascade applies transitively: a value removed from `p` is removed from the subsets of `p`.
+  - [REQ-2.6.6.4] An operation that cannot keep the invariant SHALL throw `IllegalStateException`.
 
 ### 2.7 Composite/Reference contracts (API)
 - [REQ-2.7.1] For stored (not derived) reference attributes of type `T`, two API properties SHALL be generated.
