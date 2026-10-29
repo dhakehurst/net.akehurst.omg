@@ -366,7 +366,9 @@ class MofXmiParser(
                     when(pt) {
                         is MofClass -> {
                             end.parentType = pt
-                            pt.associationOwnedAttribute.add(end)
+                            // a derived association-owned (non-navigable) end has no definition of its own (it is the
+                            // inverse of the opposite end) and is not in the api, so it is omitted
+                            if (end.isComputed.not()) pt.associationOwnedAttribute.add(end)
                         }
                         else -> error("Error finding class for '${otherEnd.typeXmiId ?: otherEnd.typeHref}', not foud or its not a class.")
                     }

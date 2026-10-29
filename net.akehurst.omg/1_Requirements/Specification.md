@@ -61,6 +61,7 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
   - [REQ-2.4.2.6] `_identity` SHALL represent an object's persistent identifier (see REQ-2.10.1 for derivation and serialisation rules).
 - [REQ-2.4.3] Association-owned ends SHALL be non-navigable in API.
 - [REQ-2.4.4] Class-owned member ends SHALL be exposed as API properties.
+- [REQ-2.4.5] Derived association-owned ends SHALL be omitted entirely (API and realisation): they have no definition of their own (each is the inverse of its opposite end) and are non-navigable.
 
 ### 2.5 Attribute resolution and naming (API)
 - [REQ-2.5.1] Attributes SHALL be resolved in this order.
