@@ -272,8 +272,8 @@ callback behaviour, and generated mutator conventions.
 - [REQ-4.3.3] `ManagedReference` SHALL invoke callbacks when `.resolved` changes.
 - [REQ-4.3.4] Managed collections SHALL invoke callbacks on add/remove.
 - [REQ-4.3.5] Combined managed reference/collection callback lifecycle SHALL maintain opposite-end consistency.
-- [REQ-4.3.7] RAM single-valued derived holders SHALL use `ManagedDerived<T>`; RAM derived collections SHALL use `DerivedCollection`/`DerivedList`/`DerivedSet`/`DerivedOrderedSet`. These SHALL check the type of every computed value and throw `IllegalStateException` on a wrong type.
 - [REQ-4.3.6] RAM single composite holders SHALL use `ManagedValue<T>` (or equivalent) to back API `Value<T>` holders. `ManagedValue` SHALL invoke callbacks when the stored value changes so that opposite-end update logic and subsetting invariants can be enforced by the RAM realisation.
+- [REQ-4.3.7] RAM single-valued derived holders SHALL use `ManagedDerived<T>`; RAM derived collections SHALL use `DerivedCollection`/`DerivedList`/`DerivedSet`/`DerivedOrderedSet`. These SHALL check the type of every computed value and throw `IllegalStateException` on a wrong type.
 
 ### 4.4 RAM mutator realisation
 - [REQ-4.4.1] Generator implementations SHALL NOT emit a mandatory set of top-level mutator extension functions for RAM realisations. Mutation in RAM SHALL be achieved via mutable backing holders (e.g., `ManagedValue`, `ManagedReference`, managed collections) and realisation-specific APIs that enforce opposite-end consistency and invariants.
