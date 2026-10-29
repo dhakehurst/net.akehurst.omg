@@ -506,6 +506,21 @@ abstract class MofAbstractType() : MofType {
 
     override val allAttribute: Set<MofProperty> by lazy { allOwnedAttributes + allAssociationOwnedAttribute }
 
+    /**
+     * For each derived union implemented by this type, the implemented properties that subset it
+     * (directly, or through a property they redefine). The union is computed from them.
+     */
+    val unionImpls: List<MofUnionImpl> by lazy {
+        val all = allNormalisedAttribute.flatMap { c -> c.attributes.map { r -> r.attribute } }
+        all.filter { it.isDerivedUnion }.map { u ->
+            val targets = setOf(u) + u.allRedefinedProperty
+            val subsetters = all.filter { a ->
+                a != u && (setOf(a) + a.allRedefinedProperty).any { x -> x.subsettedProperty.any { it in targets } }
+            }
+            MofUnionImpl(u, subsetters)
+        }
+    }
+
     override val allNormalisedAttribute: List<MofClassAttributeImplInfo> by lazy {
         // 2. Recursively get the normalized properties from all superclasses
         val inheritedProperties = superTypes.flatMap { st -> st.allNormalisedAttribute.flatMap { c -> c.attributes.map { r -> r.attribute } } }.toSet()
@@ -620,13 +635,13 @@ open class MofClass(
     val allCompositeAttribute: List<MofProperty> by lazy { allNormalisedAttributeFlat.filter { it.isComposite } }
     val allReferenceAttribute: List<MofProperty> by lazy { allNormalisedAttributeFlat.filter { it.isReference } }
     /** composite attributes that hold stored values, i.e. not derived-only (derived unions are stored) */
-    val allStoredCompositeAttribute: List<MofProperty> by lazy { allCompositeAttribute.filter { it.isDerivedOnly.not() } }
+    val allStoredCompositeAttribute: List<MofProperty> by lazy { allCompositeAttribute.filter { it.isComputed.not() } }
     /** reference attributes that hold stored values, i.e. not derived-only (derived unions are stored) */
-    val allStoredReferenceAttribute: List<MofProperty> by lazy { allReferenceAttribute.filter { it.isDerivedOnly.not() } }
+    val allStoredReferenceAttribute: List<MofProperty> by lazy { allReferenceAttribute.filter { it.isComputed.not() } }
     /** composite attributes that are not derived at all (neither derived-only nor derived union) */
-    val allNotDerivedCompositeAttribute: List<MofProperty> by lazy { allCompositeAttribute.filter { it.isDerived.not() } }
+    val allNotDerivedCompositeAttribute: List<MofProperty> by lazy { allCompositeAttribute.filter { it.isComputed.not() } }
     /** reference attributes that are not derived at all (neither derived-only nor derived union) */
-    val allNotDerivedReferenceAttribute: List<MofProperty> by lazy { allReferenceAttribute.filter { it.isDerived.not() } }
+    val allNotDerivedReferenceAttribute: List<MofProperty> by lazy { allReferenceAttribute.filter { it.isComputed.not() } }
     override val concreteSubclasses: Set<MofClass> by lazy {
         ((if (isAbstract) mutableListOf() else mutableListOf(this)) +
                 model.classList.filter { !it.isAbstract && it.allSuperTypes.contains(this) }).toSet()
@@ -813,6 +828,9 @@ class MofProperty(
     /** derived, but not a derived union: computed by a derivation, has no stored value */
     val isDerivedOnly: Boolean get() = isDerived && isDerivedUnion.not()
 
+    /** derived or derived union: has no stored value */
+    val isComputed: Boolean get() = isDerived || isDerivedUnion
+
     /**
      * The OCL expression that derives this property, if the XMI has one.
      * KerML/SysML: a constraint on the owning class named 'derive...' with body '<name> = <expr>'.
@@ -835,13 +853,13 @@ class MofProperty(
     val derivationKotlin: String? by lazy { derivationOcl?.let { OclToKotlin(model).translate(this, it) } }
 
     /** properties that this property subsets and that hold stored values */
-    val storedSubsettedProperty: Set<MofProperty> get() = subsettedProperty.filter { it.isDerivedOnly.not() }.toSet()
+    val storedSubsettedProperty: Set<MofProperty> get() = subsettedProperty.filter { it.isComputed.not() }.toSet()
     val isSubsettingStored: Boolean get() = storedSubsettedProperty.isNotEmpty()
     /** properties that subset this property and that hold stored values */
-    val storedSubsettingProperty: Set<MofProperty> get() = subsettingProperty.filter { it.isDerivedOnly.not() }.toSet()
+    val storedSubsettingProperty: Set<MofProperty> get() = subsettingProperty.filter { it.isComputed.not() }.toSet()
     val isSubsettedStored: Boolean get() = storedSubsettingProperty.isNotEmpty()
     /** the opposite end holds stored values, so it must be kept in step */
-    val hasStoredOpposite: Boolean get() = opposite?.isDerivedOnly == false
+    val hasStoredOpposite: Boolean get() = opposite?.isComputed == false
 
     val isSubsetting get() = subsettedPropertyRef.isNotEmpty()
 
@@ -936,6 +954,11 @@ data class MofAssociation(
 ) {
     var parentPackage: MofPackage? = null
 }
+
+data class MofUnionImpl(
+    val union: MofProperty,
+    val subsetters: List<MofProperty>
+)
 
 data class MofConstraint(
     val name: String,

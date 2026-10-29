@@ -40,8 +40,8 @@ format PropertyAccessors {
     MofProperty -> {
         ovr := isOverride ? 'override ': ''
         mutatableAccessor := when {
-            // derived (not union): computed, so no stored holder; a single value has a read-only Derived holder
-            isDerivedOnly -> isSingle ? "${ovr}val ${validName}Derived: Derived<${validTypeName}>" : ''
+            // derived (incl. derived union): computed, so no stored holder; a single value has a read-only Derived holder
+            isComputed -> isSingle ? "${ovr}val ${validName}Derived: Derived<${validTypeName}>" : ''
             isSingle -> when {
               isComposite -> "${ovr}val ${validName}Value: Value<${validTypeNameNotNullable}?>"
               isReference -> "${ovr}val ${validName}Reference: Reference<Any,$validTypeNameNotNullable>"

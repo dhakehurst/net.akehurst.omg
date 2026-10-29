@@ -400,6 +400,8 @@ class OclToKotlin(private val model: MofModel) {
     /** an unqualified name: a variable, or a property of the implicit iterator or of self */
     private fun bareName(scope: Scope): KExpr {
         val name = nextId()
+        val itr = scope.implicitIterator
+        if (isSym("(") && null != itr && name in oclTypeOps) return oclTypeOp(itr, name) // e.g. select(oclIsKindOf(Package))
         if (isSym("(")) throw Untranslatable("operation call '$name'")
         if (isSym("::")) throw Untranslatable("enumeration literal")
         scope.lookup(name)?.let { return it }
@@ -414,7 +416,20 @@ class OclToKotlin(private val model: MofModel) {
     private fun navigate(recv: KExpr, scope: Scope): KExpr {
         val name = nextId()
         if (isSym("(")) {
-            return when (name) {
+            if (name in oclTypeOps) return oclTypeOp(recv, name)
+            throw Untranslatable("operation call '$name'")
+        }
+        val type = recv.type ?: throw Untranslatable("navigation from unknown type")
+        val p = findProperty(type, name) ?: throw Untranslatable("unknown property '$name' of '${type.name}'")
+        return navigateProperty(recv, p)
+    }
+
+    private val oclTypeOps = setOf("oclIsKindOf", "oclAsType")
+
+    /** oclIsKindOf / oclAsType applied to [recv]; the next token is '(' */
+    private fun oclTypeOp(recv: KExpr, name: String): KExpr {
+        expectSym("(")
+        return when (name) {
                 "oclIsKindOf" -> {
                     val t = typeArg()
                     if (recv.isCollection) throw Untranslatable("oclIsKindOf on collection")
@@ -432,10 +447,6 @@ class OclToKotlin(private val model: MofModel) {
 
                 else -> throw Untranslatable("operation call '$name'")
             }
-        }
-        val type = recv.type ?: throw Untranslatable("navigation from unknown type")
-        val p = findProperty(type, name) ?: throw Untranslatable("unknown property '$name' of '${type.name}'")
-        return navigateProperty(recv, p)
     }
 
     private fun navigateProperty(recv: KExpr, p: MofProperty): KExpr {

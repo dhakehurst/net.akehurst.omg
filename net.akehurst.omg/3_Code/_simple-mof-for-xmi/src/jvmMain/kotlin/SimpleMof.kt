@@ -135,6 +135,10 @@ object SimpleMof {
                     }
                 }
             }
+            data("MofUnionImpl") {
+                propertyOf(setOf(VAL, REF), "union", "MofProperty")
+                propertyOf(setOf(VAL, REF), "subsetters", "List") { typeArgument("MofProperty") }
+            }
             data("MofAttributeBridging") {
                 propertyOf(setOf(VAL, REF), "original", "MofProperty")
                 propertyOf(setOf(VAL, REF), "redefinedBy", "List") { typeArgument("MofProperty") }
