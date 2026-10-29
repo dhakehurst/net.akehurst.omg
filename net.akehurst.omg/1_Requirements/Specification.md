@@ -76,6 +76,7 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
   - [REQ-2.5.1.7] Collision detection SHALL include conflicts with:
     - [REQ-2.5.1.7.1] Reference holder generated names (e.g., if property `P` generates `${P}Reference`, collision with any other property or holder named `${P}Reference`).
     - [REQ-2.5.1.7.2] Collection suffix names (e.g., `${name}List`, `${name}Set`, `${name}OrderedSet` colliding with direct property names or other suffixed names).
+    - [REQ-2.5.1.7.3] Derived holder generated names (`${P}Derived`, see REQ-2.11.2).
 - [REQ-2.5.2] API collection attribute names SHALL append collection suffixes.
   - [REQ-2.5.2.1] non-unique/non-ordered -> `${name}Collection`
   - [REQ-2.5.2.2] unique/non-ordered -> `${name}Set`
@@ -89,19 +90,21 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
 - [REQ-2.6.2] `isReadOnly` SHALL not be supported.
   - [REQ-2.6.2.1] Source `isReadOnly` values SHALL be ignored.
   - [REQ-2.6.2.2] No warnings or diagnostics SHALL be emitted for ignored `isReadOnly`.
-- [REQ-2.6.3] `isDerived=true` and `isDerivedUnion=false` attributes SHALL be omitted from API.
-- [REQ-2.6.4] `isDerivedUnion=true` attributes SHALL be API read-only computed getters with no mutator.
+- [REQ-2.6.3] `isDerived=true` and `isDerivedUnion=false` attributes SHALL be API read-only computed getters with no mutator (see 2.11).
+- [REQ-2.6.4] `isDerivedUnion=true` attributes SHALL be API read-only computed getters with no mutator (see 2.11).
 - [REQ-2.6.5] API attribute properties SHALL be Kotlin `val`.
 - [REQ-2.6.6] Subsetting invariants SHALL be enforced at runtime.
   - [REQ-2.6.6.1] For subset `p` of `q`, runtime SHALL enforce `p ⊆ q`.
   - [REQ-2.6.6.2] Adding/setting into `p` SHALL ensure membership in `q`.
+    - [REQ-2.6.6.2.1] If `q` is stored (not derived), the value SHALL be added to `q`.
+    - [REQ-2.6.6.2.2] If `q` is derived or a derived union, membership holds because `q` is computed (see 2.11); nothing SHALL be pushed into `q`.
   - [REQ-2.6.6.3] Removing/unsetting from `q` SHALL be rejected if `p ⊆ q` would be violated.
     - [REQ-2.6.6.3.1] Rejection means the operation fails (no cascade removal from `p` occurs).
     - [REQ-2.6.6.3.2] Error message SHALL identify which subset(s) would be violated.
   - [REQ-2.6.6.4] Violations SHALL throw `IllegalStateException`.
 
 ### 2.7 Composite/Reference contracts (API)
-- [REQ-2.7.1] For reference attributes of type `T`, two API properties SHALL be generated.
+- [REQ-2.7.1] For stored (not derived) reference attributes of type `T`, two API properties SHALL be generated.
   - [REQ-2.7.1.1] A resolved-value API accessor.
   - [REQ-2.7.1.2] A `${propertyName}Reference` API accessor.
 - [REQ-2.7.2] API reference interfaces SHALL be read-only:
@@ -123,7 +126,7 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
   - [REQ-2.7.8.3] Extraction occurs on each getter invocation (lazy evaluation).
   - [REQ-2.7.8.4] Implementations MAY cache extracted results, but only if reference store mutations are tracked and cache is invalidated on change.
 
-- [REQ-2.7.9] Composite value-holder contract (API): For every single-valued composite attribute of type `T` the API SHALL expose both a resolved-value accessor and a read-only value-holder accessor.
+- [REQ-2.7.9] Composite value-holder contract (API): For every stored (not derived) single-valued composite attribute of type `T` the API SHALL expose both a resolved-value accessor and a read-only value-holder accessor.
   - [REQ-2.7.9.1] A resolved-value accessor SHALL be generated (`val {name}: T` for required, `val {name}: T?` for optional).
   - [REQ-2.7.9.2] A value-holder accessor SHALL be generated with the name `{name}Value` and type `Value<{genType}>` (e.g., `Value<T>` for required, `Value<T?>` for optional).
   - [REQ-2.7.9.3] The API-level `Value` contract SHALL be read-only (no mutator methods) and SHALL provide access to the stored value; implementations MAY provide `MutableValue`/`ManagedValue` in realisations.
@@ -159,6 +162,25 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
   - [REQ-2.10.1.4] Factory implementations SHALL validate uniqueness of `_identity` on object creation or deserialisation; attempts to create or deserialise objects producing duplicate `_identity` values SHALL fail with an error diagnostic.
   - [REQ-2.10.1.5] `_identity` SHALL provide stable equality and hashing semantics: deserialised `_identity` values SHALL compare equal (via equals) to the persisted value and SHALL produce the same hashCode. Serialisation format MAY be non-textual provided equality/hashCode semantics are preserved on deserialisation.
 
+### 2.11 Derived attributes (API)
+In this section "derived" means `isDerived=true` or `isDerivedUnion=true`. Derived attributes are read-only: their values
+are computed, never set. Models are built by setting the stored attributes they are derived from
+(e.g. in KerML/SysML `declaredName` and `ownedRelationship`, not `name` and `ownedElement`).
+- [REQ-2.11.1] A derived attribute SHALL NOT have a `{name}Value` or `{name}Reference` holder.
+- [REQ-2.11.2] A single-valued derived attribute SHALL have a read-only holder `val {name}Derived: Derived<{genType}>`; the resolved-value accessor `{name}` SHALL return its value.
+- [REQ-2.11.3] A collection-valued derived attribute SHALL have only its accessor, of the immutable collection type (REQ-2.8.4).
+- [REQ-2.11.4] Derivation of `isDerived=true`, `isDerivedUnion=false` attributes:
+  - [REQ-2.11.4.1] For each mapped package, an object `{Package}_Derivations` SHALL be generated with one function `{Class}_{validName}(self: {Class}): {genType}` per derived attribute owned by a class of the package.
+  - [REQ-2.11.4.2] Derivation functions SHALL use only the API, so that the derivation is the same for every realisation.
+  - [REQ-2.11.4.3] The derivation SHALL be generated from the OCL derivation in the source XMI where the generator can translate it:
+    - (a) KerML/SysML style: a constraint owned by the class, named `derive…`, with body `{name} = <expression>`;
+    - (b) UML style: a constraint owned by a query operation, with the attribute among its constrained elements and body `result = <expression>`.
+  - [REQ-2.11.4.4] When there is no OCL, or the OCL cannot be translated, the function SHALL be a `TODO(...)` stub naming the attribute, and its documentation SHALL include the OCL (if any).
+- [REQ-2.11.5] Derived union values SHALL be the union of the values of all the attributes that subset the union (UML: "derived as the union of all of the Properties that are constrained to subset it"); see REQ-3.2.5.2.
+- [REQ-2.11.6] The Builder DSL SHALL only offer stored attributes; derived attributes SHALL NOT be settable through it.
+- [REQ-2.11.7] The Resolver SHALL only traverse stored attributes.
+- [REQ-2.11.8] The AsString output SHALL only include stored attributes.
+
 ## 3. Realisation Requirements
 
 This section defines implementation-level requirements for any Kotlin realisation of the generated API.
@@ -175,9 +197,11 @@ and generation-time derived values independent of any specific implementation pr
 - [REQ-3.2.2] Realisation backing state SHALL be mutable in general.
 - [REQ-3.2.3] API properties SHALL remain `val` with immutable return types; mutability SHALL be accessed through realisation-level extension functions and internal mutable backing storage.
 - [REQ-3.2.4] For collection attributes, API property returns immutable `Collection<T>` (or appropriate kind), but realisation backing store is mutable.
-- [REQ-3.2.5] `isDerivedUnion=true` realisation attributes SHALL not be mutable.
-  - [REQ-3.2.5.1] Derived union attributes SHALL be implemented as read-only `override val` properties with computed getters.
-  - [REQ-3.2.5.2] Implementation logic (computation) is provided by hand; no automatic generation of derived union logic is performed.
+- [REQ-3.2.5] Derived (`isDerived=true` or `isDerivedUnion=true`) realisation attributes SHALL not be mutable and SHALL have no backing store.
+  - [REQ-3.2.5.1] Derived attributes SHALL be implemented as read-only `override val` properties with computed getters.
+  - [REQ-3.2.5.2] A derived union SHALL be computed, in each realisation class, as the union of the values of the attributes of that class that subset it, directly or through an attribute they redefine. This computation SHALL be generated.
+  - [REQ-3.2.5.3] A derived (not union) attribute SHALL be computed by calling its API derivation function (REQ-2.11.4).
+  - [REQ-3.2.5.4] Derived values SHALL be computed on each read (no cache).
 
 ### 3.3 Accessor and storage behavior
 - [REQ-3.3.1] Realisation storage strategy MAY be flattened.
@@ -208,7 +232,7 @@ functions as part of the generated output; any convenience mutators are an imple
 - [REQ-3.4.5] Opposite-end update logic SHALL run for composite single-valued mutations when opposite exists.
 - [REQ-3.4.6] For collection references, opposite-end update logic SHALL run on resolve, re-resolve, and removal transitions.
 - [REQ-3.4.7] If reference entry is unresolved, no opposite-end relationship SHALL be created for that entry.
-- [REQ-3.4.8] Attempted mutation paths for derived/derived-union attributes SHALL fail with `IllegalStateException`.
+- [REQ-3.4.8] Derived/derived-union attributes SHALL have no mutation path: realisations SHALL NOT provide mutable holders for them, and subset or opposite-end update logic SHALL NOT target them.
   - [REQ-3.4.8.1] Opposite-end synchronization SHALL preserve subsetting invariants; operations that would violate [REQ-2.6.6] SHALL be rejected with `IllegalStateException`.
 
 ### 3.5 Precomputed generation values
@@ -248,6 +272,7 @@ callback behaviour, and generated mutator conventions.
 - [REQ-4.3.3] `ManagedReference` SHALL invoke callbacks when `.resolved` changes.
 - [REQ-4.3.4] Managed collections SHALL invoke callbacks on add/remove.
 - [REQ-4.3.5] Combined managed reference/collection callback lifecycle SHALL maintain opposite-end consistency.
+- [REQ-4.3.7] RAM single-valued derived holders SHALL use `ManagedDerived<T>`; RAM derived collections SHALL use `DerivedCollection`/`DerivedList`/`DerivedSet`/`DerivedOrderedSet`. These SHALL check the type of every computed value and throw `IllegalStateException` on a wrong type.
 - [REQ-4.3.6] RAM single composite holders SHALL use `ManagedValue<T>` (or equivalent) to back API `Value<T>` holders. `ManagedValue` SHALL invoke callbacks when the stored value changes so that opposite-end update logic and subsetting invariants can be enforced by the RAM realisation.
 
 ### 4.4 RAM mutator realisation
