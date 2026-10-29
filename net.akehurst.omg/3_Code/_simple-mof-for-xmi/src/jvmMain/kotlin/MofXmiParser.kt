@@ -522,6 +522,7 @@ class MofXmiParser(
             xmiId = xmiId,
             visibility = operationElement.getAttribute("visibility").ifEmpty { "public" },
             isQuery = operationElement.getAttribute("isQuery") == "true",
+            isAbstract = operationElement.getAttribute("isAbstract") == "true",
             parameters = params,
             returnParameter = returnParam
         )

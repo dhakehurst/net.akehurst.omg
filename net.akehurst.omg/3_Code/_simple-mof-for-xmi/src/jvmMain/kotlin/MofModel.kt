@@ -941,6 +941,7 @@ class MofOperation(
     val xmiId: String,
     val visibility: String = "public",
     val isQuery: Boolean = false,
+    val isAbstract: Boolean = false,
     val parameters: MutableList<MofParameter> = mutableListOf(),
     val returnParameter: MofParameter? = null
 ) {
@@ -970,8 +971,11 @@ class MofOperation(
         bodyCondition?.body?.let { b -> Regex("^\\s*result\\s*=\\s*(.*)$", RegexOption.DOT_MATCHES_ALL).find(b)?.groupValues?.get(1) ?: b }?.trim()
     }
 
-    /** generated when it has a body, or is a query (then possibly as a TODO) */
-    val isGenerated: Boolean get() = null != bodyCondition || isQuery
+    /**
+     * Every spec operation is generated, so that OCL can call it: with its translated body, or as a TODO
+     * (no body in the XMI, abstract, or not translatable); subclasses that give a body override it.
+     */
+    val isGenerated: Boolean get() = true
 
     /** the operation of a supertype that this one overrides in Kotlin, if any */
     val overridden: MofOperation? by lazy {
@@ -1017,7 +1021,10 @@ class MofOperation(
     }
 
     private val translation: Pair<String?, String?> by lazy {
-        bodyOcl?.let { OclToKotlin(model).translateOperationOrReason(this, it) } ?: Pair(null, "no OCL body")
+        when {
+            true != bodyCondition?.isOcl -> Pair(null, "the body is not OCL")
+            else -> bodyOcl?.let { OclToKotlin(model).translateOperationOrReason(this, it) } ?: Pair(null, "no OCL body")
+        }
     }
 
     /** the Kotlin body: translated from the OCL, or a TODO */
@@ -1104,7 +1111,10 @@ data class MofConstraint(
     val body: String,
     /** xmi:ids of the constrained elements */
     val constrainedElement: List<String>
-)
+) {
+    /** true unless the language names something other than OCL (e.g. 'English') */
+    val isOcl: Boolean get() = null == language || language.isBlank() || language.startsWith("OCL", ignoreCase = true)
+}
 
 enum class MofAggregationKind {
     NONE, reference, composite

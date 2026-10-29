@@ -366,7 +366,7 @@
             <ownedComment xmi:id="Systems-Requirements-RequirementUsage-deriveRequirementUsageStakeholderParameter-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;stakeHolderParameters&lt;/code&gt; of a &lt;code&gt;RequirementUsage&lt;/code&gt; are the &lt;code&gt;ownedStakeholderParameters&lt;/code&gt; of the &lt;code&gt;StakeholderMemberships&lt;/code&gt; of the &lt;code&gt;RequirementUsage&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-Requirements-RequirementUsage-deriveRequirementUsageStakeholderParameter" />
 </ownedComment>
-            <specification xmi:id="Systems-Requirements-RequirementUsage-deriveRequirementUsageStakeholderParameter-specification0" xmi:type="uml:OpaqueExpression" body="stakeholderParameter = featureMembership-&gt; selectByKind(AStakholderMembership). ownedStakeholderParameter" language="OCL2.0" name="" />
+            <specification xmi:id="Systems-Requirements-RequirementUsage-deriveRequirementUsageStakeholderParameter-specification0" xmi:type="uml:OpaqueExpression" body="stakeholderParameter = featureMembership-&gt; selectByKind(StakeholderMembership). ownedStakeholderParameter" language="OCL2.0" name="" />
           </ownedRule>
           <ownedRule xmi:id="Systems-Requirements-RequirementUsage-validateRequirementUsageSubjectParameterPosition" xmi:type="uml:Constraint" name="validateRequirementUsageSubjectParameterPosition">
             <constrainedElement xmi:idref="Systems-Requirements-RequirementUsage" />
@@ -907,7 +907,7 @@
             <ownedComment xmi:id="Systems-Requirements-RequirementDefinition-deriveRequirementDefinitionStakeholderParameter-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;stakeHolderParameters&lt;/code&gt; of a &lt;code&gt;RequirementDefinition&lt;/code&gt; are the &lt;code&gt;ownedStakeholderParameters&lt;/code&gt; of the &lt;code&gt;StakeholderMemberships&lt;/code&gt; of the &lt;code&gt;RequirementDefinition&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-Requirements-RequirementDefinition-deriveRequirementDefinitionStakeholderParameter" />
 </ownedComment>
-            <specification xmi:id="Systems-Requirements-RequirementDefinition-deriveRequirementDefinitionStakeholderParameter-specification0" xmi:type="uml:OpaqueExpression" body="stakeholderParameter = featureMembership-&gt;     selectByKind(StakholderMembership).     ownedStakeholderParameter" language="OCL2.0" name="">
+            <specification xmi:id="Systems-Requirements-RequirementDefinition-deriveRequirementDefinitionStakeholderParameter-specification0" xmi:type="uml:OpaqueExpression" body="stakeholderParameter = featureMembership-&gt;     selectByKind(StakeholderMembership).     ownedStakeholderParameter" language="OCL2.0" name="">
 </specification>
           </ownedRule>
         </packagedElement>
@@ -955,7 +955,7 @@
             <ownedComment xmi:id="Systems-Requirements-RequirementConstraintMembership-deriveRequirementConstraintMembershipReferencedConstraint-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;referencedConstraint&lt;/code&gt; of a &lt;code&gt;RequirementConstraintMembership&lt;/code&gt; is the &lt;code&gt;featureTarget&lt;/code&gt; of the &lt;code&gt;referencedFeature&lt;/code&gt; of the &lt;code&gt;ownedReferenceSubsetting&lt;/code&gt; of the &lt;code&gt;ownedConstraint&lt;/code&gt;, if there is one, and, otherwise, the &lt;code&gt;ownedConstraint&lt;/code&gt; itself.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-Requirements-RequirementConstraintMembership-deriveRequirementConstraintMembershipReferencedConstraint" />
 </ownedComment>
-            <specification xmi:id="Systems-Requirements-RequirementConstraintMembership-deriveRequirementConstraintMembershipReferencedConstraint-specification0" xmi:type="uml:OpaqueExpression" body="referencedConstraint =     let referencedFeature : Feature =          ownedConstraint.referencedFeatureTarget() in     if referencedFeature = null then ownedConstraint     else if referencedFeature.oclIsKindOf(ConstraintUsage) then         refrencedFeature.oclAsType(ConstraintUsage)     else null     endif endif" language="OCL2.0" name="">
+            <specification xmi:id="Systems-Requirements-RequirementConstraintMembership-deriveRequirementConstraintMembershipReferencedConstraint-specification0" xmi:type="uml:OpaqueExpression" body="referencedConstraint =     let referencedFeature : Feature =          ownedConstraint.referencedFeatureTarget() in     if referencedFeature = null then ownedConstraint     else if referencedFeature.oclIsKindOf(ConstraintUsage) then         referencedFeature.oclAsType(ConstraintUsage)     else null     endif endif" language="OCL2.0" name="">
 </specification>
           </ownedRule>
           <ownedRule xmi:id="Systems-Requirements-RequirementConstraintMembership-validateRequirementConstraintMembershipOwningType" xmi:type="uml:Constraint" name="validateRequirementConstraintMembershipOwningType">
@@ -1730,7 +1730,7 @@
             <ownedComment xmi:id="Systems-Cases-CaseUsage-deriveCaseUsageObjectiveRequirement-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;objectiveRequirement&lt;/code&gt; of a &lt;code&gt;CaseUsage&lt;/code&gt; is the &lt;code&gt;RequirementUsage&lt;/code&gt; it owns via an &lt;case&gt;ObjectiveMembership&lt;/code&gt;, if any.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-Cases-CaseUsage-deriveCaseUsageObjectiveRequirement" />
 </ownedComment>
-            <specification xmi:id="Systems-Cases-CaseUsage-deriveCaseUsageObjectiveRequirement-specification0" xmi:type="uml:OpaqueExpression" body="objectiveRequirement =      let objectives: OrderedSet(RequirementUsage) =          featureMembership-&gt;             selectByKind(ObjectiveMembership).             ownedRequirement in     if objectives-&gt;isEmpty() then null     else objectives-&gt;first().ownedObjectiveRequirement     endif" language="OCL2.0" name="">
+            <specification xmi:id="Systems-Cases-CaseUsage-deriveCaseUsageObjectiveRequirement-specification0" xmi:type="uml:OpaqueExpression" body="objectiveRequirement =      let objectives: OrderedSet(RequirementUsage) =          featureMembership-&gt;             selectByKind(ObjectiveMembership).             ownedObjectiveRequirement in     if objectives-&gt;isEmpty() then null     else objectives-&gt;first()     endif" language="OCL2.0" name="">
 </specification>
           </ownedRule>
           <ownedRule xmi:id="Systems-Cases-CaseUsage-validateCaseUsageOnlyOneObjective" xmi:type="uml:Constraint" name="validateCaseUsageOnlyOneObjective">
@@ -1861,7 +1861,7 @@
             <ownedComment xmi:id="Systems-Cases-CaseDefinition-deriveCaseDefinitionObjectiveRequirement-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;objectiveRequirement&lt;/code&gt; of a &lt;code&gt;CaseDefinition&lt;/code&gt; is the &lt;code&gt;ownedObjectiveRequirement&lt;/code&gt; of its &lt;case&gt;ObjectiveMembership&lt;/code&gt;, if any.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-Cases-CaseDefinition-deriveCaseDefinitionObjectiveRequirement" />
 </ownedComment>
-            <specification xmi:id="Systems-Cases-CaseDefinition-deriveCaseDefinitionObjectiveRequirement-specification0" xmi:type="uml:OpaqueExpression" body="objectiveRequirement =      let objectives: OrderedSet(RequirementUsage) =          featureMembership-&gt;             selectByKind(ObjectiveMembership).             ownedRequirement in     if objectives-&gt;isEmpty() then null     else objectives-&gt;first().ownedObjectiveRequirement     endif" language="OCL2.0" name="">
+            <specification xmi:id="Systems-Cases-CaseDefinition-deriveCaseDefinitionObjectiveRequirement-specification0" xmi:type="uml:OpaqueExpression" body="objectiveRequirement =      let objectives: OrderedSet(RequirementUsage) =          featureMembership-&gt;             selectByKind(ObjectiveMembership).             ownedObjectiveRequirement in     if objectives-&gt;isEmpty() then null     else objectives-&gt;first()     endif" language="OCL2.0" name="">
 </specification>
           </ownedRule>
           <ownedRule xmi:id="Systems-Cases-CaseDefinition-deriveCaseDefinitionSubjectParameter" xmi:type="uml:Constraint" name="deriveCaseDefinitionSubjectParameter">
@@ -2655,7 +2655,7 @@
             <ownedComment xmi:id="Systems-States-TransitionUsage-deriveTransitionUsageSource-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;source&lt;/code&gt; of a &lt;code&gt;TransitionUsage&lt;/code&gt; is &lt;code&gt;featureTarget&lt;/code&gt; of the result of &lt;code&gt;sourceFeature()&lt;/code&gt;, which must be an &lt;code&gt;ActionUsage&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-States-TransitionUsage-deriveTransitionUsageSource" />
 </ownedComment>
-            <specification xmi:id="Systems-States-TransitionUsage-deriveTransitionUsageSource-specification0" xmi:type="uml:OpaqueExpression" body="source =     let sourceFeature : Feature = sourceFeature() in     if sourceFeature = null then null     else sourceFeature.featureTarget.oclAsType(ActionUsage)" language="OCL2.0" name="">
+            <specification xmi:id="Systems-States-TransitionUsage-deriveTransitionUsageSource-specification0" xmi:type="uml:OpaqueExpression" body="source =     let sourceFeature : Feature = sourceFeature() in     if sourceFeature = null then null     else sourceFeature.featureTarget.oclAsType(ActionUsage) endif" language="OCL2.0" name="">
 </specification>
           </ownedRule>
           <ownedRule xmi:id="Systems-States-TransitionUsage-validateTransitionUsageTriggerActions" xmi:type="uml:Constraint" name="validateTransitionUsageTriggerActions">
@@ -2834,7 +2834,7 @@
             <ownedComment xmi:id="Systems-UseCases-UseCaseUsage-deriveUseCaseUsageIncludedUseCase-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;includedUseCases&lt;code&gt; of a &lt;code&gt;UseCaseUsage&lt;/code&gt; are the &lt;code&gt;useCaseIncludeds&lt;/code&gt; of the &lt;code&gt;IncludeUseCaseUsages&lt;/code&gt; owned by the &lt;code&gt;UseCaseUsage&lt;code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-UseCases-UseCaseUsage-deriveUseCaseUsageIncludedUseCase" />
 </ownedComment>
-            <specification xmi:id="Systems-UseCases-UseCaseUsage-deriveUseCaseUsageIncludedUseCase-specification0" xmi:type="uml:OpaqueExpression" body="includedUseCase = ownedUseCase-&gt; selectByKind(IncludeUseCaseUsage). useCaseIncluded" language="OCL2.0" name="" />
+            <specification xmi:id="Systems-UseCases-UseCaseUsage-deriveUseCaseUsageIncludedUseCase-specification0" xmi:type="uml:OpaqueExpression" body="includedUseCase = nestedUseCase-&gt; selectByKind(IncludeUseCaseUsage). useCaseIncluded" language="OCL2.0" name="" />
           </ownedRule>
           <ownedRule xmi:id="Systems-UseCases-UseCaseUsage-checkUseCaseUsageSpecialization" xmi:type="uml:Constraint" name="checkUseCaseUsageSpecialization">
             <constrainedElement xmi:idref="Systems-UseCases-UseCaseUsage" />
@@ -3137,7 +3137,7 @@
           </ownedOperation>
           <ownedOperation xmi:id="Systems-Actions-ActionUsage-argument_Integer" xmi:type="uml:Operation" name="argument">
             <bodyCondition xmi:id="Systems-Actions-ActionUsage-argument_Integer-argumentBody" xmi:type="uml:Constraint" name="argumentBody">
-              <specification xmi:id="Systems-Actions-ActionUsage-argument_Integer-argumentBody-specification0" xmi:type="uml:OpaqueExpression" body="if inputParameter(i) = null then null else     let featureValue : Sequence(FeatureValue) = inputParameter(i).         ownedMembership-&gt;select(oclIsKindOf(FeatureValue)) in     if featureValue-&gt;isEmpty() then null     else featureValue-&gt;at(1).value     endif endif" language="OCL2.0" name="">
+              <specification xmi:id="Systems-Actions-ActionUsage-argument_Integer-argumentBody-specification0" xmi:type="uml:OpaqueExpression" body="if inputParameter(i) = null then null else     let featureValue : Sequence(FeatureValue) = inputParameter(i).         ownedMembership-&gt;selectByKind(FeatureValue) in     if featureValue-&gt;isEmpty() then null     else featureValue-&gt;at(1).value     endif endif" language="OCL2.0" name="">
 </specification>
             </bodyCondition>
             <ownedComment xmi:id="Systems-Actions-ActionUsage-argument_Integer-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;Return the &lt;code&gt;i&lt;/code&gt;-th argument &lt;code&gt;Expression&lt;/code&gt; of an &lt;code&gt;ActionUsage&lt;/code&gt;, defined as the &lt;code&gt;value&lt;/code&gt; &lt;code&gt;Expression&lt;/code&gt; of the &lt;code&gt;FeatureValue&lt;/code&gt; of the &lt;code&gt;i&lt;/code&gt;-th owned input &lt;code&gt;parameter&lt;/code&gt; of the &lt;code&gt;ActionUsage&lt;/code&gt;. Return null if the &lt;code&gt;ActionUsage&lt;/code&gt; has less than &lt;code&gt;i&lt;/code&gt; owned input &lt;code&gt;parameters&lt;/code&gt; or the &lt;code&gt;i&lt;/code&gt;-th owned input &lt;code&gt;parameter&lt;/code&gt; has no &lt;code&gt;FeatureValue&lt;/code&gt;.&lt;/p&gt;">
@@ -3524,7 +3524,7 @@
             <ownedComment xmi:id="Systems-Actions-LoopActionUsage-deriveLoopActionUsageBodyAction-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;bodyAction&lt;/code&gt; of a &lt;code&gt;LoopActionUsage&lt;/code&gt; is its second input &lt;code&gt;parameter&lt;/code&gt;, which must be an &lt;code&gt;Action&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-Actions-LoopActionUsage-deriveLoopActionUsageBodyAction" />
 </ownedComment>
-            <specification xmi:id="Systems-Actions-LoopActionUsage-deriveLoopActionUsageBodyAction-specification0" xmi:type="uml:OpaqueExpression" body="bodyAction =     let parameter : Feature = inputParameter(2) in     if parameter &lt;&gt; null and parameter.oclIsKindOf(Action) then         parameter.oclAsType(Action)     else         null     endif " language="OCL2.0" name="">
+            <specification xmi:id="Systems-Actions-LoopActionUsage-deriveLoopActionUsageBodyAction-specification0" xmi:type="uml:OpaqueExpression" body="bodyAction =     let parameter : Feature = inputParameter(2) in     if parameter &lt;&gt; null and parameter.oclIsKindOf(ActionUsage) then         parameter.oclAsType(ActionUsage)     else         null     endif " language="OCL2.0" name="">
 </specification>
           </ownedRule>
         </packagedElement>
@@ -3726,7 +3726,7 @@
 </ownedComment>
           <ownedOperation xmi:id="Systems-Actions-ControlNode-multiplicityHasBounds_Multiplicity_Integer_UnlimitedNatural" xmi:type="uml:Operation" name="multiplicityHasBounds">
             <bodyCondition xmi:id="Systems-Actions-ControlNode-multiplicityHasBounds_Multiplicity_Integer_UnlimitedNatural-unnamed1" xmi:type="uml:Constraint" name="unnamed1">
-              <specification xmi:id="Systems-Actions-ControlNode-multiplicityHasBounds_Multiplicity_Integer_UnlimitedNatural-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="mult &lt;&gt; null and if mult.oclIsKindOf(MultiplicityRange) then     mult.oclAsType(MultiplicityRange).hasBounds(lower, upper) else     mult.allSuperTypes()-&gt;exists(         oclisKindOf(MultiplicityRange) and         oclAsType(MultiplicityRange).hasBounds(lower, upper) endif" language="OCL2.0" name="">
+              <specification xmi:id="Systems-Actions-ControlNode-multiplicityHasBounds_Multiplicity_Integer_UnlimitedNatural-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="mult &lt;&gt; null and if mult.oclIsKindOf(MultiplicityRange) then     mult.oclAsType(MultiplicityRange).hasBounds(lower, upper) else     mult.allSupertypes()-&gt;exists(         oclIsKindOf(MultiplicityRange) and         oclAsType(MultiplicityRange).hasBounds(lower, upper)) endif" language="OCL2.0" name="">
 </specification>
             </bodyCondition>
             <ownedComment xmi:id="Systems-Actions-ControlNode-multiplicityHasBounds_Multiplicity_Integer_UnlimitedNatural-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;Check that the given &lt;code&gt;Multiplicity&lt;/code&gt; has &lt;code&gt;lowerBound&lt;/code&gt; and &lt;code&gt;upperBound&lt;/code&gt; expressions that are model-level evaluable to the given &lt;code&gt;lower&lt;/code&gt; and &lt;code&gt;upper&lt;/code&gt; values.&lt;/p&gt;">
@@ -5140,7 +5140,7 @@
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Usage-deriveUsageNestedFlow-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedFlows&lt;/code&gt; of a &lt;code&gt;Usage&lt;/code&gt; are all its &lt;code&gt;ownedUsages&lt;/code&gt; that are &lt;code&gt;FlowConnectionUsages&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-DefinitionAndUsage-Usage-deriveUsageNestedFlow" />
 </ownedComment>
-            <specification xmi:id="Systems-DefinitionAndUsage-Usage-deriveUsageNestedFlow-specification0" xmi:type="uml:OpaqueExpression" body="nestedFlow = nestedUsage-&gt;selectByKind(FlowConnectionUsage)" language="OCL2.0" name="" />
+            <specification xmi:id="Systems-DefinitionAndUsage-Usage-deriveUsageNestedFlow-specification0" xmi:type="uml:OpaqueExpression" body="nestedFlow = nestedUsage-&gt;selectByKind(FlowUsage)" language="OCL2.0" name="" />
           </ownedRule>
           <ownedRule xmi:id="Systems-DefinitionAndUsage-Usage-checkUsageVariationUsageSpecialization" xmi:type="uml:Constraint" name="checkUsageVariationUsageSpecialization">
             <constrainedElement xmi:idref="Systems-DefinitionAndUsage-Usage" />
@@ -6214,7 +6214,7 @@
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-deriveDefinitionOwnedFlow-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedFlows&lt;/code&gt; of a &lt;code&gt;Definition&lt;/code&gt; are all its &lt;code&gt;ownedUsages&lt;/code&gt; that are &lt;code&gt;FlowUsages&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-DefinitionAndUsage-Definition-deriveDefinitionOwnedFlow" />
 </ownedComment>
-            <specification xmi:id="Systems-DefinitionAndUsage-Definition-deriveDefinitionOwnedFlow-specification0" xmi:type="uml:OpaqueExpression" body="ownedFlow = ownedUsage-&gt;selectByKind(FlowConnectionUsage)" language="OCL2.0" name="" />
+            <specification xmi:id="Systems-DefinitionAndUsage-Definition-deriveDefinitionOwnedFlow-specification0" xmi:type="uml:OpaqueExpression" body="ownedFlow = ownedUsage-&gt;selectByKind(FlowUsage)" language="OCL2.0" name="" />
           </ownedRule>
           <ownedRule xmi:id="Systems-DefinitionAndUsage-Definition-deriveDefinitionOwnedAction" xmi:type="uml:Constraint" name="deriveDefinitionOwnedAction">
             <constrainedElement xmi:idref="Systems-DefinitionAndUsage-Definition" />
@@ -6978,7 +6978,7 @@
             <ownedComment xmi:id="Systems-AnalysisCases-AnalysisCaseUsage-deriveAnalysisCaseUsageResultExpression-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;resultExpression&lt;/code&gt; of a &lt;code&gt;AnalysisCaseUsage&lt;/code&gt; is the &lt;code&gt;ownedResultExpression&lt;/code&gt; of its &lt;code&gt;ResultExpressionMembership&lt;/code&gt;, if any.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-AnalysisCases-AnalysisCaseUsage-deriveAnalysisCaseUsageResultExpression" />
 </ownedComment>
-            <specification xmi:id="Systems-AnalysisCases-AnalysisCaseUsage-deriveAnalysisCaseUsageResultExpression-specification0" xmi:type="uml:OpaqueExpression" body="resultExpression =     let results : OrderedSet(ResultExpressionMembership) =         featureMembersip-&gt;             selectByKind(ResultExpressionMembership) in     if results-&gt;isEmpty() then null     else results-&gt;first().ownedResultExpression     endif" language="OCL2.0" name="">
+            <specification xmi:id="Systems-AnalysisCases-AnalysisCaseUsage-deriveAnalysisCaseUsageResultExpression-specification0" xmi:type="uml:OpaqueExpression" body="resultExpression =     let results : OrderedSet(ResultExpressionMembership) =         featureMembership-&gt;             selectByKind(ResultExpressionMembership) in     if results-&gt;isEmpty() then null     else results-&gt;first().ownedResultExpression     endif" language="OCL2.0" name="">
 </specification>
           </ownedRule>
           <ownedRule xmi:id="Systems-AnalysisCases-AnalysisCaseUsage-checkAnalysisCaseUsageSubAnalysisCaseSpecialization" xmi:type="uml:Constraint" name="checkAnalysisCaseUsageSubAnalysisCaseSpecialization">
@@ -7056,7 +7056,7 @@
             <ownedComment xmi:id="Systems-AnalysisCases-AnalysisCaseDefinition-deriveAnalysisCaseDefinitionResultExpression-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;resultExpression&lt;/code&gt; of a &lt;code&gt;AnalysisCaseDefinition&lt;/code&gt; is the &lt;code&gt;ownedResultExpression&lt;/code&gt; of its &lt;code&gt;ResultExpressionMembership&lt;/code&gt;, if any.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-AnalysisCases-AnalysisCaseDefinition-deriveAnalysisCaseDefinitionResultExpression" />
 </ownedComment>
-            <specification xmi:id="Systems-AnalysisCases-AnalysisCaseDefinition-deriveAnalysisCaseDefinitionResultExpression-specification0" xmi:type="uml:OpaqueExpression" body="resultExpression =     let results : OrderedSet(ResultExpressionMembership) =         featureMembersip-&gt;             selectByKind(ResultExpressionMembership) in     if results-&gt;isEmpty() then null     else results-&gt;first().ownedResultExpression     endif" language="OCL2.0" name="">
+            <specification xmi:id="Systems-AnalysisCases-AnalysisCaseDefinition-deriveAnalysisCaseDefinitionResultExpression-specification0" xmi:type="uml:OpaqueExpression" body="resultExpression =     let results : OrderedSet(ResultExpressionMembership) =         featureMembership-&gt;             selectByKind(ResultExpressionMembership) in     if results-&gt;isEmpty() then null     else results-&gt;first().ownedResultExpression     endif" language="OCL2.0" name="">
 </specification>
           </ownedRule>
           <ownedRule xmi:id="Systems-AnalysisCases-AnalysisCaseDefinition-checkAnalysisCaseDefinitionSpecialization" xmi:type="uml:Constraint" name="checkAnalysisCaseDefinitionSpecialization">
@@ -7468,7 +7468,7 @@
             <ownedComment xmi:id="Systems-Views-ViewUsage-deriveViewUsageSatisfiedViewpoint-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;satisfiedViewpoints&lt;/code&gt; of a &lt;code&gt;ViewUsage&lt;/code&gt; are its &lt;code&gt;ownedRequirements&lt;/code&gt; that are composite &lt;code&gt;ViewpointUsages&lt;/code&gt;. ">
               <annotatedElement xmi:idref="Systems-Views-ViewUsage-deriveViewUsageSatisfiedViewpoint" />
 </ownedComment>
-            <specification xmi:id="Systems-Views-ViewUsage-deriveViewUsageSatisfiedViewpoint-specification0" xmi:type="uml:OpaqueExpression" body="satisfiedViewpoint = ownedRequirement-&gt; selectByKind(ViewpointUsage)-&gt; select(isComposite)" language="OCL2.0" name="" />
+            <specification xmi:id="Systems-Views-ViewUsage-deriveViewUsageSatisfiedViewpoint-specification0" xmi:type="uml:OpaqueExpression" body="satisfiedViewpoint = nestedRequirement-&gt; selectByKind(ViewpointUsage)-&gt; select(isComposite)" language="OCL2.0" name="" />
           </ownedRule>
           <ownedRule xmi:id="Systems-Views-ViewUsage-checkViewUsageSpecialization" xmi:type="uml:Constraint" name="checkViewUsageSpecialization">
             <constrainedElement xmi:idref="Systems-Views-ViewUsage" />
@@ -7763,7 +7763,7 @@
             <ownedComment xmi:id="Systems-Views-ViewpointDefinition-deriveViewpointDefinitionViewpointStakeholder-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;viewpointStakeholders&lt;/code&gt; of a &lt;code&gt;ViewpointDefinition&lt;/code&gt; are the &lt;code&gt;ownedStakeholderParameters&lt;/code&gt; of all &lt;code&gt;featureMemberships&lt;/code&gt; that are &lt;code&gt;StakeholderMemberships&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-Views-ViewpointDefinition-deriveViewpointDefinitionViewpointStakeholder" />
 </ownedComment>
-            <specification xmi:id="Systems-Views-ViewpointDefinition-deriveViewpointDefinitionViewpointStakeholder-specification0" xmi:type="uml:OpaqueExpression" body="viewpointStakeholder = framedConcern.featureMemberhsip-&gt;     selectByKind(StakeholderMembership).     ownedStakeholderParameter" language="OCL2.0" name="">
+            <specification xmi:id="Systems-Views-ViewpointDefinition-deriveViewpointDefinitionViewpointStakeholder-specification0" xmi:type="uml:OpaqueExpression" body="viewpointStakeholder = framedConcern.featureMembership-&gt;     selectByKind(StakeholderMembership).     ownedStakeholderParameter" language="OCL2.0" name="">
 </specification>
           </ownedRule>
           <ownedRule xmi:id="Systems-Views-ViewpointDefinition-checkViewpointDefinitionSpecialization" xmi:type="uml:Constraint" name="checkViewpointDefinitionSpecialization">
@@ -7810,7 +7810,7 @@
             <ownedComment xmi:id="Systems-Views-RenderingDefinition-deriveRenderingDefinitionRendering-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;renderings&lt;/code&gt; of a &lt;code&gt;RenderingDefinition&lt;/code&gt; are all its &lt;code&gt;usages&lt;/code&gt; that are &lt;code&gt;RenderingUsages&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-Views-RenderingDefinition-deriveRenderingDefinitionRendering" />
 </ownedComment>
-            <specification xmi:id="Systems-Views-RenderingDefinition-deriveRenderingDefinitionRendering-specification0" xmi:type="uml:OpaqueExpression" body="rendering = usages-&gt;selectByKind(RenderingUsage)" language="OCL2.0" name="" />
+            <specification xmi:id="Systems-Views-RenderingDefinition-deriveRenderingDefinitionRendering-specification0" xmi:type="uml:OpaqueExpression" body="rendering = usage-&gt;selectByKind(RenderingUsage)" language="OCL2.0" name="" />
           </ownedRule>
           <ownedRule xmi:id="Systems-Views-RenderingDefinition-checkRenderingDefinitionSpecialization" xmi:type="uml:Constraint" name="checkRenderingDefinitionSpecialization">
             <constrainedElement xmi:idref="Systems-Views-RenderingDefinition" />
@@ -7928,7 +7928,7 @@
             <ownedComment xmi:id="Systems-Views-ViewRenderingMembership-deriveVewRenderingMembershipReferencedRendering-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;referencedRendering&lt;/code&gt; of a &lt;code&gt;ViewRenderingMembership&lt;/code&gt; is the the &lt;code&gt;featureTarget&lt;/code&gt; of the &lt;code&gt;referencedFeature&lt;/code&gt; of the &lt;code&gt;ownedReferenceSubsetting&lt;/code&gt; (which must be a &lt;code&gt;RenderingUsage&lt;/code&gt;) of the &lt;code&gt;ownedRendering&lt;/code&gt;, if there is one, and, otherwise, the &lt;code&gt;ownedRendering&lt;/code&gt; itself.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-Views-ViewRenderingMembership-deriveVewRenderingMembershipReferencedRendering" />
 </ownedComment>
-            <specification xmi:id="Systems-Views-ViewRenderingMembership-deriveVewRenderingMembershipReferencedRendering-specification0" xmi:type="uml:OpaqueExpression" body="referencedRendering =     let referencedFeature : Feature =          ownedRendering.referencedFeatureTarget() in     if referencedFeature = null then ownedRendering     else if referencedFeature.oclIsKindOf(RenderingUsage) then         refrencedFeature.oclAsType(RenderingUsage)     else null     endif endif" language="OCL2.0" name="">
+            <specification xmi:id="Systems-Views-ViewRenderingMembership-deriveVewRenderingMembershipReferencedRendering-specification0" xmi:type="uml:OpaqueExpression" body="referencedRendering =     let referencedFeature : Feature =          ownedRendering.referencedFeatureTarget() in     if referencedFeature = null then ownedRendering     else if referencedFeature.oclIsKindOf(RenderingUsage) then         referencedFeature.oclAsType(RenderingUsage)     else null     endif endif" language="OCL2.0" name="">
 </specification>
           </ownedRule>
           <ownedRule xmi:id="Systems-Views-ViewRenderingMembership-validateViewRenderingMembershipOwningType" xmi:type="uml:Constraint" name="validateViewRenderingMembershipOwningType">
@@ -8013,7 +8013,7 @@
             <ownedComment xmi:id="Systems-Views-ViewpointUsage-deriveViewpointUsageViewpointStakeholder-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;viewpointStakeholders&lt;/code&gt; of a &lt;code&gt;ViewpointUsage&lt;/code&gt; are the &lt;code&gt;ownedStakeholderParameters&lt;/code&gt; of all &lt;code&gt;featureMemberships&lt;/code&gt; that are &lt;code&gt;StakeholderMemberships&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-Views-ViewpointUsage-deriveViewpointUsageViewpointStakeholder" />
 </ownedComment>
-            <specification xmi:id="Systems-Views-ViewpointUsage-deriveViewpointUsageViewpointStakeholder-specification0" xmi:type="uml:OpaqueExpression" body="viewpointStakeholder = framedConcern.featureMemberhsip-&gt; selectByKind(StakeholderMembership). ownedStakeholderParameter" language="OCL2.0" name="" />
+            <specification xmi:id="Systems-Views-ViewpointUsage-deriveViewpointUsageViewpointStakeholder-specification0" xmi:type="uml:OpaqueExpression" body="viewpointStakeholder = framedConcern.featureMembership-&gt; selectByKind(StakeholderMembership). ownedStakeholderParameter" language="OCL2.0" name="" />
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Systems-Views-A_referencedRendering_referencingRenderingMembership" xmi:type="uml:Association" name="A_referencedRendering_referencingRenderingMembership">
