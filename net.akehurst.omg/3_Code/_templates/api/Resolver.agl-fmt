@@ -53,8 +53,8 @@ format ResolveFun {
                 when(obj) {
                     $[subTypes sep $EOL via CallSubtypeResolve]
                     else -> {
-                        $[allReferenceAttribute.filter({it -> false == it.type.isPrimitive}) sep $EOL via ResolvePropertyReference]
-                        $[allCompositeAttribute.filter({it -> false == it.type.isPrimitive}) sep $EOL via ResolvePropertyComposite]
+                        $[allStoredReferenceAttribute.filter({it -> false == it.type.isPrimitive}) sep $EOL via ResolvePropertyReference]
+                        $[allStoredCompositeAttribute.filter({it -> false == it.type.isPrimitive}) sep $EOL via ResolvePropertyComposite]
                     }
                 }
             }
@@ -62,8 +62,8 @@ format ResolveFun {
         else -> {
             "
                 fun ${validName}_resolve(obj: $validName) {
-                    $[allReferenceAttribute.filter({it -> false == it.type.isPrimitive}) sep $EOL via ResolvePropertyReference]
-                    $[allCompositeAttribute.filter({it -> false == it.type.isPrimitive}) sep $EOL via ResolvePropertyComposite]
+                    $[allStoredReferenceAttribute.filter({it -> false == it.type.isPrimitive}) sep $EOL via ResolvePropertyReference]
+                    $[allStoredCompositeAttribute.filter({it -> false == it.type.isPrimitive}) sep $EOL via ResolvePropertyComposite]
                 }
             "
       }

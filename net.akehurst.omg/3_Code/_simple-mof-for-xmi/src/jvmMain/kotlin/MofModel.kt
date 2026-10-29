@@ -305,6 +305,8 @@ abstract class MofAbstractType() : MofType {
     val generalizations: MutableList<String> = mutableListOf() // Stores xmi:idref of general classes
     override val ownedAttribute: MutableList<MofProperty> = mutableListOf()
     val operations: MutableList<MofOperation> = mutableListOf()
+    /** constraints owned by this type or by its operations (e.g. OCL derivations) */
+    val ownedRule: MutableList<MofConstraint> = mutableListOf()
 
     // --- derived ---
     override val validName: String by lazy { kotlinValidName(name) }
@@ -617,6 +619,14 @@ open class MofClass(
     override var isAbstract: Boolean = false
     val allCompositeAttribute: List<MofProperty> by lazy { allNormalisedAttributeFlat.filter { it.isComposite } }
     val allReferenceAttribute: List<MofProperty> by lazy { allNormalisedAttributeFlat.filter { it.isReference } }
+    /** composite attributes that hold stored values, i.e. not derived-only (derived unions are stored) */
+    val allStoredCompositeAttribute: List<MofProperty> by lazy { allCompositeAttribute.filter { it.isDerivedOnly.not() } }
+    /** reference attributes that hold stored values, i.e. not derived-only (derived unions are stored) */
+    val allStoredReferenceAttribute: List<MofProperty> by lazy { allReferenceAttribute.filter { it.isDerivedOnly.not() } }
+    /** composite attributes that are not derived at all (neither derived-only nor derived union) */
+    val allNotDerivedCompositeAttribute: List<MofProperty> by lazy { allCompositeAttribute.filter { it.isDerived.not() } }
+    /** reference attributes that are not derived at all (neither derived-only nor derived union) */
+    val allNotDerivedReferenceAttribute: List<MofProperty> by lazy { allReferenceAttribute.filter { it.isDerived.not() } }
     override val concreteSubclasses: Set<MofClass> by lazy {
         ((if (isAbstract) mutableListOf() else mutableListOf(this)) +
                 model.classList.filter { !it.isAbstract && it.allSuperTypes.contains(this) }).toSet()
@@ -800,6 +810,39 @@ class MofProperty(
             }
     }
 
+    /** derived, but not a derived union: computed by a derivation, has no stored value */
+    val isDerivedOnly: Boolean get() = isDerived && isDerivedUnion.not()
+
+    /**
+     * The OCL expression that derives this property, if the XMI has one.
+     * KerML/SysML: a constraint on the owning class named 'derive...' with body '<name> = <expr>'.
+     * UML: a constraint on an operation, constraining this property, with body 'result = <expr>'.
+     */
+    val derivationOcl: String? by lazy {
+        val rules = (parentType as? MofAbstractType)?.ownedRule ?: emptyList()
+        val byProperty = rules.firstOrNull { it.constrainedElement.contains(xmiId) }
+            ?.let { Regex("^\\s*result\\s*=\\s*(.*)$", RegexOption.DOT_MATCHES_ALL).find(it.body)?.groupValues?.get(1) }
+        (byProperty ?: rules
+            .filter { it.name.startsWith("derive") }
+            .firstNotNullOfOrNull { Regex("^\\s*${Regex.escape(nameInXmi)}\\s*=\\s*(.*)$", RegexOption.DOT_MATCHES_ALL).find(it.body)?.groupValues?.get(1) })
+            ?.trim()
+    }
+
+    /** [derivationOcl] made safe to put inside a Kotlin block comment */
+    val derivationOclComment: String get() = derivationOcl?.replace("*/", "* /")?.replace("/*", "/ *")?.replace(Regex("\\s+"), " ") ?: "none"
+
+    /** Kotlin code computing this property from 'self', translated from [derivationOcl]; null if it could not be translated */
+    val derivationKotlin: String? by lazy { derivationOcl?.let { OclToKotlin(model).translate(this, it) } }
+
+    /** properties that this property subsets and that hold stored values */
+    val storedSubsettedProperty: Set<MofProperty> get() = subsettedProperty.filter { it.isDerivedOnly.not() }.toSet()
+    val isSubsettingStored: Boolean get() = storedSubsettedProperty.isNotEmpty()
+    /** properties that subset this property and that hold stored values */
+    val storedSubsettingProperty: Set<MofProperty> get() = subsettingProperty.filter { it.isDerivedOnly.not() }.toSet()
+    val isSubsettedStored: Boolean get() = storedSubsettingProperty.isNotEmpty()
+    /** the opposite end holds stored values, so it must be kept in step */
+    val hasStoredOpposite: Boolean get() = opposite?.isDerivedOnly == false
+
     val isSubsetting get() = subsettedPropertyRef.isNotEmpty()
 
     /** properties that this property subsets */
@@ -893,6 +936,14 @@ data class MofAssociation(
 ) {
     var parentPackage: MofPackage? = null
 }
+
+data class MofConstraint(
+    val name: String,
+    val language: String?,
+    val body: String,
+    /** xmi:ids of the constrained elements */
+    val constrainedElement: List<String>
+)
 
 enum class MofAggregationKind {
     NONE, reference, composite

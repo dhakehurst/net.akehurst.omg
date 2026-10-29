@@ -292,6 +292,12 @@ class MofXmiParser(
                 "ownedOperation" -> {
                     val op = parseOperation(node, mofClass)
                     mofClass.operations.add(op)
+                    // UML puts the derivation of a derived property in a constraint of a query operation
+                    getChildrenByTagName(node, "ownedRule").forEach { parseConstraint(it)?.let { c -> mofClass.ownedRule.add(c) } }
+                }
+
+                "ownedRule" -> {
+                    parseConstraint(node)?.let { mofClass.ownedRule.add(it) }
                 }
             }
         }
@@ -453,6 +459,18 @@ class MofXmiParser(
             subsettedRef?.let { (self.subsettedPropertyRef as MutableSet).add(it) }
         }
         return prop
+    }
+
+    /** an OCL constraint: the body is either an attribute or a child element of the specification */
+    private fun parseConstraint(ruleElement: Element): MofConstraint? {
+        val spec = getChildrenByTagName(ruleElement, "specification").firstOrNull() ?: return null
+        val body = spec.getAttributeOrNull("body")
+            ?: getChildrenByTagName(spec, "body").firstOrNull()?.textContent
+            ?: return null
+        val language = spec.getAttributeOrNull("language")
+            ?: getChildrenByTagName(spec, "language").firstOrNull()?.textContent
+        val constrained = getChildrenByTagName(ruleElement, "constrainedElement").map { it.getAttribute("xmi:idref") }
+        return MofConstraint(ruleElement.getAttribute("name"), language, body, constrained)
     }
 
     private fun parseOperation(operationElement: Element, ownerClass: MofClass): MofOperation {
