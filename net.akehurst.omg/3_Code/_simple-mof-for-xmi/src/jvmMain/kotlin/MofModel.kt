@@ -836,21 +836,43 @@ class MofProperty(
      * KerML/SysML: a constraint on the owning class named 'derive...' with body '<name> = <expr>'.
      * UML: a constraint on an operation, constraining this property, with body 'result = <expr>'.
      */
-    val derivationOcl: String? by lazy {
+    /** the constraint that derives this property and the expression part of its body */
+    private val derivation: Pair<MofConstraint, String>? by lazy {
         val rules = (parentType as? MofAbstractType)?.ownedRule ?: emptyList()
-        val byProperty = rules.firstOrNull { it.constrainedElement.contains(xmiId) }
-            ?.let { Regex("^\\s*result\\s*=\\s*(.*)$", RegexOption.DOT_MATCHES_ALL).find(it.body)?.groupValues?.get(1) }
+        val byProperty = rules.filter { it.constrainedElement.contains(xmiId) }.firstNotNullOfOrNull { r ->
+            Regex("^\\s*result\\s*=\\s*(.*)$", RegexOption.DOT_MATCHES_ALL).find(r.body)?.groupValues?.get(1)?.let { Pair(r, it) }
+        }
         (byProperty ?: rules
             .filter { it.name.startsWith("derive") }
-            .firstNotNullOfOrNull { Regex("^\\s*${Regex.escape(nameInXmi)}\\s*=\\s*(.*)$", RegexOption.DOT_MATCHES_ALL).find(it.body)?.groupValues?.get(1) })
-            ?.trim()
+            .firstNotNullOfOrNull { r -> Regex("^\\s*${Regex.escape(nameInXmi)}\\s*=\\s*(.*)$", RegexOption.DOT_MATCHES_ALL).find(r.body)?.groupValues?.get(1)?.let { Pair(r, it) } })
+            ?.let { (r, e) -> Pair(r, e.trim()) }
     }
 
-    /** [derivationOcl] made safe to put inside a Kotlin block comment */
-    val derivationOclComment: String get() = derivationOcl?.replace("*/", "* /")?.replace("/*", "/ *")?.replace(Regex("\\s+"), " ") ?: "none"
+    val derivationOcl: String? get() = derivation?.second
+
+    /**
+     * Documentation of the derivation: the original OCL constraint, exactly as in the XMI (name, language and body),
+     * and why it was not translated. Made safe for a Kotlin block comment.
+     */
+    val derivationDoc: String
+        get() {
+            val d = derivation ?: return "No OCL derivation in the source XMI."
+            val (rule, _) = d
+            val lines = mutableListOf("OCL constraint '${rule.name}'${rule.language?.let { " ($it)" } ?: ""}:")
+            lines.add("<pre>")
+            lines.addAll(rule.body.trimEnd().lines())
+            lines.add("</pre>")
+            derivationTranslation.second?.let { lines.add("Not translated: $it.") }
+            return lines.joinToString("\n * ") { it.replace("*/", "* /").replace("/*", "/ *") }
+        }
+
+    /** Kotlin code translated from [derivationOcl], or the reason it could not be translated */
+    private val derivationTranslation: Pair<String?, String?> by lazy {
+        derivationOcl?.let { OclToKotlin(model).translateOrReason(this, it) } ?: Pair(null, "no OCL")
+    }
 
     /** Kotlin code computing this property from 'self', translated from [derivationOcl]; null if it could not be translated */
-    val derivationKotlin: String? by lazy { derivationOcl?.let { OclToKotlin(model).translate(this, it) } }
+    val derivationKotlin: String? get() = derivationTranslation.first
 
     /** properties that this property subsets and that hold stored values */
     val storedSubsettedProperty: Set<MofProperty> get() = subsettedProperty.filter { it.isComputed.not() }.toSet()

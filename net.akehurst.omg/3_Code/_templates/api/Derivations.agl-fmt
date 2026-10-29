@@ -28,7 +28,7 @@ format DerivationFun {
         "
           /**
            * Derivation of ${parentType.name}.${name}
-           * OCL: ${derivationOclComment}
+           * ${derivationDoc}
            */
           fun ${parentType.validName}_${validName}(self: ${parentType.validName}): ${validTypeName} = $body
         "

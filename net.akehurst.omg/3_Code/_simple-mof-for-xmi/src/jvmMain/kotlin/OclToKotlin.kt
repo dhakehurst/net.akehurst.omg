@@ -52,16 +52,24 @@ class OclToKotlin(private val model: MofModel) {
     private lateinit var selfType: MofType
 
     /** @return Kotlin code that computes [prop] from 'self', or null when the OCL cannot be translated */
-    fun translate(prop: MofProperty, ocl: String): String? = try {
+    fun translate(prop: MofProperty, ocl: String): String? = translateOrReason(prop, ocl).first
+
+    /** @return the Kotlin code, or null and the reason the OCL could not be translated */
+    fun translateOrReason(prop: MofProperty, ocl: String): Pair<String?, String?> = try {
+        Pair(translateOrThrow(prop, ocl), null)
+    } catch (e: Untranslatable) {
+        Pair(null, e.message)
+    }
+
+    private fun translateOrThrow(prop: MofProperty, ocl: String): String {
         selfType = prop.parentType ?: throw Untranslatable("no owner")
+        varCount = 0
         tokens = tokenize(ocl)
         pos = 0
         val self = KExpr("self", selfType, false, false)
         val e = parseExpr(Scope(null, emptyMap(), null).let { Scope(it, mapOf("self" to self), null) })
         if (pos != tokens.size) throw Untranslatable("unexpected '${tokens[pos].text}'")
-        convertTo(prop, e)
-    } catch (e: Untranslatable) {
-        null
+        return convertTo(prop, e)
     }
 
     // --- conversion to the property type ---
