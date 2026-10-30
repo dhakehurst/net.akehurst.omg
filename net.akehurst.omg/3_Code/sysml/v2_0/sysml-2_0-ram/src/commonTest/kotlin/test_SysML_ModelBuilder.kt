@@ -18,6 +18,10 @@ import net.akehurst.omg.sysml.v2_0.api.SysML_ModelAsString
 import net.akehurst.omg.sysml.v2_0.api.SysML_ModelBuilder
 import net.akehurst.omg.sysml.v2_0.ram.SysML_ModelFactoryRam
 import net.akehurst.omg.sysml.v2_0.api.KerML.Kernel.Packages.Package
+import net.akehurst.omg.sysml.v2_0.api.KerML.Core.Features.Feature
+import net.akehurst.omg.sysml.v2_0.api.KerML.Core.Types.FeatureDirectionKind
+import net.akehurst.omg.sysml.v2_0.api.KerML.Kernel.Behaviors.ParameterMembership
+import net.akehurst.omg.sysml.v2_0.api.KerML.Kernel.Functions.ReturnParameterMembership
 import kotlin.test.*
 
 // Models are built only from settable (non derived) properties.
@@ -185,4 +189,28 @@ class test_SysML_ModelBuilder {
 
         assertEquals(expected, actual)
     }
+
+    // enumerations: a settable enum property, and spec operations whose OCL returns an enum literal
+    @Test
+    fun enumerations() {
+        val factory = SysML_ModelFactoryRam("TestFactoryRam")
+        val model = SysML_ModelBuilder.Package(factory, "RootPackage") {
+            ownedRelationshipOrderedSet {
+                ParameterMembership("pm") {
+                    ownedRelatedElementOrderedSet {
+                        Feature("f") {
+                            direction(FeatureDirectionKind.inout)
+                        }
+                    }
+                }
+                ReturnParameterMembership("rpm") { }
+            }
+        }
+        val (pm, rpm) = model.ownedRelationshipOrderedSet.toList()
+        assertEquals(FeatureDirectionKind.in_, (pm as ParameterMembership).parameterDirection())
+        assertEquals(FeatureDirectionKind.out, (rpm as ReturnParameterMembership).parameterDirection())
+        assertEquals(FeatureDirectionKind.inout, (pm.ownedRelatedElementOrderedSet.single() as Feature).direction)
+        assertEquals(listOf("in", "inout", "out"), FeatureDirectionKind.entries.map { it.name.removeSuffix("_") })
+    }
+
 }

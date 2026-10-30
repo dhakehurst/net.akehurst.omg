@@ -216,6 +216,9 @@ class MofXmiParser(
             "uml:Enumeration" -> {
                 if (!hasRef(xmiId)) {
                     val mofEnum = MofEnum(model, name, xmiId)
+                    getChildrenByTagName(node, "ownedLiteral").forEach { l ->
+                        mofEnum.literals.add(MofEnumLiteral(l.getAttribute("name"), l.getAttribute("xmi:id")))
+                    }
                     model.enumList.add(mofEnum)
                     setRef(xmiId, mofEnum)
                     currentMofPackage.addEnum(currentFileName, mofEnum)

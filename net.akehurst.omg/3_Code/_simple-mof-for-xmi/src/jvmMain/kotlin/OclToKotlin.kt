@@ -118,7 +118,7 @@ class OclToKotlin(private val model: MofModel) {
                 val c = e.asCollection()
                 val elems = when {
                     "emptyList()" == c.code -> "emptyList<${target.validName}>()"
-                    null != c.type && c.type.isSubtypeOf(target) -> c.code
+                    null != c.type && (c.type == target || c.type.isSubtypeOf(target)) -> c.code
                     else -> "${c.code}.map { it as ${target.validName} }"
                 }
                 when (t.colTypeName) {
@@ -132,7 +132,7 @@ class OclToKotlin(private val model: MofModel) {
             else -> {
                 val typed = when {
                     e.isBoolean || e.isInt || e.isString -> e.code
-                    null != e.type && e.type.isSubtypeOf(target) -> e.code
+                    null != e.type && (e.type == target || e.type.isSubtypeOf(target)) -> e.code
                     else -> "(${e.code} as ${target.validName}?)"
                 }
                 when {
@@ -317,6 +317,10 @@ class OclToKotlin(private val model: MofModel) {
             pos++
             val right = parseRelational(scope)
             if (left.isCollection || right.isCollection) throw Untranslatable("collection equality")
+            val lt = left.type
+            val rt = right.type
+            if (null != lt && null != rt && lt != rt && !lt.isSubtypeOf(rt) && !rt.isSubtypeOf(lt) && (lt is MofEnum || rt is MofEnum))
+                throw Untranslatable("comparison of '${lt.name}' with '${rt.name}'")
             left = bool("(${left.code} $op ${right.code})")
         }
         return left
@@ -504,7 +508,7 @@ class OclToKotlin(private val model: MofModel) {
             val op = findOperation(selfType, name, peekArgCount()) ?: throw Untranslatable("unknown operation '$name'")
             return callOperation(self, op, scope)
         }
-        if (isSym("::")) throw Untranslatable("enumeration literal")
+        if (isSym("::")) return enumLiteral(name)
         scope.lookup(name)?.let { return it }
         scope.implicitIterator?.let { itr ->
             itr.type?.let { findProperty(it, name) }?.let { return navigateProperty(itr, it) }
@@ -602,7 +606,6 @@ class OclToKotlin(private val model: MofModel) {
     }
 
     private fun navigateProperty(recv: KExpr, p: MofProperty): KExpr {
-        if (p.type is MofEnum) throw Untranslatable("enumeration typed property")
         return typed(when {
             recv.isCollection -> when {
                 p.isCollection -> KExpr("${recv.code}.flatMap { it.${p.validName} }", p.type, true, false)
@@ -825,7 +828,6 @@ class OclToKotlin(private val model: MofModel) {
         expectSym(")")
         val ret = op.returnParameter ?: throw Untranslatable("operation '${op.name}' has no result")
         val rt = ret.type ?: throw Untranslatable("operation '${op.name}' has an unknown result type")
-        if (rt is MofEnum) throw Untranslatable("enumeration typed result")
         val call = "${op.validName}(${args.joinToString(", ")})"
         return typed(when {
             recv.isCollection -> when {
@@ -848,6 +850,15 @@ class OclToKotlin(private val model: MofModel) {
         val candidates = type.allOwnedAttributes.filter { it.nameInXmi == name }
         return candidates.firstOrNull { c -> candidates.all { o -> c.parentType!!.isSubtypeOf(o.parentType!!) } }
             ?: candidates.firstOrNull()
+    }
+
+    /** 'Kind::literal'; the next token is '::' */
+    private fun enumLiteral(typeName: String): KExpr {
+        expectSym("::")
+        val lit = nextId()
+        val e = model.enumList.firstOrNull { it.name == typeName } ?: throw Untranslatable("unknown enumeration '$typeName'")
+        val l = e.literals.firstOrNull { it.name == lit } ?: throw Untranslatable("unknown literal '$lit' of '$typeName'")
+        return KExpr("${e.validName}.${l.validName}", e, false, false)
     }
 
     private fun bool(code: String) = KExpr(code, null, false, false, isBoolean = true)

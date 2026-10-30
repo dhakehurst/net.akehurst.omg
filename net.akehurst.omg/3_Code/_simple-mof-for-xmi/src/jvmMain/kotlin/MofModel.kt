@@ -261,6 +261,8 @@ class MofEnum(
 ) : MofType {
     override var parentPackage: MofPackage? = null
     var comment: String? = null
+    /** the enumeration literals, in XMI order */
+    val literals: MutableList<MofEnumLiteral> = mutableListOf()
     override val ownedAttribute: List<MofProperty> = emptyList()
     override val associationOwnedAttribute: Set<MofProperty> = emptySet()
 
@@ -1104,6 +1106,14 @@ data class MofUnionImpl(
     val union: MofProperty,
     val subsetters: List<MofProperty>
 )
+
+data class MofEnumLiteral(
+    val name: String,
+    val xmiId: String
+) {
+    /** the Kotlin name of the enum entry, e.g. 'in_' for 'in' */
+    val validName: String get() = kotlinValidName(name)
+}
 
 data class MofConstraint(
     val name: String,

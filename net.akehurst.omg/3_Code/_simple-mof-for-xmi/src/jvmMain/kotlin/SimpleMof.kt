@@ -76,6 +76,12 @@ object SimpleMof {
             }
             data("MofEnum", implementation = MofEnum::class) {
                 supertype("MofType")
+                propertyOfWithBinding(setOf(VAL), "literals", "List", accessor = MofEnum::literals) { typeArgument("MofEnumLiteral") }
+            }
+            data("MofEnumLiteral") {
+                propertyOf(setOf(VAL), "name", "String")
+                propertyOf(setOf(VAL), "xmiId", "String")
+                propertyOf(setOf(VAL), "validName", "String")
             }
             data("MofInterface", implementation = MofInterface::class) {
                 supertype("MofType")

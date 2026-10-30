@@ -48,6 +48,8 @@ It covers externally visible types, accessors, mutator surface, invariants, and 
   - [REQ-2.3.1.6] `UnlimitedNatural` literal `*` SHALL map to `-1`.
 - [REQ-2.3.2] Enums SHALL be treated as primitive types for attribute typing rules.
 - [REQ-2.3.3] API enums SHALL be generated in the Kotlin API module and mapped to Kotlin enums.
+  - [REQ-2.3.3.1] Each `ownedLiteral` of the enumeration SHALL be an entry of the Kotlin enum, in XMI order; a literal whose name is a Kotlin keyword gets a trailing `_` (e.g. `in_`).
+  - [REQ-2.3.3.2] An OCL enumeration literal `Kind::literal` SHALL translate to `Kind.literal`.
 - [REQ-2.3.4] API interfaces SHALL be generated in the Kotlin API module and mapped to Kotlin interfaces.
 
 ### 2.4 Class and association contracts (API)

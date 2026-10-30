@@ -114,7 +114,7 @@ format ApiPackageFile {
          * xmi:id=\"$xmiId\"
          * $comment
          */
-        enum class ${validName} { }
+        enum class ${validName} { $[literals.map({it -> it.validName}) sep ', '] }
     "
     MofInterface -> {
         supTypes :=  superTypes.isEmpty ? '' : " : $[superTypes.map({it -> it.validName}) sep ',']"
