@@ -43,6 +43,8 @@ class test_OclToKotlin {
         check("qualifiedName", "_'declaredName'", "self.declaredName")
         check("qualifiedName", "owner.name", "self.owner?.name")
         check("owner", "noSuchThing", "UNTRANSLATABLE: unknown name 'noSuchThing'")
+        // a derivation that is just the property itself would call itself
+        check("owner", "(owner)", "UNTRANSLATABLE: the derivation is the property itself")
     }
 
     @Test

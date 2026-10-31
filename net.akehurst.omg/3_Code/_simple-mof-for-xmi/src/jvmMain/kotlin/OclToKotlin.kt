@@ -74,6 +74,9 @@ class OclToKotlin(private val model: MofModel) {
         val owner = prop.parentType ?: throw Untranslatable("no owner")
         inOperation = false
         val e = parseAll(owner, "self", emptyMap(), ocl)
+        // e.g. UML 'Message::messageKind() = messageKind' as the derivation of messageKind: it would call itself
+        val itself = parseAll(owner, "self", emptyMap(), prop.nameInXmi).code
+        if (e.code.removePrefix("(").removeSuffix(")") == itself) throw Untranslatable("the derivation is the property itself")
         return convertTo(Target(prop.type, prop.isCollection, if (prop.isCollection) prop.colTypeName else "", prop.isOptional, prop.qualifiedName), e)
     }
 
@@ -878,12 +881,16 @@ class OclToKotlin(private val model: MofModel) {
     private fun str(code: String) = KExpr(code, model.allClasses.firstOrNull { it.name == "String" }, false, false, isString = true)
 
     /** sets the Boolean / integer / String flags from the type */
-    private fun typed(e: KExpr): KExpr = when (e.type?.name) {
-        "Boolean" -> e.copy(isBoolean = true)
-        "Integer", "Long" -> e.copy(isInt = true)
-        "UnlimitedNatural" -> e.copy(isInt = true, isUnlimited = true)
-        "String" -> e.copy(isString = true)
-        else -> e
+    private fun typed(e: KExpr): KExpr = when {
+        // a type mapped to a Kotlin type (e.g. UnlimitedNatural to Long) keeps its XMI reference as its id
+        (e.type as? ExternalReferenceClass)?.xmiId?.endsWith("#UnlimitedNatural") == true -> e.copy(isInt = true, isUnlimited = true)
+        else -> when (e.type?.name) {
+            "Boolean" -> e.copy(isBoolean = true)
+            "Integer", "Long" -> e.copy(isInt = true)
+            "UnlimitedNatural" -> e.copy(isInt = true, isUnlimited = true)
+            "String" -> e.copy(isString = true)
+            else -> e
+        }
     }
 
     /** a comparison of integers; an UnlimitedNatural '*' (-1) is greater than every other value */
