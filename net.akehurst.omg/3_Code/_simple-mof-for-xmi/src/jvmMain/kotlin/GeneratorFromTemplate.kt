@@ -17,7 +17,7 @@
 package net.akehurst.omg._simple_mof_for_xmi
 
 import net.akehurst.language.agl.Agl
-import net.akehurst.language.agl.expressions.processor.ObjectGraphAccessorMutatorByReflection
+import net.akehurst.language.expressions.processor.ObjectGraphAccessorMutatorByReflection
 import net.akehurst.language.agl.processor.FormatOptionsDefault
 import net.akehurst.language.agl.processor.FormatResultDefault
 import net.akehurst.language.agl.syntaxAnalyser.LocationMapDefault

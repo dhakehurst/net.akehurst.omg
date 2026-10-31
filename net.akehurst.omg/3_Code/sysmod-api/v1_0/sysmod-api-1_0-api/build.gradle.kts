@@ -21,7 +21,9 @@ tasks.named<generator.GenerateTask>("generate") {
     sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/SysModApi-1_0-ptc-25-02-29.xmi"))
     generateDir.set(layout.projectDirectory.dir("../../../_templates/api"))
     parameters = mapOf(
-        "TARGET_PACKAGE" to "net.akehurst.omg.sysmodapi.v2_0"
+        "TARGET_PACKAGE" to "net.akehurst.omg.sysmodapi.v2_0",
+        "COPYRIGHT" to file(layout.projectDirectory.dir("../../../_templates/text/COPYRIGHT.txt")).readText(),
+        "EXCLUDE_PACKAGE" to emptyList<String>()
     )
     referencedTypeMapping = mapOf(
         "http://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" to "String",

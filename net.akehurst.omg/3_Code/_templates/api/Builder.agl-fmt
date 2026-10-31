@@ -63,10 +63,10 @@ format BuilderClass {
            val objectIdentity: Any
         ) : Builder<${validName}> {
 
-            $[allCompositeAttribute sep $EOL]
+            $[allStoredCompositeAttribute sep $EOL]
 
             override fun build(): ${validName} = factory.${parentPackage.qualifiedName}.${validName}_construct(objectIdentity).also { self ->
-               $[allCompositeAttribute sep $EOL via BuilderClassAssignment]
+               $[allStoredCompositeAttribute sep $EOL via BuilderClassAssignment]
             }
         }
      "

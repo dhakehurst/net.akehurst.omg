@@ -40,6 +40,8 @@ format PropertyAccessors {
     MofProperty -> {
         ovr := isOverride ? 'override ': ''
         mutatableAccessor := when {
+            // derived (incl. derived union): computed, so no stored holder; a single value has a read-only Derived holder
+            isComputed -> isSingle ? "${ovr}val ${validName}Derived: Derived<${validTypeName}>" : ''
             isSingle -> when {
               isComposite -> "${ovr}val ${validName}Value: Value<${validTypeNameNotNullable}?>"
               isReference -> "${ovr}val ${validName}Reference: Reference<Any,$validTypeNameNotNullable>"
@@ -82,6 +84,7 @@ format InterfaceNonNavigablePackage {
             package ${TARGET_PACKAGE}.api.${qualifiedName}
 
             import net.akehurst.kotlinx.collections.OrderedSet
+            import net.akehurst.kotlinx.utils.Derived
             import net.akehurst.kotlinx.utils.HierarchicalFactory
             import net.akehurst.kotlinx.utils.Reference
             import net.akehurst.kotlinx.utils.Value

@@ -261,6 +261,8 @@ class MofEnum(
 ) : MofType {
     override var parentPackage: MofPackage? = null
     var comment: String? = null
+    /** the enumeration literals, in XMI order */
+    val literals: MutableList<MofEnumLiteral> = mutableListOf()
     override val ownedAttribute: List<MofProperty> = emptyList()
     override val associationOwnedAttribute: Set<MofProperty> = emptySet()
 
@@ -305,6 +307,8 @@ abstract class MofAbstractType() : MofType {
     val generalizations: MutableList<String> = mutableListOf() // Stores xmi:idref of general classes
     override val ownedAttribute: MutableList<MofProperty> = mutableListOf()
     val operations: MutableList<MofOperation> = mutableListOf()
+    /** constraints owned by this type or by its operations (e.g. OCL derivations) */
+    val ownedRule: MutableList<MofConstraint> = mutableListOf()
 
     // --- derived ---
     override val validName: String by lazy { kotlinValidName(name) }
@@ -504,6 +508,21 @@ abstract class MofAbstractType() : MofType {
 
     override val allAttribute: Set<MofProperty> by lazy { allOwnedAttributes + allAssociationOwnedAttribute }
 
+    /**
+     * For each derived union implemented by this type, the implemented properties that subset it
+     * (directly, or through a property they redefine). The union is computed from them.
+     */
+    val unionImpls: List<MofUnionImpl> by lazy {
+        val all = allNormalisedAttribute.flatMap { c -> c.attributes.map { r -> r.attribute } }
+        all.filter { it.isDerivedUnion }.map { u ->
+            val targets = setOf(u) + u.allRedefinedProperty
+            val subsetters = all.filter { a ->
+                a != u && (setOf(a) + a.allRedefinedProperty).any { x -> x.subsettedProperty.any { it in targets } }
+            }
+            MofUnionImpl(u, subsetters)
+        }
+    }
+
     override val allNormalisedAttribute: List<MofClassAttributeImplInfo> by lazy {
         // 2. Recursively get the normalized properties from all superclasses
         val inheritedProperties = superTypes.flatMap { st -> st.allNormalisedAttribute.flatMap { c -> c.attributes.map { r -> r.attribute } } }.toSet()
@@ -617,6 +636,14 @@ open class MofClass(
     override var isAbstract: Boolean = false
     val allCompositeAttribute: List<MofProperty> by lazy { allNormalisedAttributeFlat.filter { it.isComposite } }
     val allReferenceAttribute: List<MofProperty> by lazy { allNormalisedAttributeFlat.filter { it.isReference } }
+    /** composite attributes that hold stored values, i.e. not derived-only (derived unions are stored) */
+    val allStoredCompositeAttribute: List<MofProperty> by lazy { allCompositeAttribute.filter { it.isComputed.not() } }
+    /** reference attributes that hold stored values, i.e. not derived-only (derived unions are stored) */
+    val allStoredReferenceAttribute: List<MofProperty> by lazy { allReferenceAttribute.filter { it.isComputed.not() } }
+    /** composite attributes that are not derived at all (neither derived-only nor derived union) */
+    val allNotDerivedCompositeAttribute: List<MofProperty> by lazy { allCompositeAttribute.filter { it.isComputed.not() } }
+    /** reference attributes that are not derived at all (neither derived-only nor derived union) */
+    val allNotDerivedReferenceAttribute: List<MofProperty> by lazy { allReferenceAttribute.filter { it.isComputed.not() } }
     override val concreteSubclasses: Set<MofClass> by lazy {
         ((if (isAbstract) mutableListOf() else mutableListOf(this)) +
                 model.classList.filter { !it.isAbstract && it.allSuperTypes.contains(this) }).toSet()
@@ -800,6 +827,64 @@ class MofProperty(
             }
     }
 
+    /** derived, but not a derived union: computed by a derivation, has no stored value */
+    val isDerivedOnly: Boolean get() = isDerived && isDerivedUnion.not()
+
+    /** derived or derived union: has no stored value */
+    val isComputed: Boolean get() = isDerived || isDerivedUnion
+
+    /**
+     * The OCL expression that derives this property, if the XMI has one.
+     * KerML/SysML: a constraint on the owning class named 'derive...' with body '<name> = <expr>'.
+     * UML: a constraint on an operation, constraining this property, with body 'result = <expr>'.
+     */
+    /** the constraint that derives this property and the expression part of its body */
+    private val derivation: Pair<MofConstraint, String>? by lazy {
+        val rules = (parentType as? MofAbstractType)?.ownedRule ?: emptyList()
+        val byProperty = rules.filter { it.constrainedElement.contains(xmiId) }.firstNotNullOfOrNull { r ->
+            Regex("^\\s*result\\s*=\\s*(.*)$", RegexOption.DOT_MATCHES_ALL).find(r.body)?.groupValues?.get(1)?.let { Pair(r, it) }
+        }
+        (byProperty ?: rules
+            .filter { it.name.startsWith("derive") }
+            .firstNotNullOfOrNull { r -> Regex("^\\s*${Regex.escape(nameInXmi)}\\s*=\\s*(.*)$", RegexOption.DOT_MATCHES_ALL).find(r.body)?.groupValues?.get(1)?.let { Pair(r, it) } })
+            ?.let { (r, e) -> Pair(r, e.trim()) }
+    }
+
+    val derivationOcl: String? get() = derivation?.second
+
+    /**
+     * Documentation of the derivation: the original OCL constraint, exactly as in the XMI (name, language and body),
+     * and why it was not translated. Made safe for a Kotlin block comment.
+     */
+    val derivationDoc: String
+        get() {
+            val d = derivation ?: return "No OCL derivation in the source XMI."
+            val (rule, _) = d
+            val lines = mutableListOf("OCL constraint '${rule.name}'${rule.language?.let { " ($it)" } ?: ""}:")
+            lines.add("<pre>")
+            lines.addAll(rule.body.trimEnd().lines())
+            lines.add("</pre>")
+            derivationTranslation.second?.let { lines.add("Not translated: $it.") }
+            return lines.joinToString("\n * ") { it.replace("*/", "* /").replace("/*", "/ *") }
+        }
+
+    /** Kotlin code translated from [derivationOcl], or the reason it could not be translated */
+    private val derivationTranslation: Pair<String?, String?> by lazy {
+        derivationOcl?.let { OclToKotlin(model).translateOrReason(this, it) } ?: Pair(null, "no OCL")
+    }
+
+    /** Kotlin code computing this property from 'self', translated from [derivationOcl]; null if it could not be translated */
+    val derivationKotlin: String? get() = derivationTranslation.first
+
+    /** properties that this property subsets and that hold stored values */
+    val storedSubsettedProperty: Set<MofProperty> get() = subsettedProperty.filter { it.isComputed.not() }.toSet()
+    val isSubsettingStored: Boolean get() = storedSubsettedProperty.isNotEmpty()
+    /** properties that subset this property and that hold stored values */
+    val storedSubsettingProperty: Set<MofProperty> get() = subsettingProperty.filter { it.isComputed.not() }.toSet()
+    val isSubsettedStored: Boolean get() = storedSubsettingProperty.isNotEmpty()
+    /** the opposite end holds stored values, so it must be kept in step */
+    val hasStoredOpposite: Boolean get() = opposite?.isComputed == false
+
     val isSubsetting get() = subsettedPropertyRef.isNotEmpty()
 
     /** properties that this property subsets */
@@ -858,11 +943,106 @@ class MofOperation(
     val xmiId: String,
     val visibility: String = "public",
     val isQuery: Boolean = false,
+    val isAbstract: Boolean = false,
     val parameters: MutableList<MofParameter> = mutableListOf(),
     val returnParameter: MofParameter? = null
 ) {
     // Helper to get the parent class
     var parentType: MofClass? = null
+
+    /** the OCL body condition, if any */
+    var bodyCondition: MofConstraint? = null
+    val redefinedOperationRef: MutableSet<String> = mutableSetOf()
+
+    // --- derived ---
+    /**
+     * A parameterless operation must not have the JVM name of a property getter (e.g. getName() and property 'name'),
+     * so such an operation gets a trailing '_'.
+     */
+    val validName: String by lazy {
+        val n = kotlinValidName(name)
+        val getterNames = model.allClasses.flatMap { it.attribute }.map { p ->
+            val v = p.validName
+            if (v.startsWith("is") && v.length > 2 && v[2].isUpperCase()) v else "get" + v.replaceFirstChar { it.uppercase() }
+        }.toSet()
+        if (parameters.isEmpty() && n in getterNames) "${n}_" else n
+    }
+
+    /** the OCL expression of the body: the body condition without a leading 'result =' */
+    val bodyOcl: String? by lazy {
+        bodyCondition?.body?.let { b -> Regex("^\\s*result\\s*=\\s*(.*)$", RegexOption.DOT_MATCHES_ALL).find(b)?.groupValues?.get(1) ?: b }?.trim()
+    }
+
+    /**
+     * Every spec operation is generated, so that OCL can call it: with its translated body, or as a TODO
+     * (no body in the XMI, abstract, or not translatable); subclasses that give a body override it.
+     */
+    val isGenerated: Boolean get() = true
+
+    /** the operation of a supertype that this one overrides in Kotlin, if any */
+    val overridden: MofOperation? by lazy {
+        parentType?.allSuperTypes?.firstNotNullOfOrNull { st -> (st as? MofAbstractType)?.operations?.firstOrNull { it.isGenerated && it.signature == signature } }
+    }
+
+    /**
+     * The collection kind of the result. Kotlin needs an override to return a subtype, so when the XMI gives a
+     * kind that is not a subtype of the overridden one (e.g. Set for OrderedSet), the overridden kind is used.
+     */
+    val resultColTypeName: String by lazy {
+        val own = returnParameter?.colTypeName ?: "Collection"
+        val sup = overridden?.resultColTypeName
+        val subtypeOf = mapOf(
+            "OrderedSet" to setOf("OrderedSet", "Set", "Collection"), "Set" to setOf("Set", "Collection"),
+            "List" to setOf("List", "Collection"), "Collection" to setOf("Collection")
+        )
+        if (null == sup || subtypeOf[own]!!.contains(sup)) own else sup
+    }
+
+    /** Kotlin needs an override to keep a non-null result non-null, so the result is optional only if the overridden one is */
+    val resultOptional: Boolean by lazy { (returnParameter?.isOptional ?: false) && (overridden?.resultOptional ?: true) }
+
+    val returnTypeName: String
+        get() = returnParameter?.let { r ->
+            val t = r.type?.validName ?: "Any"
+            when {
+                r.isCollection -> "$resultColTypeName<$t>"
+                resultOptional -> "$t?"
+                else -> t
+            }
+        } ?: "Unit"
+
+    /** Kotlin parameter list, e.g. 'name: String?, other: Element' */
+    val parameterDecl: String get() = parameters.mapIndexed { i, p -> "${p.kotlinName(i)}: ${p.validTypeName}" }.joinToString(", ")
+
+    /** signature used to decide on Kotlin 'override': name and parameter types */
+    val signature: String get() = "$validName(${parameters.joinToString(",") { it.validTypeName }})"
+
+    /** true when a supertype declares an operation with the same Kotlin signature */
+    val isOverride: Boolean by lazy {
+        parentType?.allSuperTypes?.any { st -> (st as? MofAbstractType)?.operations?.any { it.isGenerated && it.signature == signature } ?: false } ?: false
+    }
+
+    private val translation: Pair<String?, String?> by lazy {
+        when {
+            true != bodyCondition?.isOcl -> Pair(null, "the body is not OCL")
+            else -> bodyOcl?.let { OclToKotlin(model).translateOperationOrReason(this, it) } ?: Pair(null, "no OCL body")
+        }
+    }
+
+    /** the Kotlin body: translated from the OCL, or a TODO */
+    val bodyKotlin: String get() = translation.first ?: "TODO(\"Operation '${parentType?.qualifiedName}.$name' is not implemented\")"
+
+    /** documentation: the original OCL body condition and why it was not translated; safe for a Kotlin block comment */
+    val bodyDoc: String
+        get() {
+            val c = bodyCondition
+            val lines = when (c) {
+                null -> mutableListOf("No OCL body in the source XMI.")
+                else -> mutableListOf("OCL body condition '${c.name}'${c.language?.let { " ($it)" } ?: ""}:", "<pre>") + c.body.trimEnd().lines() + "</pre>"
+            }.toMutableList()
+            if (null != c) translation.second?.let { lines.add("Not translated: $it.") }
+            return lines.joinToString("\n * ") { it.replace("*/", "* /").replace("/*", "/ *") }
+        }
 
     override fun hashCode(): Int = arrayOf(parentType, name).contentHashCode()
     override fun equals(other: Any?): Boolean = when {
@@ -883,7 +1063,35 @@ data class MofParameter(
     val typeXmiId: String?,
     val typeHref: String?,
     val direction: String = "in" // "in", "out", "inout", "return"
-)
+) {
+    var lowerBound: Int = 1
+    var upperBound: Int = 1 // -1 for unbounded (*)
+    var isOrdered: Boolean = false
+    var isUnique: Boolean = true
+
+    val type: MofType? by lazy { typeXmiId?.let { model.findTypeById(it) } ?: typeHref?.let { model.findTypeById(it) } }
+    val isSingle: Boolean get() = 1 == upperBound
+    val isCollection: Boolean get() = isSingle.not()
+    val isOptional: Boolean get() = 0 == lowerBound && isSingle
+    val colTypeName: String
+        get() = when {
+            isUnique && isOrdered -> "OrderedSet"
+            isUnique -> "Set"
+            isOrdered -> "List"
+            else -> "Collection"
+        }
+    val validTypeName: String
+        get() {
+            val t = type?.validName ?: "Any"
+            return when {
+                isCollection -> "$colTypeName<$t>"
+                isOptional -> "$t?"
+                else -> t
+            }
+        }
+
+    fun kotlinName(index: Int): String = if (name.isBlank()) "p$index" else kotlinValidName(name)
+}
 
 data class MofAssociation(
     val model: MofModel,
@@ -892,6 +1100,30 @@ data class MofAssociation(
     var memberEnds: List<MofProperty> // Association ends are properties
 ) {
     var parentPackage: MofPackage? = null
+}
+
+data class MofUnionImpl(
+    val union: MofProperty,
+    val subsetters: List<MofProperty>
+)
+
+data class MofEnumLiteral(
+    val name: String,
+    val xmiId: String
+) {
+    /** the Kotlin name of the enum entry, e.g. 'in_' for 'in' */
+    val validName: String get() = kotlinValidName(name)
+}
+
+data class MofConstraint(
+    val name: String,
+    val language: String?,
+    val body: String,
+    /** xmi:ids of the constrained elements */
+    val constrainedElement: List<String>
+) {
+    /** true unless the language names something other than OCL (e.g. 'English') */
+    val isOcl: Boolean get() = null == language || language.isBlank() || language.startsWith("OCL", ignoreCase = true)
 }
 
 enum class MofAggregationKind {

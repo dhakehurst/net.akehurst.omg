@@ -18,6 +18,10 @@ namespace net.akehurst.omg.mof.gen.template
 
 import net.akehurst.omg.mof.gen.simple
 
+format PackageImport {
+    MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.*"
+}
+
 format ApiPackageFile {
     #output: 'MofModel -> "agl/${name}TypesDomain.kt"'
 
@@ -27,13 +31,14 @@ format ApiPackageFile {
         // *** Generated code do NOT manually edit. ***
         package ${TARGET_PACKAGE}.agl.types
 
-        import ${TARGET_PACKAGE}.api.*
-        import ${TARGET_PACKAGE}.ram.*
+        import ${TARGET_PACKAGE}.api.${name}_ModelFactory
+        import ${TARGET_PACKAGE}.ram.${validName}_ModelFactoryRam
+        $[packageList.filter({it -> false == it.isEmpty}) sep $EOL via PackageImport]
         import net.akehurst.language.types.builder.typesDomain
 
-        class ${name}TypesDomain(factory:${name}Factory = ${name}FactoryRam) {
+        class ${name}TypesDomain(factory: ${name}_ModelFactory = ${validName}_ModelFactoryRam(\"${name}\")) {
             val types = typesDomain(\"${name}\", true) {
-                $[packageList sep $EOL]
+                $[packageList.filter({it -> false == it.isEmpty}) sep $EOL]
             }
         }
     "
@@ -46,17 +51,15 @@ format ApiPackageFile {
     "
 
     MofEnum -> "
-      enum(\"$name\", listOf(/*TODO*/), implementation = $name::class)
+      enum(\"$name\", listOf(/*TODO*/), implementation = ${validName}::class)
     "
 
     MofClass -> "
-      data(\"$name\", implementation = $name::class) {
+      data(\"$name\", implementation = ${validName}::class) {
         constructor_ {
-          parameter(setOf(REF, VAL),\"_identity\", \"Any\", true, $name::_identity)
-          execution { args -> args.getOrNull(0)?.let { factory.create${name}(it) } ?: factory.create${name}() }
+          parameter(setOf(REF, VAL), \"_identity\", \"Any\", false, accessor = ${validName}::_identity)
+          execution { args -> factory.${parentPackage.qualifiedName}.${validName}_construct(args[0] ?: error(\"${name} needs an identity\")) }
         }
       }
     "
-
-
 }

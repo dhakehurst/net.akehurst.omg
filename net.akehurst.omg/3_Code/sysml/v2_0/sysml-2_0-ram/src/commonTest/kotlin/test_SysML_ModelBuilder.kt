@@ -17,8 +17,16 @@
 import net.akehurst.omg.sysml.v2_0.api.SysML_ModelAsString
 import net.akehurst.omg.sysml.v2_0.api.SysML_ModelBuilder
 import net.akehurst.omg.sysml.v2_0.ram.SysML_ModelFactoryRam
+import net.akehurst.omg.sysml.v2_0.api.KerML.Kernel.Packages.Package
+import net.akehurst.omg.sysml.v2_0.api.KerML.Core.Features.Feature
+import net.akehurst.omg.sysml.v2_0.api.KerML.Core.Types.FeatureDirectionKind
+import net.akehurst.omg.sysml.v2_0.api.KerML.Kernel.Behaviors.ParameterMembership
+import net.akehurst.omg.sysml.v2_0.api.KerML.Kernel.Functions.ReturnParameterMembership
 import kotlin.test.*
 
+// Models are built only from settable (non derived) properties.
+// In KerML/SysML ownership is held by relationships, e.g. Package -ownedRelationship-> OwningMembership -ownedRelatedElement-> Package,
+// and the name is set as declaredName; owner, ownedElement, ownedMember and name are derived from those.
 class test_SysML_ModelBuilder {
 
     @Test
@@ -41,13 +49,13 @@ class test_SysML_ModelBuilder {
     fun named() {
         val factory = SysML_ModelFactoryRam("TestFactoryRam")
         val model = SysML_ModelBuilder.Package(factory, "RootPackage") {
-            name("Root Package")
+            declaredName("Root Package")
         }
         val actual = SysML_ModelAsString.Package_asString(model)
         println(actual)
         val expected = """
             Package 'RootPackage'
-              name 'Root Package'
+              declaredName 'Root Package'
 
         """.trimIndent()
 
@@ -58,10 +66,14 @@ class test_SysML_ModelBuilder {
     fun named_subpackage() {
         val factory = SysML_ModelFactoryRam("TestFactoryRam")
         val model = SysML_ModelBuilder.Package(factory, "RootPackage") {
-            name("Root Package")
-            ownedElementOrderedSet {
-                Package("SubPackage") {
-                    name("Sub Package")
+            declaredName("Root Package")
+            ownedRelationshipOrderedSet {
+                OwningMembership("SubPackageMembership") {
+                    ownedRelatedElementOrderedSet {
+                        Package("SubPackage") {
+                            declaredName("Sub Package")
+                        }
+                    }
                 }
             }
         }
@@ -69,37 +81,56 @@ class test_SysML_ModelBuilder {
         println(actual)
         val expected = """
             Package 'RootPackage'
-              ownedElementOrderedSet = [
-                Package 'SubPackage'
-                  name 'Sub Package'
+              ownedRelationshipOrderedSet = [
+                OwningMembership 'SubPackageMembership'
+                  owningRelatedElement Package 'RootPackage'
+                  ownedRelatedElementOrderedSet = [
+                    Package 'SubPackage'
+                      owningRelationship OwningMembership 'SubPackageMembership'
+                      declaredName 'Sub Package'
+                  ]
               ]
-              name 'Root Package'
+              declaredName 'Root Package'
 
         """.trimIndent()
 
         assertEquals(expected, actual)
+
+        // derived from the relationships
+        val sub = model.ownedElementOrderedSet.single() as Package
+        assertEquals("Sub Package", sub.declaredName)
+        assertSame(model, sub.owner)
     }
 
     @Test
     fun subpackage_with_content_x1() {
         val factory = SysML_ModelFactoryRam("TestFactoryRam")
         val model = SysML_ModelBuilder.Package(factory, "RootPackage") {
-            name("Root Package")
-            ownedElementOrderedSet {
-                Package("SubPackage") {
-                    name("Sub Package")
-                    ownedMemberOrderedSet {
-                        EnumerationDefinition("Enum1") {
-                            name("Enum1")
-                            ownedAttributeOrderedSet {
-                                EnumerationUsage("RED") {
-                                    name("RED")
-                                }
-                                EnumerationUsage("GREEN") {
-                                    name("GREEN")
-                                }
-                                EnumerationUsage("BLUE") {
-                                    name("BLUE")
+            declaredName("Root Package")
+            ownedRelationshipOrderedSet {
+                OwningMembership("SubPackageMembership") {
+                    ownedRelatedElementOrderedSet {
+                        Package("SubPackage") {
+                            declaredName("Sub Package")
+                            ownedRelationshipOrderedSet {
+                                OwningMembership("Enum1Membership") {
+                                    ownedRelatedElementOrderedSet {
+                                        EnumerationDefinition("Enum1") {
+                                            declaredName("Enum1")
+                                            // enumerated values are owned through VariantMemberships
+                                            ownedRelationshipOrderedSet {
+                                                VariantMembership("REDMembership") {
+                                                    ownedRelatedElementOrderedSet { EnumerationUsage("RED") { declaredName("RED") } }
+                                                }
+                                                VariantMembership("GREENMembership") {
+                                                    ownedRelatedElementOrderedSet { EnumerationUsage("GREEN") { declaredName("GREEN") } }
+                                                }
+                                                VariantMembership("BLUEMembership") {
+                                                    ownedRelatedElementOrderedSet { EnumerationUsage("BLUE") { declaredName("BLUE") } }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -111,14 +142,75 @@ class test_SysML_ModelBuilder {
         println(actual)
         val expected = """
             Package 'RootPackage'
-              ownedElementOrderedSet = [
-                Package 'SubPackage'
-                  name 'Sub Package'
+              ownedRelationshipOrderedSet = [
+                OwningMembership 'SubPackageMembership'
+                  owningRelatedElement Package 'RootPackage'
+                  ownedRelatedElementOrderedSet = [
+                    Package 'SubPackage'
+                      owningRelationship OwningMembership 'SubPackageMembership'
+                      ownedRelationshipOrderedSet = [
+                        OwningMembership 'Enum1Membership'
+                          owningRelatedElement Package 'SubPackage'
+                          ownedRelatedElementOrderedSet = [
+                            EnumerationDefinition 'Enum1'
+                              owningRelationship OwningMembership 'Enum1Membership'
+                              ownedRelationshipOrderedSet = [
+                                VariantMembership 'REDMembership'
+                                  owningRelatedElement EnumerationDefinition 'Enum1'
+                                  ownedRelatedElementOrderedSet = [
+                                    EnumerationUsage 'RED'
+                                      owningRelationship VariantMembership 'REDMembership'
+                                      declaredName 'RED'
+                                  ]
+                                VariantMembership 'GREENMembership'
+                                  owningRelatedElement EnumerationDefinition 'Enum1'
+                                  ownedRelatedElementOrderedSet = [
+                                    EnumerationUsage 'GREEN'
+                                      owningRelationship VariantMembership 'GREENMembership'
+                                      declaredName 'GREEN'
+                                  ]
+                                VariantMembership 'BLUEMembership'
+                                  owningRelatedElement EnumerationDefinition 'Enum1'
+                                  ownedRelatedElementOrderedSet = [
+                                    EnumerationUsage 'BLUE'
+                                      owningRelationship VariantMembership 'BLUEMembership'
+                                      declaredName 'BLUE'
+                                  ]
+                              ]
+                              declaredName 'Enum1'
+                          ]
+                      ]
+                      declaredName 'Sub Package'
+                  ]
               ]
-              name 'Root Package'
+              declaredName 'Root Package'
 
         """.trimIndent()
 
         assertEquals(expected, actual)
     }
+
+    // enumerations: a settable enum property, and spec operations whose OCL returns an enum literal
+    @Test
+    fun enumerations() {
+        val factory = SysML_ModelFactoryRam("TestFactoryRam")
+        val model = SysML_ModelBuilder.Package(factory, "RootPackage") {
+            ownedRelationshipOrderedSet {
+                ParameterMembership("pm") {
+                    ownedRelatedElementOrderedSet {
+                        Feature("f") {
+                            direction(FeatureDirectionKind.inout)
+                        }
+                    }
+                }
+                ReturnParameterMembership("rpm") { }
+            }
+        }
+        val (pm, rpm) = model.ownedRelationshipOrderedSet.toList()
+        assertEquals(FeatureDirectionKind.in_, (pm as ParameterMembership).parameterDirection())
+        assertEquals(FeatureDirectionKind.out, (rpm as ReturnParameterMembership).parameterDirection())
+        assertEquals(FeatureDirectionKind.inout, (pm.ownedRelatedElementOrderedSet.single() as Feature).direction)
+        assertEquals(listOf("in", "inout", "out"), FeatureDirectionKind.entries.map { it.name.removeSuffix("_") })
+    }
+
 }

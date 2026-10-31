@@ -39,6 +39,7 @@ format BridgeImplOrgSglCmp {
     MofAttributeBridging ->  when {
         1 == redefinedBy.size -> when {
             redefinedBy.first.isSingle -> when {
+                redefinedBy.first.isComputed -> "ValueImmutable(${redefinedBy.first.validName})"
                 redefinedBy.first.isReference -> "ValueImmutable(${redefinedBy.first.validName}Reference.resolved)"
                 redefinedBy.first.isComposite -> "${redefinedBy.first.validName}Value"
                 else -> 'ERROR'
@@ -54,6 +55,7 @@ format BridgeImplOrgSglRef {
     MofAttributeBridging -> when {
         1 == redefinedBy.size -> when {
             redefinedBy.first.isSingle -> when {
+               redefinedBy.first.isComputed -> "ReferenceImmutable(${redefinedBy.first.validName}?._identity, ${redefinedBy.first.validName})"
                redefinedBy.first.isReference -> "${redefinedBy.first.validName}Reference"
                redefinedBy.first.isComposite -> "ReferenceImmutable(${redefinedBy.first.validName}._identity, ${redefinedBy.first.validName})"
                else -> 'ERROR'
@@ -73,6 +75,7 @@ format BridgeImplOrgColCmp {
                 else -> "${original.colTypeNameLower}Of(${redefinedBy.first.validName})"
             }
             redefinedBy.first.isCollection -> when {
+                redefinedBy.first.isComputed -> "${redefinedBy.first.validName}.to${original.colTypeName}()"
                 redefinedBy.first.isComposite -> "${redefinedBy.first.validName}.to${original.colTypeName}()"
                 redefinedBy.first.isReference -> "${redefinedBy.first.validName}.map{ ValueImmutable(it) }.to${original.colTypeName}()"
                 else -> 'ERROR'
@@ -91,11 +94,13 @@ format BridgeImplOrgColRef {
             redef := redefinedBy.map({ it ->
                 when {
                     it.isSingle -> when {
+                        it.isComputed -> "listOfNotNull(${it.validName}).map{ ReferenceImmutable(it._identity, it) }"
                         it.isReference -> "listOf(${it.validName}Reference)"
                         it.isComposite -> "listOf(ReferenceImmutable(${it.validName}._identity, ${it.validName}))"
                         else -> 'ERROR'
                     }
                     it.isCollection -> when {
+                        it.isComputed -> "${it.validName}.map{ ReferenceImmutable(it._identity, it) }"
                         it.isComposite -> "${it.validName}.map{ ReferenceImmutable(it._identity, it) }"
                         it.isReference -> "${it.validName}Reference.to${original.colTypeName}()"
                         else -> 'ERROR'
@@ -166,9 +171,35 @@ format PropertyBridgeOrgColRef {
     }
 }
 
+format PropertyBridgeOrgDerived {
+    // the original is derived (not union): it is computed from the redefining properties
+    MofAttributeBridging -> {
+        typeName := original.type.isPrimitive ? original.type.validName : original.type.validName+'_NN'
+        redef := redefinedBy.map({ it -> it.validName})
+        vals := redefinedBy.map({ it -> it.isSingle ? "listOfNotNull(${it.validName})" : "${it.validName}" })
+        when {
+            original.isSingle -> {
+                nullable := original.isOptional ? '?' : ''
+                first := redefinedBy.first.isSingle ? redefinedBy.first.validName : "${redefinedBy.first.validName}.firstOrNull()"
+                src := original.isOptional ? first : "($first ?: error(\"Property ${original.validName} of object '\${_identity}' has no value.\"))"
+                "
+                  // Bridging ${original.parentType.validName}.${original.validName} with $[redef sep ', ']
+                  override val ${original.validName}Derived: Derived<${typeName}${nullable}> get() = DerivedDefault { $src }
+                  override val ${original.validName}: ${typeName}${nullable} get() = $src
+                "
+            }
+            else -> "
+                  // Bridging ${original.parentType.validName}.${original.validName} with $[redef sep ', ']
+                  override val ${original.validName}: ${original.colTypeName}<${typeName}> get() = ($[vals sep ' + ']).to${original.colTypeName}()
+            "
+        }
+    }
+}
+
 format PropertyBridge {
     MofAttributeBridging -> when {
-        original.isSingle -> when {
+        original.isComputed -> "${$self via PropertyBridgeOrgDerived}"
+        (original.isSingle) -> when {
             original.isComposite -> { "${$self via PropertyBridgeOrgSglCmp}" }
             (original.isReference) -> "${$self via PropertyBridgeOrgSglRef}"
             else -> 'ERROR'
@@ -210,8 +241,8 @@ format PropertyGetterSglCmp {
     "
     MofProperty -> {
         subsetAdditions := when {
-             isSubsetting -> {
-                 changes := subsettedProperty.map({it ->
+             isSubsettingStored -> {
+                 changes := storedSubsettedProperty.map({it ->
                      when {
                         $self.invalidSubset(it) -> "// FIXME: ERROR in XMI model: ${$self.name} cannot subset ${it.name}"
                         it.isSingle -> when {
@@ -235,8 +266,8 @@ format PropertyGetterSglCmp {
              else -> ''
         }
         subsetRemovals := when {
-            isSubsetted -> {
-                 changes := subsettingProperty.map({it ->
+            isSubsettedStored -> {
+                 changes := storedSubsettingProperty.map({it ->
                      when {
                         it.invalidSubset($self) -> "// FIXME: ERROR in XMI model: ${it.name} cannot subset ${$self.name}"
                         it.isSingle -> when {
@@ -260,7 +291,7 @@ format PropertyGetterSglCmp {
             else -> ''
         }
         onChanged := when {
-            hasOpposite or isSubsetting or isSubsetted -> "
+            hasStoredOpposite or isSubsettingStored or isSubsettedStored -> "
                 { old, new ->
                     $subsetRemovals
                     $subsetAdditions
@@ -295,8 +326,8 @@ format PropertyGetterSglRef {
     "
     MofProperty -> {
         subsetAdditions := when {
-             isSubsetting -> {
-                 changes := subsettedProperty.map({it -> {
+             isSubsettingStored -> {
+                 changes := storedSubsettedProperty.map({it -> {
                      err := it.isOptional ? '' : " ?: error(\"Property '${$self.validName}' of object '\${_identity}:${$self.parentType.validName}' has changed but the reference '\$it' is not resolved.\")"
                      when {
                         $self.invalidSubset(it) -> "// FIXME: ERROR in XMI model: ${$self.name} cannot subset ${it.name}"
@@ -323,8 +354,8 @@ format PropertyGetterSglRef {
              else -> ''
         }
         subsetRemovals := when {
-            isSubsetted -> {
-                 changes := subsettingProperty.map({it ->
+            isSubsettedStored -> {
+                 changes := storedSubsettingProperty.map({it ->
                      when {
                          it.invalidSubset($self) -> "// FIXME: ERROR in XMI model: ${it.name} cannot subset ${$self.name}"
                          it.isSingle -> when {
@@ -348,7 +379,7 @@ format PropertyGetterSglRef {
             else -> ''
         }
         onChanged := when {
-            hasOpposite or isSubsetting or isSubsetted -> "
+            hasStoredOpposite or isSubsettingStored or isSubsettedStored -> "
                 onChanged = { old, new ->
                     $subsetRemovals
                     $subsetAdditions
@@ -384,7 +415,7 @@ format PropertyGetterColCmp {
     "
      MofProperty -> {
         oppAdditions := when {
-            hasOpposite -> {
+            hasStoredOpposite -> {
                 opp := when {
                    opposite.isSingle -> when {
                        opposite.isReference -> "item.${opposite.validName}Reference.mutable.set(this._identity, this)"
@@ -406,7 +437,7 @@ format PropertyGetterColCmp {
             else -> ''
         }
         oppRemovals := when {
-            hasOpposite -> {
+            hasStoredOpposite -> {
                 opp := when {
                     opposite.isSingle -> when {
                         opposite.isReference -> "item.let { if (it.${opposite.validName} == this) it.${opposite.validName}Reference.mutable.clear() }"
@@ -428,8 +459,8 @@ format PropertyGetterColCmp {
             else -> ''
         }
         subsetAdditions := when {
-            isSubsetting -> {
-                adds := subsettedProperty.map({it ->
+            isSubsettingStored -> {
+                adds := storedSubsettedProperty.map({it ->
                     when {
                         $self.invalidSubset(it) -> "// FIXME: ERROR in XMI model: ${$self.name} cannot subset ${it.name}"
                         it.isSingle -> when {
@@ -453,8 +484,8 @@ format PropertyGetterColCmp {
             else -> ''
         }
         subsetRemovals := when {
-            isSubsetted -> {
-                removes := subsettingProperty.map({it ->
+            isSubsettedStored -> {
+                removes := storedSubsettingProperty.map({it ->
                     when {
                         it.invalidSubset($self) -> "// FIXME: ERROR in XMI model: ${it.name} cannot subset ${$self.name}"
                         it.isSingle -> when {
@@ -463,8 +494,9 @@ format PropertyGetterColCmp {
                            else -> 'ERROR'
                         }
                         it.isCollection -> when {
-                           it.isReference -> "this.${it.validName}Reference.mutable.remove(ReferenceImmutable(item._identity, item))"
-                           it.isComposite -> "this.${it.validName}.mutable.remove(item)"
+                           it.isReference -> "(item as? ${it.type.isPrimitive ? it.type.validName : it.type.validName + '_NN'})?.let { this.${it.validName}Reference.mutable.remove(ReferenceImmutable(it._identity, it)) }"
+                           // the subsetting property may have a narrower type than the item
+                           it.isComposite -> "(item as? ${it.type.isPrimitive ? it.type.validName : it.type.validName + '_NN'})?.let { this.${it.validName}.mutable.remove(it) }"
                            else -> 'ERROR'
                         }
                         else -> 'ERROR'
@@ -478,7 +510,7 @@ format PropertyGetterColCmp {
             else -> ''
         }
         onAdded := when {
-            isSubsetting or hasOpposite -> "
+            isSubsettingStored or hasStoredOpposite -> "
                 onAdded = { item ->
                     $oppAdditions
                     $subsetAdditions
@@ -487,7 +519,7 @@ format PropertyGetterColCmp {
             else -> ''
         }
         onRemoved := when {
-            isSubsetted or hasOpposite -> "
+            isSubsettedStored or hasStoredOpposite -> "
                 onRemoved = { item ->
                     $oppRemovals
                     $subsetRemovals
@@ -517,7 +549,7 @@ format PropertyGetterColRef {
     "
     MofProperty -> {
         oppAdditions := when {
-            hasOpposite -> {
+            hasStoredOpposite -> {
                 opp := when {
                    opposite.isSingle -> when {
                        opposite.isReference -> "item.resolved?.let { it.${opposite.validName}Reference.mutable.set(this._identity, this) }"
@@ -539,7 +571,7 @@ format PropertyGetterColRef {
             else -> ''
         }
         oppRemovals := when {
-            hasOpposite -> {
+            hasStoredOpposite -> {
                 opp := when {
                     opposite.isSingle -> "item.resolved?.let { if (it.${opposite.validName} == this) it.${opposite.validName}Reference.mutable.clear() }"
                     opposite.isCollection -> when {
@@ -557,8 +589,8 @@ format PropertyGetterColRef {
             else -> ''
         }
         subsetAdditions := when {
-            isSubsetting -> {
-                subs := subsettedProperty.map({it ->
+            isSubsettingStored -> {
+                subs := storedSubsettedProperty.map({it ->
                     when {
                         $self.invalidSubset(it) -> "// FIXME: ERROR in XMI model: ${$self.name} cannot subset ${it.name}"
                         it.isSingle -> when {
@@ -582,8 +614,8 @@ format PropertyGetterColRef {
             else -> ''
         }
         subsetRemovals := when {
-            isSubsetted -> {
-                subs := subsettingProperty.map({it ->
+            isSubsettedStored -> {
+                subs := storedSubsettingProperty.map({it ->
                     when {
                         it.invalidSubset($self) -> "// FIXME: ERROR in XMI model: ${it.name} cannot subset ${$self.name}"
                         it.isSingle -> when {
@@ -607,7 +639,7 @@ format PropertyGetterColRef {
             else -> ''
         }
         onAdded := when {
-            isSubsetting or hasOpposite -> "
+            isSubsettingStored or hasStoredOpposite -> "
                 onAdded = { item ->
                     $oppAdditions
                     $subsetAdditions
@@ -616,7 +648,7 @@ format PropertyGetterColRef {
             else -> ''
         }
         onRemoved := when {
-            isSubsetted or hasOpposite -> "
+            isSubsettedStored or hasStoredOpposite -> "
                 onRemoved = { item ->
                     $oppRemovals
                     $subsetRemovals
@@ -624,20 +656,70 @@ format PropertyGetterColRef {
             "
             else -> ''
         }
+        typeName := type.isPrimitive ? type.validName : type.validName+'_NN'
         impl := "
             = ManagedReference${colTypeName}(
-                \"${parentType.validName}.${validName}\",${type.validName}::class,
+                \"${parentType.validName}.${validName}\",${typeName}::class,
                  $onAdded
                  $onRemoved
             )
         "
-        typeName := type.isPrimitive ? type.validName : type.validName+'_NN'
         mutable := "override val ${validName}Reference: ${colTypeName}<Reference<Any, ${typeName}>> $impl"
         accessor := "override val ${validName}: $validTypeName get() = ${validName}Reference.map{it.resolved ?: error(\"In property '${validName}' of object '\${_identity}:${parentType.validName}', reference '\$it' is not resolved.\") }.to${colTypeName}()"
         "
             $mutable
             $accessor
         "
+    }
+}
+
+format PropertyGetterDerived {
+    MofRedefinedAttributeImplInfo -> "
+        /*
+         * xmi:id=\"${attribute.xmiId}\"
+         * ${attribute via UmlPropertySyntax}
+         */
+        $attribute
+    "
+    MofProperty -> {
+        typeName := type.isPrimitive ? type.validName : type.validName+'_NN'
+        derive := "${TARGET_PACKAGE}.api.${parentType.parentPackage.qualifiedName}.${parentType.parentPackage.name}_Derivations.${parentType.validName}_${validName}(this)"
+        dname := "\"${parentType.validName}.${validName}\""
+        when {
+            isSingle -> {
+                nullable := isOptional ? '?' : ''
+                "
+                    override val ${validName}Derived: Derived<${typeName}${nullable}> = ManagedDerived($dname, ${typeName}::class) { $derive as ${typeName}${nullable} }
+                    override val ${validName}: ${typeName}${nullable} get() = ${validName}Derived.get()
+                "
+            }
+            else -> "override val ${validName}: ${colTypeName}<${typeName}> = Derived${colTypeName}($dname, ${typeName}::class) { $derive as ${colTypeName}<${typeName}> }"
+        }
+    }
+}
+
+format PropertyUnion {
+    // a derived union is computed from the properties of this class that subset it
+    MofUnionImpl -> {
+        typeName := union.type.isPrimitive ? union.type.validName : union.type.validName+'_NN'
+        dname := "\"${union.parentType.validName}.${union.validName}\""
+        vals := subsetters.map({ it -> it.isSingle ? "listOfNotNull(${it.validName})" : "${it.validName}" })
+        subs := subsetters.map({ it -> it.validName })
+        allv := subsetters.isEmpty ? "emptyList<${typeName}>()" : "($[vals sep ' + '])"
+        when {
+            union.isSingle -> {
+                nullable := union.isOptional ? '?' : ''
+                "
+                  // Derived union ${union.parentType.validName}.${union.validName} of [$[subs sep ', ']]
+                  override val ${union.validName}Derived: Derived<${typeName}${nullable}> = ManagedDerived($dname, ${typeName}::class) { ${allv}.firstOrNull() as ${typeName}${nullable} }
+                  override val ${union.validName}: ${typeName}${nullable} get() = ${union.validName}Derived.get()
+                "
+            }
+            else -> "
+                  // Derived union ${union.parentType.validName}.${union.validName} of [$[subs sep ', ']]
+                  override val ${union.validName}: ${union.colTypeName}<${typeName}> = Derived${union.colTypeName}($dname, ${typeName}::class) { ${allv}.map { it as ${typeName} }.to${union.colTypeName}() }
+            "
+        }
     }
 }
 
@@ -649,6 +731,10 @@ format PropertyGetter {
         "
     }
     MofRedefinedAttributeImplInfo -> when {
+        attribute.isDerivedOnly -> "${$self via PropertyGetterDerived}"
+        // derived unions are computed from the subsetting properties of the concrete class, see PropertyUnion
+        attribute.isDerivedUnion -> ''
+
         attribute.isSingle -> when {
             attribute.isComposite -> "${$self via PropertyGetterSglCmp}"
             attribute.isReference -> "${$self via PropertyGetterSglRef}"
@@ -689,6 +775,17 @@ format RamPackageFile {
         import net.akehurst.kotlinx.collections.ManagedList
         import net.akehurst.kotlinx.collections.ManagedOrderedSet
         import net.akehurst.kotlinx.collections.ManagedSet
+        import net.akehurst.kotlinx.collections.ManagedReferenceCollection
+        import net.akehurst.kotlinx.collections.ManagedReferenceList
+        import net.akehurst.kotlinx.collections.ManagedReferenceSet
+        import net.akehurst.kotlinx.collections.ManagedReferenceOrderedSet
+        import net.akehurst.kotlinx.collections.DerivedCollection
+        import net.akehurst.kotlinx.collections.DerivedList
+        import net.akehurst.kotlinx.collections.DerivedSet
+        import net.akehurst.kotlinx.collections.DerivedOrderedSet
+        import net.akehurst.kotlinx.utils.Derived
+        import net.akehurst.kotlinx.utils.DerivedDefault
+        import net.akehurst.kotlinx.utils.ManagedDerived
         import net.akehurst.kotlinx.utils.ManagedReference
         import net.akehurst.kotlinx.utils.ManagedValue
         import net.akehurst.kotlinx.utils.Reference
@@ -708,6 +805,9 @@ format RamPackageFile {
 
         internal data class ${validName}Ram(override val _factory: ${parentPackage.validName}_PackageFactory, override val _identity:Any) : ${validName}_NN {
             $[allNormalisedAttribute sep $EOL via PropertyGetter]
+
+            // --- Derived Unions ---
+            $[unionImpls sep $EOL via PropertyUnion]
 
             // --- Redefined Properties ---
             $[bridgingAttributes sep $EOL via PropertyBridge]

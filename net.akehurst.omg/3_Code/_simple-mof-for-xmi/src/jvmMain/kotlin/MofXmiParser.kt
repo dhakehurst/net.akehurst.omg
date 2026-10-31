@@ -216,6 +216,9 @@ class MofXmiParser(
             "uml:Enumeration" -> {
                 if (!hasRef(xmiId)) {
                     val mofEnum = MofEnum(model, name, xmiId)
+                    getChildrenByTagName(node, "ownedLiteral").forEach { l ->
+                        mofEnum.literals.add(MofEnumLiteral(l.getAttribute("name"), l.getAttribute("xmi:id")))
+                    }
                     model.enumList.add(mofEnum)
                     setRef(xmiId, mofEnum)
                     currentMofPackage.addEnum(currentFileName, mofEnum)
@@ -292,6 +295,12 @@ class MofXmiParser(
                 "ownedOperation" -> {
                     val op = parseOperation(node, mofClass)
                     mofClass.operations.add(op)
+                    // UML puts the derivation of a derived property in a constraint of a query operation
+                    getChildrenByTagName(node, "ownedRule").forEach { parseConstraint(it)?.let { c -> mofClass.ownedRule.add(c) } }
+                }
+
+                "ownedRule" -> {
+                    parseConstraint(node)?.let { mofClass.ownedRule.add(it) }
                 }
             }
         }
@@ -360,7 +369,9 @@ class MofXmiParser(
                     when(pt) {
                         is MofClass -> {
                             end.parentType = pt
-                            pt.associationOwnedAttribute.add(end)
+                            // a derived association-owned (non-navigable) end has no definition of its own (it is the
+                            // inverse of the opposite end) and is not in the api, so it is omitted
+                            if (end.isComputed.not()) pt.associationOwnedAttribute.add(end)
                         }
                         else -> error("Error finding class for '${otherEnd.typeXmiId ?: otherEnd.typeHref}', not foud or its not a class.")
                     }
@@ -455,6 +466,18 @@ class MofXmiParser(
         return prop
     }
 
+    /** an OCL constraint: the body is either an attribute or a child element of the specification */
+    private fun parseConstraint(ruleElement: Element): MofConstraint? {
+        val spec = getChildrenByTagName(ruleElement, "specification").firstOrNull() ?: return null
+        val body = spec.getAttributeOrNull("body")
+            ?: getChildrenByTagName(spec, "body").firstOrNull()?.textContent
+            ?: return null
+        val language = spec.getAttributeOrNull("language")
+            ?: getChildrenByTagName(spec, "language").firstOrNull()?.textContent
+        val constrained = getChildrenByTagName(ruleElement, "constrainedElement").map { it.getAttribute("xmi:idref") }
+        return MofConstraint(ruleElement.getAttribute("name"), language, body, constrained)
+    }
+
     private fun parseOperation(operationElement: Element, ownerClass: MofClass): MofOperation {
         val name = operationElement.getAttribute("name")
         val xmiId = operationElement.getAttribute("xmi:id")
@@ -466,17 +489,30 @@ class MofXmiParser(
             val paramXmiId = paramElement.getAttribute("xmi:id")
             val direction = paramElement.getAttribute("direction").ifEmpty { "in" }
 
-            var paramTypeXmiId: String? = null
+            // the type is a 'type' attribute (UML) or a 'type' child element
+            var paramTypeXmiId: String? = paramElement.getAttribute("type").ifEmpty { null }
             var paramTypeHref: String? = null
             getChildrenByTagName(paramElement, "type").firstOrNull()?.let { typeElem ->
                 paramTypeXmiId = typeElem.getAttribute("xmi:idref").ifEmpty { null }
                 paramTypeHref = typeElem.getAttribute("href").ifEmpty { null }
             }
 
-            val mofParam = MofParameter(model, paramName, paramXmiId, paramTypeXmiId, paramTypeHref, direction)
+            // KerML/SysML mark the result parameter by an empty name instead of direction="return"
+            val dir = if (paramElement.getAttribute("direction").isEmpty() && paramName.isBlank()) "return" else direction
+            val mofParam = MofParameter(model, paramName, paramXmiId, paramTypeXmiId, paramTypeHref, dir).also { mp ->
+                getChildrenByTagName(paramElement, "lowerValue").firstOrNull()?.let { lv ->
+                    mp.lowerBound = lv.getAttribute("value").toIntOrNull() ?: 0
+                }
+                getChildrenByTagName(paramElement, "upperValue").firstOrNull()?.let { uv ->
+                    val v = uv.getAttribute("value")
+                    mp.upperBound = v.toIntOrNull() ?: (if (v == "*") -1 else 1)
+                }
+                paramElement.getAttribute("isOrdered").let { if (it.isNotEmpty()) mp.isOrdered = it.toBoolean() }
+                paramElement.getAttribute("isUnique").let { if (it.isNotEmpty()) mp.isUnique = it.toBoolean() }
+            }
             setRef(paramXmiId, mofParam) // Register param
 
-            if (direction == "return") {
+            if (dir == "return") {
                 returnParam = mofParam
             } else {
                 params.add(mofParam)
@@ -489,10 +525,18 @@ class MofXmiParser(
             xmiId = xmiId,
             visibility = operationElement.getAttribute("visibility").ifEmpty { "public" },
             isQuery = operationElement.getAttribute("isQuery") == "true",
+            isAbstract = operationElement.getAttribute("isAbstract") == "true",
             parameters = params,
             returnParameter = returnParam
         )
         op.parentType = ownerClass
+        // the body: KerML/SysML have a bodyCondition child; UML has a bodyCondition attribute naming an ownedRule
+        val bodyRef = operationElement.getAttribute("bodyCondition")
+        op.bodyCondition = getChildrenByTagName(operationElement, "bodyCondition").firstOrNull()?.let { parseConstraint(it) }
+            ?: getChildrenByTagName(operationElement, "ownedRule").firstOrNull { it.getAttribute("xmi:id") == bodyRef && bodyRef.isNotEmpty() }?.let { parseConstraint(it) }
+        getChildrenByTagName(operationElement, "redefinedOperation").forEach { r ->
+            r.getAttribute("xmi:idref").ifBlank { r.getAttribute("href").substringAfter("#") }.takeIf { it.isNotBlank() }?.let { op.redefinedOperationRef.add(it) }
+        }
         setRef(xmiId, op) // Register op
         return op
     }
