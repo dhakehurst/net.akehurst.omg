@@ -16,6 +16,7 @@
 
 
 import net.akehurst.kotlinx.collections.OrderedSetExt.mutable
+import net.akehurst.kotlinx.utils.ReferenceExt.mutable
 import net.akehurst.kotlinx.utils.ReferenceImmutable
 import net.akehurst.kotlinx.utils.ValueExt.mutable
 import net.akehurst.omg.testmodel.api.Test_ModelBuilder
@@ -216,7 +217,8 @@ class test_TestModel {
         assertFailsWith<NotImplementedError> { root.everythingSet.size }
     }
 
-    // Relationship::relatedElement is a derived union of owningRelatedElement, ownedRelatedElement and target
+    // Relationship::relatedElement is a derived union of owningRelatedElement, ownedRelatedElement and target;
+    // Relationship::end is a derived union of target
     @Test
     fun derived_union() {
         val root = model()
@@ -227,6 +229,8 @@ class test_TestModel {
         val b = a.child("B")
         r1.targetOrderedSetReference.mutable.add(ReferenceImmutable("b", b))
         assertEquals(listOf(root, a, b), r1.relatedElementList)
+        // target subsets two derived unions
+        assertEquals(listOf(b), r1.endOrderedSet.toList())
         assertEquals("relationship to 1", r1.describe())
     }
 
@@ -240,6 +244,26 @@ class test_TestModel {
         assertEquals(setOf(r1), (b as Element_NN).A_target_targetOf_targetOfSet)
         r1.targetOrderedSetReference.mutable.remove(ReferenceImmutable("b", b))
         assertTrue(b.A_target_targetOf_targetOfSet.isEmpty())
+    }
+
+    // Relationship::main subsets Relationship::first; PackageRelationship redefines first with type Package
+    @Test
+    fun subset_sets_superset_of_redefined_type() {
+        val factory = Test_ModelFactoryRam("TestFactoryRam")
+        val pkg = factory.Test.Package_construct("p")
+        val rel = factory.Test.Relationship_construct("r")
+
+        val r = factory.Test.Relationship_construct("r1")
+        r.mainReference.mutable.set("r", rel)
+        assertSame(rel, r.first)
+
+        val pr = factory.Test.PackageRelationship_construct("pr")
+        pr.mainReference.mutable.set("p", pkg)
+        assertSame(pkg, pr.first)
+        // a Relationship cannot be the first of a PackageRelationship, so first is not changed
+        pr.mainReference.mutable.set("r", rel)
+        assertSame(rel, pr.main)
+        assertSame(pkg, pr.first)
     }
 
     @Test

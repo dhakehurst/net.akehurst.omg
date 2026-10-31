@@ -246,8 +246,8 @@ format PropertyGetterSglCmp {
                      when {
                         $self.invalidSubset(it) -> "// FIXME: ERROR in XMI model: ${$self.name} cannot subset ${it.name}"
                         it.isSingle -> when {
-                            it.isReference -> "new?.let { this.${it.validName}Reference.mutable.set(new._identity, new) }"
-                            it.isComposite -> "new?.let { this.${it.validName}Value.mutable.set(new) }"
+                            it.isReference -> "new?.let { this.${it.validName}Reference.setIfInstance(new._identity, new) }"
+                            it.isComposite -> "new?.let { this.${it.validName}Value.setIfInstance(new) }"
                             else -> 'ERROR'
                         }
                         it.isCollection -> when {
@@ -332,9 +332,9 @@ format PropertyGetterSglRef {
                      when {
                         $self.invalidSubset(it) -> "// FIXME: ERROR in XMI model: ${$self.name} cannot subset ${it.name}"
                         it.isSingle -> when {
-                            it.isReference -> "this.${it.validName}Reference.mutable.set(new.reference, new.resolved)"
+                            it.isReference -> "this.${it.validName}Reference.setIfInstance(new.reference, new.resolved)"
                             // the key can be set before it is resolved (that also calls onChanged), so only set once resolved
-                            it.isComposite -> "new.resolved?.let { this.${it.validName}Value.mutable.set(it) }"
+                            it.isComposite -> "new.resolved?.let { this.${it.validName}Value.setIfInstance(it) }"
                             else -> 'ERROR'
                         }
                         it.isCollection -> when {
@@ -464,8 +464,8 @@ format PropertyGetterColCmp {
                     when {
                         $self.invalidSubset(it) -> "// FIXME: ERROR in XMI model: ${$self.name} cannot subset ${it.name}"
                         it.isSingle -> when {
-                           it.isReference -> "this.${it.validName}Reference.mutable.set(item._identity, item)"
-                           it.isComposite -> "this.${it.validName}Value.mutable.set(item)"
+                           it.isReference -> "this.${it.validName}Reference.setIfInstance(item._identity, item)"
+                           it.isComposite -> "this.${it.validName}Value.setIfInstance(item)"
                            else -> 'ERROR'
                         }
                         it.isCollection -> when {
@@ -594,8 +594,8 @@ format PropertyGetterColRef {
                     when {
                         $self.invalidSubset(it) -> "// FIXME: ERROR in XMI model: ${$self.name} cannot subset ${it.name}"
                         it.isSingle -> when {
-                           it.isReference -> "this.${it.validName}Reference.mutable.set(item.reference, item.resolved)"
-                           it.isComposite -> "item.resolved?.let{ this.${it.validName}Value.mutable.set(it) }"
+                           it.isReference -> "this.${it.validName}Reference.setIfInstance(item.reference, item.resolved)"
+                           it.isComposite -> "item.resolved?.let{ this.${it.validName}Value.setIfInstance(it) }"
                            else -> 'ERROR'
                         }
                         it.isCollection -> when {
@@ -802,6 +802,7 @@ format RamPackageFile {
         $[parentPackage.allImport sep $EOL via PackageImport]
         import ${TARGET_PACKAGE}.api.${parentPackage.qualifiedName}.*
         import ${TARGET_PACKAGE}.api.${parentPackage.qualifiedName}.${parentPackage.validName}_PackageFactory
+        import ${TARGET_PACKAGE}.ram.SubsetExt.setIfInstance
 
         internal data class ${validName}Ram(override val _factory: ${parentPackage.validName}_PackageFactory, override val _identity:Any) : ${validName}_NN {
             $[allNormalisedAttribute sep $EOL via PropertyGetter]

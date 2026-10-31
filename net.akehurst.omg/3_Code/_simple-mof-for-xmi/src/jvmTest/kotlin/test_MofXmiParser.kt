@@ -76,7 +76,8 @@ class test_MofXmiParser {
     @Test
     fun subsetting() {
         assertEquals(setOf("relatedElement"), prop("Relationship", "ownedRelatedElement").subsettedProperty.map { it.nameInXmi }.toSet())
-        assertEquals(setOf("relatedElement"), prop("Relationship", "target").subsettedProperty.map { it.nameInXmi }.toSet())
+        // a property may subset more than one property
+        assertEquals(setOf("relatedElement", "end"), prop("Relationship", "target").subsettedProperty.map { it.nameInXmi }.toSet())
     }
 
     @Test

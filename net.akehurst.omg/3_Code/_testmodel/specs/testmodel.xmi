@@ -233,6 +233,7 @@
         <association xmi:idref="Test-A_target_targetOf" />
         <lowerValue xmi:id="Test-Relationship-target-lowerValue" xmi:type="uml:LiteralInteger" name="" />
         <subsettedProperty xmi:idref="Test-Relationship-relatedElement" />
+        <subsettedProperty xmi:idref="Test-Relationship-end" />
         <type xmi:idref="Test-Element" />
         <upperValue xmi:id="Test-Relationship-target-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="*" />
       </ownedAttribute>
@@ -240,6 +241,22 @@
         <lowerValue xmi:id="Test-Relationship-relatedElement-lowerValue" xmi:type="uml:LiteralInteger" name="" />
         <type xmi:idref="Test-Element" />
         <upperValue xmi:id="Test-Relationship-relatedElement-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="*" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Relationship-first" xmi:type="uml:Property" name="first">
+        <lowerValue xmi:id="Test-Relationship-first-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type xmi:idref="Test-Element" />
+        <upperValue xmi:id="Test-Relationship-first-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Relationship-main" xmi:type="uml:Property" name="main">
+        <lowerValue xmi:id="Test-Relationship-main-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <subsettedProperty xmi:idref="Test-Relationship-first" />
+        <type xmi:idref="Test-Element" />
+        <upperValue xmi:id="Test-Relationship-main-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Relationship-end" xmi:type="uml:Property" isDerived="true" isDerivedUnion="true" isOrdered="true" name="end">
+        <lowerValue xmi:id="Test-Relationship-end-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type xmi:idref="Test-Element" />
+        <upperValue xmi:id="Test-Relationship-end-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="*" />
       </ownedAttribute>
       <ownedOperation xmi:id="Test-Relationship-effectiveName_" xmi:type="uml:Operation" name="effectiveName">
         <bodyCondition xmi:id="Test-Relationship-effectiveName_-body" xmi:type="uml:Constraint" name="body">
@@ -263,6 +280,19 @@
         </ownedParameter>
         <redefinedOperation xmi:idref="Test-Element-describe_" />
       </ownedOperation>
+    </packagedElement>
+
+    <packagedElement xmi:id="Test-PackageRelationship" xmi:type="uml:Class" name="PackageRelationship">
+      <generalization xmi:id="Test-PackageRelationship-_generalization.Test-Relationship" xmi:type="uml:Generalization">
+        <general xmi:idref="Test-Relationship" />
+      </generalization>
+      <!-- narrows the type of a superset of Relationship::main -->
+      <ownedAttribute xmi:id="Test-PackageRelationship-first" xmi:type="uml:Property" name="first">
+        <lowerValue xmi:id="Test-PackageRelationship-first-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <redefinedProperty xmi:idref="Test-Relationship-first" />
+        <type xmi:idref="Test-Package" />
+        <upperValue xmi:id="Test-PackageRelationship-first-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+      </ownedAttribute>
     </packagedElement>
 
     <packagedElement xmi:id="Test-Package" xmi:type="uml:Class" name="Package">

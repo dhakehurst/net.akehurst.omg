@@ -435,10 +435,11 @@ class MofXmiParser(
         propertyElement.getAttribute("isOrdered").let {
             if (it.isNotEmpty()) isOrdered = it.toBoolean()
         }
-        val redefinedRef = getChildrenByTagName(propertyElement, "redefinedProperty").firstOrNull()?.let {
+        // a property may redefine, and subset, more than one property
+        val redefinedRefs = getChildrenByTagName(propertyElement, "redefinedProperty").map {
             it.getAttribute("xmi:idref").ifBlank { it.getAttribute("href") }
         }
-        val subsettedRef = getChildrenByTagName(propertyElement, "subsettedProperty").firstOrNull()?.let {
+        val subsettedRefs = getChildrenByTagName(propertyElement, "subsettedProperty").map {
             it.getAttribute("xmi:idref").ifBlank { it.getAttribute("href") }
         }
         val prop = MofProperty(
@@ -458,8 +459,8 @@ class MofXmiParser(
             self.isOrdered = isOrdered
             self.aggregation = aggregationKind
             self.associationXmiId = assocXmiId ?: propertyElement.getAttribute("association").ifEmpty { null }
-            redefinedRef?.let { (self.redefinedPropertyRef as MutableSet).add(it) }
-            subsettedRef?.let { (self.subsettedPropertyRef as MutableSet).add(it) }
+            (self.redefinedPropertyRef as MutableSet).addAll(redefinedRefs)
+            (self.subsettedPropertyRef as MutableSet).addAll(subsettedRefs)
         }
         return prop
     }
