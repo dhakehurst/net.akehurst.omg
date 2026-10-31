@@ -18,3 +18,5 @@ kotlin {
 
 // do not publish
 tasks.withType<AbstractPublishToMaven> { onlyIf { false } }
+// formatting the large templates recurses deeply
+tasks.named<Test>("jvmTest") { jvmArgs("-Xss16m") }

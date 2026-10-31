@@ -1,0 +1,297 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  A small model in the style of the KerML/SysML XMI, used to test the generator:
+  the XMI parser, the OCL to Kotlin translator, the templates and the generated code.
+  Derivations are 'derive...' constraints on the class with body '<property> = <expr>';
+  operation bodies are bodyCondition constraints; a result parameter has direction="return".
+-->
+<xmi:XMI xmlns:uml="http://www.omg.org/spec/UML/20161101" xmlns:xmi="http://www.omg.org/spec/XMI/20161101">
+  <uml:Package xmi:id="Test" name="Test">
+
+    <packagedElement xmi:id="Test-Kind" xmi:type="uml:Enumeration" name="Kind">
+      <ownedLiteral xmi:id="Test-Kind-a" xmi:type="uml:EnumerationLiteral" name="a" />
+      <ownedLiteral xmi:id="Test-Kind-b" xmi:type="uml:EnumerationLiteral" name="b" />
+      <ownedLiteral xmi:id="Test-Kind-in" xmi:type="uml:EnumerationLiteral" name="in" />
+    </packagedElement>
+
+    <packagedElement xmi:id="Test-A_ownedRelationship_owningRelatedElement" xmi:type="uml:Association" name="A_ownedRelationship_owningRelatedElement">
+      <memberEnd xmi:idref="Test-Element-ownedRelationship" />
+      <memberEnd xmi:idref="Test-Relationship-owningRelatedElement" />
+    </packagedElement>
+    <packagedElement xmi:id="Test-A_ownedRelatedElement_owningRelationship" xmi:type="uml:Association" name="A_ownedRelatedElement_owningRelationship">
+      <memberEnd xmi:idref="Test-Relationship-ownedRelatedElement" />
+      <memberEnd xmi:idref="Test-Element-owningRelationship" />
+    </packagedElement>
+    <packagedElement xmi:id="Test-A_ownedElement_owner" xmi:type="uml:Association" name="A_ownedElement_owner">
+      <memberEnd xmi:idref="Test-Element-ownedElement" />
+      <memberEnd xmi:idref="Test-Element-owner" />
+    </packagedElement>
+    <packagedElement xmi:id="Test-A_target_targetOf" xmi:type="uml:Association" name="A_target_targetOf">
+      <memberEnd xmi:idref="Test-Relationship-target" />
+      <memberEnd xmi:idref="Test-A_target_targetOf-targetOf" />
+      <ownedEnd xmi:id="Test-A_target_targetOf-targetOf" xmi:type="uml:Property" name="targetOf">
+        <lowerValue xmi:id="Test-A_target_targetOf-targetOf-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type xmi:idref="Test-Relationship" />
+        <upperValue xmi:id="Test-A_target_targetOf-targetOf-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="*" />
+      </ownedEnd>
+    </packagedElement>
+
+    <packagedElement xmi:id="Test-Element" xmi:type="uml:Class" isAbstract="true" name="Element">
+      <ownedComment xmi:id="Test-Element-_comment.0" xmi:type="uml:Comment" body="An element of the test model.">
+        <annotatedElement xmi:idref="Test-Element" />
+      </ownedComment>
+      <ownedAttribute xmi:id="Test-Element-declaredName" xmi:type="uml:Property" name="declaredName">
+        <lowerValue xmi:id="Test-Element-declaredName-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
+        <upperValue xmi:id="Test-Element-declaredName-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Element-kind" xmi:type="uml:Property" name="kind">
+        <lowerValue xmi:id="Test-Element-kind-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
+        <type xmi:idref="Test-Kind" />
+        <upperValue xmi:id="Test-Element-kind-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Element-ownedRelationship" xmi:type="uml:Property" isOrdered="true" name="ownedRelationship" aggregation="composite">
+        <association xmi:idref="Test-A_ownedRelationship_owningRelatedElement" />
+        <lowerValue xmi:id="Test-Element-ownedRelationship-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type xmi:idref="Test-Relationship" />
+        <upperValue xmi:id="Test-Element-ownedRelationship-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Element-owningRelationship" xmi:type="uml:Property" name="owningRelationship">
+        <association xmi:idref="Test-A_ownedRelatedElement_owningRelationship" />
+        <lowerValue xmi:id="Test-Element-owningRelationship-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type xmi:idref="Test-Relationship" />
+        <upperValue xmi:id="Test-Element-owningRelationship-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Element-name" xmi:type="uml:Property" isDerived="true" name="name">
+        <lowerValue xmi:id="Test-Element-name-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
+        <upperValue xmi:id="Test-Element-name-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Element-owner" xmi:type="uml:Property" isDerived="true" name="owner">
+        <association xmi:idref="Test-A_ownedElement_owner" />
+        <lowerValue xmi:id="Test-Element-owner-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type xmi:idref="Test-Element" />
+        <upperValue xmi:id="Test-Element-owner-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Element-ownedElement" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedElement">
+        <association xmi:idref="Test-A_ownedElement_owner" />
+        <lowerValue xmi:id="Test-Element-ownedElement-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type xmi:idref="Test-Element" />
+        <upperValue xmi:id="Test-Element-ownedElement-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="*" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Element-isA" xmi:type="uml:Property" isDerived="true" name="isA">
+        <lowerValue xmi:id="Test-Element-isA-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
+        <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Boolean" />
+        <upperValue xmi:id="Test-Element-isA-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Element-relationshipCount" xmi:type="uml:Property" isDerived="true" name="relationshipCount">
+        <lowerValue xmi:id="Test-Element-relationshipCount-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
+        <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Integer" />
+        <upperValue xmi:id="Test-Element-relationshipCount-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Element-allOwned" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="allOwned">
+        <lowerValue xmi:id="Test-Element-allOwned-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type xmi:idref="Test-Element" />
+        <upperValue xmi:id="Test-Element-allOwned-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="*" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Element-ownedPackage" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedPackage">
+        <lowerValue xmi:id="Test-Element-ownedPackage-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type xmi:idref="Test-Package" />
+        <upperValue xmi:id="Test-Element-ownedPackage-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="*" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Element-qualifiedName" xmi:type="uml:Property" isDerived="true" name="qualifiedName">
+        <lowerValue xmi:id="Test-Element-qualifiedName-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
+        <upperValue xmi:id="Test-Element-qualifiedName-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Element-everything" xmi:type="uml:Property" isDerived="true" name="everything">
+        <lowerValue xmi:id="Test-Element-everything-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type xmi:idref="Test-Element" />
+        <upperValue xmi:id="Test-Element-everything-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="*" />
+      </ownedAttribute>
+
+      <ownedRule xmi:id="Test-Element-deriveElementName" xmi:type="uml:Constraint" name="deriveElementName">
+        <constrainedElement xmi:idref="Test-Element" />
+        <specification xmi:id="Test-Element-deriveElementName-specification0" xmi:type="uml:OpaqueExpression" body="name = effectiveName()" language="OCL2.0" name="" />
+      </ownedRule>
+      <ownedRule xmi:id="Test-Element-deriveElementOwner" xmi:type="uml:Constraint" name="deriveElementOwner">
+        <constrainedElement xmi:idref="Test-Element" />
+        <specification xmi:id="Test-Element-deriveElementOwner-specification0" xmi:type="uml:OpaqueExpression" body="owner = if owningRelationship = null then null else owningRelationship.owningRelatedElement endif" language="OCL2.0" name="" />
+      </ownedRule>
+      <ownedRule xmi:id="Test-Element-deriveElementOwnedElement" xmi:type="uml:Constraint" name="deriveElementOwnedElement">
+        <constrainedElement xmi:idref="Test-Element" />
+        <specification xmi:id="Test-Element-deriveElementOwnedElement-specification0" xmi:type="uml:OpaqueExpression" body="ownedElement = ownedRelationship.ownedRelatedElement" language="OCL2.0" name="" />
+      </ownedRule>
+      <ownedRule xmi:id="Test-Element-deriveElementIsA" xmi:type="uml:Constraint" name="deriveElementIsA">
+        <constrainedElement xmi:idref="Test-Element" />
+        <specification xmi:id="Test-Element-deriveElementIsA-specification0" xmi:type="uml:OpaqueExpression" body="isA = kind = Kind::a" language="OCL2.0" name="" />
+      </ownedRule>
+      <ownedRule xmi:id="Test-Element-deriveElementRelationshipCount" xmi:type="uml:Constraint" name="deriveElementRelationshipCount">
+        <constrainedElement xmi:idref="Test-Element" />
+        <specification xmi:id="Test-Element-deriveElementRelationshipCount-specification0" xmi:type="uml:OpaqueExpression" body="relationshipCount = ownedRelationship->size()" language="OCL2.0" name="" />
+      </ownedRule>
+      <ownedRule xmi:id="Test-Element-deriveElementAllOwned" xmi:type="uml:Constraint" name="deriveElementAllOwned">
+        <constrainedElement xmi:idref="Test-Element" />
+        <specification xmi:id="Test-Element-deriveElementAllOwned-specification0" xmi:type="uml:OpaqueExpression" body="allOwned = ownedElement->closure(ownedElement)" language="OCL2.0" name="" />
+      </ownedRule>
+      <ownedRule xmi:id="Test-Element-deriveElementOwnedPackage" xmi:type="uml:Constraint" name="deriveElementOwnedPackage">
+        <constrainedElement xmi:idref="Test-Element" />
+        <specification xmi:id="Test-Element-deriveElementOwnedPackage-specification0" xmi:type="uml:OpaqueExpression" body="ownedPackage = ownedElement->selectByKind(Package)" language="OCL2.0" name="" />
+      </ownedRule>
+      <ownedRule xmi:id="Test-Element-deriveElementQualifiedName" xmi:type="uml:Constraint" name="deriveElementQualifiedName">
+        <constrainedElement xmi:idref="Test-Element" />
+        <specification xmi:id="Test-Element-deriveElementQualifiedName-specification0" xmi:type="uml:OpaqueExpression" body="qualifiedName =&#10;    if name = null then null&#10;    else if owner = null or owner.qualifiedName = null then name&#10;    else owner.qualifiedName + '::' + name&#10;    endif endif" language="OCL2.0" name="" />
+      </ownedRule>
+      <ownedRule xmi:id="Test-Element-deriveElementEverything" xmi:type="uml:Constraint" name="deriveElementEverything">
+        <constrainedElement xmi:idref="Test-Element" />
+        <specification xmi:id="Test-Element-deriveElementEverything-specification0" xmi:type="uml:OpaqueExpression" body="everything = Element.allInstances()" language="OCL2.0" name="" />
+      </ownedRule>
+
+      <ownedOperation xmi:id="Test-Element-effectiveName_" xmi:type="uml:Operation" name="effectiveName">
+        <bodyCondition xmi:id="Test-Element-effectiveName_-body" xmi:type="uml:Constraint" name="body">
+          <specification xmi:id="Test-Element-effectiveName_-body-specification0" xmi:type="uml:OpaqueExpression" body="declaredName" language="OCL2.0" name="" />
+        </bodyCondition>
+        <ownedParameter xmi:id="Test-Element-effectiveName_-result" xmi:type="uml:Parameter" name="result" direction="return">
+          <lowerValue xmi:id="Test-Element-effectiveName_-result-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+          <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
+          <upperValue xmi:id="Test-Element-effectiveName_-result-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+        </ownedParameter>
+      </ownedOperation>
+      <ownedOperation xmi:id="Test-Element-isNamed_String" xmi:type="uml:Operation" name="isNamed">
+        <bodyCondition xmi:id="Test-Element-isNamed_String-body" xmi:type="uml:Constraint" name="body">
+          <specification xmi:id="Test-Element-isNamed_String-body-specification0" xmi:type="uml:OpaqueExpression" body="name = aName" language="OCL2.0" name="" />
+        </bodyCondition>
+        <ownedParameter xmi:id="Test-Element-isNamed_String-aName" xmi:type="uml:Parameter" name="aName">
+          <lowerValue xmi:id="Test-Element-isNamed_String-aName-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
+          <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
+          <upperValue xmi:id="Test-Element-isNamed_String-aName-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+        </ownedParameter>
+        <ownedParameter xmi:id="Test-Element-isNamed_String-result" xmi:type="uml:Parameter" name="result" direction="return">
+          <lowerValue xmi:id="Test-Element-isNamed_String-result-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
+          <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Boolean" />
+          <upperValue xmi:id="Test-Element-isNamed_String-result-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+        </ownedParameter>
+      </ownedOperation>
+      <ownedOperation xmi:id="Test-Element-namedOwned_" xmi:type="uml:Operation" name="namedOwned">
+        <bodyCondition xmi:id="Test-Element-namedOwned_-body" xmi:type="uml:Constraint" name="body">
+          <specification xmi:id="Test-Element-namedOwned_-body-specification0" xmi:type="uml:OpaqueExpression" body="ownedElement->select(e | e.name &lt;&gt; null)" language="OCL2.0" name="" />
+        </bodyCondition>
+        <ownedParameter xmi:id="Test-Element-namedOwned_-result" xmi:type="uml:Parameter" name="result" direction="return" isOrdered="true">
+          <lowerValue xmi:id="Test-Element-namedOwned_-result-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+          <type xmi:idref="Test-Element" />
+          <upperValue xmi:id="Test-Element-namedOwned_-result-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="*" />
+        </ownedParameter>
+      </ownedOperation>
+      <ownedOperation xmi:id="Test-Element-depth_" xmi:type="uml:Operation" name="depth">
+        <bodyCondition xmi:id="Test-Element-depth_-body" xmi:type="uml:Constraint" name="body">
+          <specification xmi:id="Test-Element-depth_-body-specification0" xmi:type="uml:OpaqueExpression" body="if owner = null then 0 else owner.depth() + 1 endif" language="OCL2.0" name="" />
+        </bodyCondition>
+        <ownedParameter xmi:id="Test-Element-depth_-result" xmi:type="uml:Parameter" name="result" direction="return">
+          <lowerValue xmi:id="Test-Element-depth_-result-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
+          <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Integer" />
+          <upperValue xmi:id="Test-Element-depth_-result-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+        </ownedParameter>
+      </ownedOperation>
+      <ownedOperation xmi:id="Test-Element-describe_" xmi:type="uml:Operation" name="describe" isAbstract="true">
+        <ownedParameter xmi:id="Test-Element-describe_-result" xmi:type="uml:Parameter" name="result" direction="return">
+          <lowerValue xmi:id="Test-Element-describe_-result-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
+          <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
+          <upperValue xmi:id="Test-Element-describe_-result-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+        </ownedParameter>
+      </ownedOperation>
+      <ownedOperation xmi:id="Test-Element-informal_" xmi:type="uml:Operation" name="informal">
+        <bodyCondition xmi:id="Test-Element-informal_-body" xmi:type="uml:Constraint" name="body">
+          <specification xmi:id="Test-Element-informal_-body-specification0" xmi:type="uml:OpaqueExpression" body="The name in capitals." language="English" name="" />
+        </bodyCondition>
+        <ownedParameter xmi:id="Test-Element-informal_-result" xmi:type="uml:Parameter" name="result" direction="return">
+          <lowerValue xmi:id="Test-Element-informal_-result-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+          <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
+          <upperValue xmi:id="Test-Element-informal_-result-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+        </ownedParameter>
+      </ownedOperation>
+    </packagedElement>
+
+    <packagedElement xmi:id="Test-Relationship" xmi:type="uml:Class" name="Relationship">
+      <generalization xmi:id="Test-Relationship-_generalization.Test-Element" xmi:type="uml:Generalization">
+        <general xmi:idref="Test-Element" />
+      </generalization>
+      <ownedAttribute xmi:id="Test-Relationship-owningRelatedElement" xmi:type="uml:Property" name="owningRelatedElement">
+        <association xmi:idref="Test-A_ownedRelationship_owningRelatedElement" />
+        <lowerValue xmi:id="Test-Relationship-owningRelatedElement-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <subsettedProperty xmi:idref="Test-Relationship-relatedElement" />
+        <type xmi:idref="Test-Element" />
+        <upperValue xmi:id="Test-Relationship-owningRelatedElement-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Relationship-ownedRelatedElement" xmi:type="uml:Property" isOrdered="true" name="ownedRelatedElement" aggregation="composite">
+        <association xmi:idref="Test-A_ownedRelatedElement_owningRelationship" />
+        <lowerValue xmi:id="Test-Relationship-ownedRelatedElement-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <subsettedProperty xmi:idref="Test-Relationship-relatedElement" />
+        <type xmi:idref="Test-Element" />
+        <upperValue xmi:id="Test-Relationship-ownedRelatedElement-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="*" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Relationship-target" xmi:type="uml:Property" isOrdered="true" name="target">
+        <association xmi:idref="Test-A_target_targetOf" />
+        <lowerValue xmi:id="Test-Relationship-target-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <subsettedProperty xmi:idref="Test-Relationship-relatedElement" />
+        <type xmi:idref="Test-Element" />
+        <upperValue xmi:id="Test-Relationship-target-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="*" />
+      </ownedAttribute>
+      <ownedAttribute xmi:id="Test-Relationship-relatedElement" xmi:type="uml:Property" isDerived="true" isDerivedUnion="true" isOrdered="true" isUnique="false" name="relatedElement">
+        <lowerValue xmi:id="Test-Relationship-relatedElement-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+        <type xmi:idref="Test-Element" />
+        <upperValue xmi:id="Test-Relationship-relatedElement-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="*" />
+      </ownedAttribute>
+      <ownedOperation xmi:id="Test-Relationship-effectiveName_" xmi:type="uml:Operation" name="effectiveName">
+        <bodyCondition xmi:id="Test-Relationship-effectiveName_-body" xmi:type="uml:Constraint" name="body">
+          <specification xmi:id="Test-Relationship-effectiveName_-body-specification0" xmi:type="uml:OpaqueExpression" body="self.oclAsType(Element).effectiveName()" language="OCL2.0" name="" />
+        </bodyCondition>
+        <ownedParameter xmi:id="Test-Relationship-effectiveName_-result" xmi:type="uml:Parameter" name="result" direction="return">
+          <lowerValue xmi:id="Test-Relationship-effectiveName_-result-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+          <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
+          <upperValue xmi:id="Test-Relationship-effectiveName_-result-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+        </ownedParameter>
+        <redefinedOperation xmi:idref="Test-Element-effectiveName_" />
+      </ownedOperation>
+      <ownedOperation xmi:id="Test-Relationship-describe_" xmi:type="uml:Operation" name="describe">
+        <bodyCondition xmi:id="Test-Relationship-describe_-body" xmi:type="uml:Constraint" name="body">
+          <specification xmi:id="Test-Relationship-describe_-body-specification0" xmi:type="uml:OpaqueExpression" body="'relationship to ' + target->size().toString()" language="OCL2.0" name="" />
+        </bodyCondition>
+        <ownedParameter xmi:id="Test-Relationship-describe_-result" xmi:type="uml:Parameter" name="result" direction="return">
+          <lowerValue xmi:id="Test-Relationship-describe_-result-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
+          <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
+          <upperValue xmi:id="Test-Relationship-describe_-result-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+        </ownedParameter>
+        <redefinedOperation xmi:idref="Test-Element-describe_" />
+      </ownedOperation>
+    </packagedElement>
+
+    <packagedElement xmi:id="Test-Package" xmi:type="uml:Class" name="Package">
+      <generalization xmi:id="Test-Package-_generalization.Test-Element" xmi:type="uml:Generalization">
+        <general xmi:idref="Test-Element" />
+      </generalization>
+      <ownedOperation xmi:id="Test-Package-effectiveName_" xmi:type="uml:Operation" name="effectiveName">
+        <bodyCondition xmi:id="Test-Package-effectiveName_-body" xmi:type="uml:Constraint" name="body">
+          <specification xmi:id="Test-Package-effectiveName_-body-specification0" xmi:type="uml:OpaqueExpression" body="if declaredName = null then 'unnamed' else self.Element::effectiveName() endif" language="OCL2.0" name="" />
+        </bodyCondition>
+        <ownedParameter xmi:id="Test-Package-effectiveName_-result" xmi:type="uml:Parameter" name="result" direction="return">
+          <lowerValue xmi:id="Test-Package-effectiveName_-result-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+          <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
+          <upperValue xmi:id="Test-Package-effectiveName_-result-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+        </ownedParameter>
+        <redefinedOperation xmi:idref="Test-Element-effectiveName_" />
+      </ownedOperation>
+      <ownedOperation xmi:id="Test-Package-describe_" xmi:type="uml:Operation" name="describe">
+        <bodyCondition xmi:id="Test-Package-describe_-body" xmi:type="uml:Constraint" name="body">
+          <specification xmi:id="Test-Package-describe_-body-specification0" xmi:type="uml:OpaqueExpression" body="'package'" language="OCL2.0" name="" />
+        </bodyCondition>
+        <ownedParameter xmi:id="Test-Package-describe_-result" xmi:type="uml:Parameter" name="result" direction="return">
+          <lowerValue xmi:id="Test-Package-describe_-result-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
+          <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
+          <upperValue xmi:id="Test-Package-describe_-result-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+        </ownedParameter>
+        <redefinedOperation xmi:idref="Test-Element-describe_" />
+      </ownedOperation>
+    </packagedElement>
+
+  </uml:Package>
+</xmi:XMI>

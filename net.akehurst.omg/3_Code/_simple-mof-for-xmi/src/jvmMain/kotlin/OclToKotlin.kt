@@ -35,7 +35,9 @@ class OclToKotlin(private val model: MofModel) {
      */
     private data class KExpr(
         val code: String, val type: MofType?, val isCollection: Boolean, val nullable: Boolean,
-        val isBoolean: Boolean = false, val isInt: Boolean = false, val isString: Boolean = false, val isUnlimited: Boolean = false
+        val isBoolean: Boolean = false, val isInt: Boolean = false, val isString: Boolean = false, val isUnlimited: Boolean = false,
+        /** set by 'x.oclAsType(T)' when T is a proper supertype of the type of x: an operation called on it is the one defined by T */
+        val upcastFrom: MofType? = null
     ) {
         fun asCollection(): KExpr = when {
             isCollection -> this
@@ -500,7 +502,7 @@ class OclToKotlin(private val model: MofModel) {
     private fun bareName(scope: Scope): KExpr {
         val name = nextId()
         val itr = scope.implicitIterator
-        if (isSym("(") && null != itr && name in oclTypeOps) return oclTypeOp(itr, name) // e.g. select(oclIsKindOf(Package))
+        if (isSym("(") && name in oclTypeOps) return oclTypeOp(itr ?: scope.lookup("self")!!, name) // e.g. select(oclIsKindOf(Package)), or of self
         if (isSym("(")) {
             // an operation of the implicit iterator or of self
             itr?.type?.let { t -> findOperation(t, name, peekArgCount()) }?.let { return callOperation(itr, it, scope) }
@@ -526,7 +528,15 @@ class OclToKotlin(private val model: MofModel) {
             primitiveOp(recv, name, scope)?.let { return it }
             val t = recv.type ?: throw Untranslatable("operation call on unknown type")
             val op = findOperation(t, name, peekArgCount()) ?: throw Untranslatable("unknown operation '$name' of '${t.name}'")
-            return callOperation(recv, op, scope)
+            return when (recv.upcastFrom) {
+                null -> callOperation(recv, op, scope)
+                // OCL: 'self.oclAsType(T).op()' calls op as defined by T; a Kotlin call on a cast would call the override
+                else -> {
+                    if (!inOperation || "(this as ${t.validName})" != recv.code) throw Untranslatable("operation call after oclAsType to a supertype, other than on self")
+                    if (!selfType.superTypes.contains(t)) throw Untranslatable("operation call after oclAsType to an indirect supertype")
+                    callOperation(recv.copy(code = "super<${t.validName}>", upcastFrom = null), op, scope)
+                }
+            }
         }
         val type = recv.type ?: throw Untranslatable("navigation from unknown type")
         val p = findProperty(type, name) ?: throw Untranslatable("unknown property '$name' of '${type.name}'")
@@ -594,7 +604,9 @@ class OclToKotlin(private val model: MofModel) {
 
                 "oclAsType" -> {
                     val t = typeArg()
+                    val from = recv.type?.takeIf { !recv.isCollection && it != t && it.isSubtypeOf(t) }
                     when {
+                        null != from -> recv.copy(code = "(${recv.code} as ${t.validName}${if (recv.nullable) "?" else ""})", type = t, upcastFrom = from)
                         recv.isCollection -> recv.copy(code = "${recv.code}.map { it as ${t.validName} }", type = t)
                         recv.nullable -> recv.copy(code = "(${recv.code} as ${t.validName}?)", type = t)
                         else -> recv.copy(code = "(${recv.code} as ${t.validName})", type = t)
@@ -634,14 +646,14 @@ class OclToKotlin(private val model: MofModel) {
             }
 
             "closure" -> {
-                // OCL: the elements reached by applying the body transitively, starting from the source;
-                // the source elements are included only when reached. The body type must conform to the source element type.
+                // OCL: the source elements and the elements reached from them by applying the body transitively
+                // (e.g. OrderedSet{self}->closure(supertypes(false)) is self and all its supertypes).
+                // The body type must conform to the source element type.
                 val (v, body) = iteratorBody(recv, scope)
                 val bt = body.type ?: throw Untranslatable("closure body of unknown type")
                 if (null == recv.type || !bt.isSubtypeOf(recv.type)) throw Untranslatable("closure body type does not conform to the source")
-                val first = if (body.isCollection) "${recv.code}.flatMap { $v -> ${body.code} }" else "${recv.code}.mapNotNull { $v -> ${body.code} }"
                 val step = if (body.isCollection) "(${body.code}).toList()" else "listOfNotNull(${body.code})"
-                KExpr("$first.distinct().transitiveClosure { $v -> $step }", bt, true, false)
+                KExpr("${recv.asCollection().code}.toList().distinct().transitiveClosure { $v -> $step }", recv.type, true, false)
             }
 
             "select", "reject", "forAll", "exists", "collect" -> {
