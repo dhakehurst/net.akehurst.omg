@@ -127,6 +127,13 @@ class test_OclToKotlin {
         check("ownedElement", "self->closure(e | e.ownedElement)", "listOf(self).toList().distinct().transitiveClosure { _e -> (_e.ownedElementOrderedSet).toList() }.toOrderedSet()")
     }
 
+    // a closure whose body gives a supertype of the source type widens the source to that supertype
+    @Test
+    fun closure_widens_the_source() {
+        val (code, reason) = OclToKotlin(model).translateOrReason(prop("Relationship", "relatedElement"), "OrderedSet{self}->closure(owner)")
+        assertEquals("listOfNotNull(self).toList<Element>().distinct().transitiveClosure { _e2 -> listOfNotNull(_e2.owner) }.toList()", code ?: "UNTRANSLATABLE: $reason")
+    }
+
     @Test
     fun derivations_of_the_test_model() {
         assertEquals("self.effectiveName()", prop("Element", "name").derivationKotlin)

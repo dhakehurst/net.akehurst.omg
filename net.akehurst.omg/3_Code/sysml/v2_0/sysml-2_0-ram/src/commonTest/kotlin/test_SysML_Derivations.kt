@@ -145,4 +145,41 @@ class test_SysML_Derivations {
         assertTrue(m.car.variantMembershipSet.isEmpty())
         assertEquals(setOf("vRed", "vGreen"), m.colour.variantMembershipSet.map { it._identity }.toSet())
     }
+
+    // Derivations added to the patched XMI (see specs/ocl-fixes.md, "Derivations added")
+    // OwningMembership::ownedMemberElement = ownedRelatedElement->first(), Element::owningMembership,
+    // Membership::membershipOwningNamespace, Feature::owningType, Usage::owningDefinition
+    @Test
+    fun owning_and_owned_members() {
+        val m = model()
+        val fm = m.car.ownedFeatureMembershipOrderedSet.first()
+        assertSame(m.engine, fm.ownedMemberFeature)
+        assertSame(m.engine, fm.ownedMemberElement)
+        assertSame(m.car, fm.membershipOwningNamespace)
+        assertSame(fm, m.engine.owningMembership)
+        assertSame(m.car, m.engine.owningType)
+        assertSame(m.car, m.engine.owningDefinition)
+        assertSame(m.p, m.car.owningNamespace)
+        assertEquals(listOf(m.vehicle, m.engineDef, m.car, m.colour), m.p.ownedMemberOrderedSet.toList())
+        assertEquals(listOf(m.engine, m.driver), m.car.ownedFeatureOrderedSet.toList())
+        assertEquals(listOf(m.engine, m.driver), m.car.ownedPartOrderedSet.toList())
+    }
+
+    // Usage::definition, OccurrenceUsage::occurrenceDefinition, PartUsage::partDefinition from Feature::type
+    @Test
+    fun definitions_from_typing() {
+        val m = model()
+        assertEquals(listOf(m.engineDef), m.engine.definitionOrderedSet.toList())
+        assertEquals(listOf(m.engineDef), m.engine.occurrenceDefinitionOrderedSet.toList())
+        assertEquals(listOf(m.engineDef), m.engine.partDefinitionOrderedSet.toList())
+        assertTrue(m.driver.partDefinitionOrderedSet.isEmpty())
+    }
+
+    // EnumerationDefinition::enumeratedValue = variantMembership.ownedVariantUsage->selectByKind(EnumerationUsage)
+    @Test
+    fun enumerated_values() {
+        val m = model()
+        assertEquals(setOf("red", "green"), m.colour.enumeratedValueOrderedSet.map { it.name }.toSet())
+        assertEquals(false, m.car.isConjugated)
+    }
 }

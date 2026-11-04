@@ -651,12 +651,29 @@ class OclToKotlin(private val model: MofModel) {
             "closure" -> {
                 // OCL: the source elements and the elements reached from them by applying the body transitively
                 // (e.g. OrderedSet{self}->closure(supertypes(false)) is self and all its supertypes).
-                // The body type must conform to the source element type.
-                val (v, body) = iteratorBody(recv, scope)
+                // The body type must conform to the source element type. When the body gives a supertype of the
+                // source type (e.g. OrderedSet{self}->closure(typingFeatures()) on a subclass of Feature), the
+                // source is widened to the body type and the body is translated again with the wider iterator.
+                val start = pos
+                var (v, body) = iteratorBody(recv, scope)
                 val bt = body.type ?: throw Untranslatable("closure body of unknown type")
-                if (null == recv.type || !bt.isSubtypeOf(recv.type)) throw Untranslatable("closure body type does not conform to the source")
+                val rt = recv.type ?: throw Untranslatable("closure source of unknown type")
+                val elemType = when {
+                    bt.isSubtypeOf(rt) -> rt
+                    rt.isSubtypeOf(bt) -> {
+                        pos = start
+                        val wide = iteratorBody(recv.copy(type = bt), scope)
+                        v = wide.first; body = wide.second
+                        val bt2 = body.type ?: throw Untranslatable("closure body of unknown type")
+                        if (!bt2.isSubtypeOf(bt)) throw Untranslatable("closure body type does not conform to the source")
+                        bt
+                    }
+
+                    else -> throw Untranslatable("closure body type does not conform to the source")
+                }
                 val step = if (body.isCollection) "(${body.code}).toList()" else "listOfNotNull(${body.code})"
-                KExpr("${recv.asCollection().code}.toList().distinct().transitiveClosure { $v -> $step }", recv.type, true, false)
+                val src = if (elemType == rt) "${recv.asCollection().code}.toList()" else "${recv.asCollection().code}.toList<${elemType.validName}>()"
+                KExpr("$src.distinct().transitiveClosure { $v -> $step }", elemType, true, false)
             }
 
             "select", "reject", "forAll", "exists", "collect" -> {

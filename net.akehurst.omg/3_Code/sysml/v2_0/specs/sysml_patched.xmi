@@ -38,6 +38,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Flows-FlowDefinition" xmi:type="uml:Class" name="FlowDefinition">
+          <ownedRule xmi:id="Systems-Flows-FlowDefinition-deriveFlowDefinitionFlowEnd" xmi:type="uml:Constraint" name="deriveFlowDefinitionFlowEnd">
+            <constrainedElement xmi:idref="Systems-Flows-FlowDefinition" />
+            <specification xmi:id="Systems-Flows-FlowDefinition-deriveFlowDefinitionFlowEnd-specification0" xmi:type="uml:OpaqueExpression" body="flowEnd = feature-&gt;select(isEnd)-&gt;selectByKind(Usage)" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Flows-FlowDefinition-_generalization.Systems-Actions-ActionDefinition" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Actions-ActionDefinition" />
           </generalization>
@@ -80,6 +84,10 @@
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Systems-Flows-FlowUsage" xmi:type="uml:Class" name="FlowUsage">
+          <ownedRule xmi:id="Systems-Flows-FlowUsage-deriveFlowUsageFlowDefinition" xmi:type="uml:Constraint" name="deriveFlowUsageFlowDefinition">
+            <constrainedElement xmi:idref="Systems-Flows-FlowUsage" />
+            <specification xmi:id="Systems-Flows-FlowUsage-deriveFlowUsageFlowDefinition-specification0" xmi:type="uml:OpaqueExpression" body="flowDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(Interaction)" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Flows-FlowUsage-_generalization.Systems-Connections-ConnectorAsUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Connections-ConnectorAsUsage" />
           </generalization>
@@ -139,6 +147,10 @@
       </packagedElement>
       <packagedElement xmi:id="Systems-Enumerations" xmi:type="uml:Package" URI="" name="Enumerations">
         <packagedElement xmi:id="Systems-Enumerations-EnumerationDefinition" xmi:type="uml:Class" name="EnumerationDefinition">
+          <ownedRule xmi:id="Systems-Enumerations-EnumerationDefinition-deriveEnumerationDefinitionEnumeratedValue" xmi:type="uml:Constraint" name="deriveEnumerationDefinitionEnumeratedValue">
+            <constrainedElement xmi:idref="Systems-Enumerations-EnumerationDefinition" />
+            <specification xmi:id="Systems-Enumerations-EnumerationDefinition-deriveEnumerationDefinitionEnumeratedValue-specification0" xmi:type="uml:OpaqueExpression" body="enumeratedValue = variantMembership.ownedVariantUsage-&gt;selectByKind(EnumerationUsage)" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Enumerations-EnumerationDefinition-_generalization.Systems-Attributes-AttributeDefinition" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Attributes-AttributeDefinition" />
           </generalization>
@@ -172,6 +184,10 @@
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Systems-Enumerations-EnumerationUsage" xmi:type="uml:Class" name="EnumerationUsage">
+          <ownedRule xmi:id="Systems-Enumerations-EnumerationUsage-deriveEnumerationUsageEnumerationDefinition" xmi:type="uml:Constraint" name="deriveEnumerationUsageEnumerationDefinition">
+            <constrainedElement xmi:idref="Systems-Enumerations-EnumerationUsage" />
+            <specification xmi:id="Systems-Enumerations-EnumerationUsage-deriveEnumerationUsageEnumerationDefinition-specification0" xmi:type="uml:OpaqueExpression" body="enumerationDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(EnumerationDefinition)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Enumerations-EnumerationUsage-_generalization.Systems-Attributes-AttributeUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Attributes-AttributeUsage" />
           </generalization>
@@ -234,6 +250,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Requirements-RequirementUsage" xmi:type="uml:Class" name="RequirementUsage">
+          <ownedRule xmi:id="Systems-Requirements-RequirementUsage-deriveRequirementUsageRequirementDefinition" xmi:type="uml:Constraint" name="deriveRequirementUsageRequirementDefinition">
+            <constrainedElement xmi:idref="Systems-Requirements-RequirementUsage" />
+            <specification xmi:id="Systems-Requirements-RequirementUsage-deriveRequirementUsageRequirementDefinition-specification0" xmi:type="uml:OpaqueExpression" body="requirementDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(RequirementDefinition)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Requirements-RequirementUsage-_generalization.Systems-Constraints-ConstraintUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Constraints-ConstraintUsage" />
           </generalization>
@@ -442,6 +462,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Requirements-ConcernUsage" xmi:type="uml:Class" name="ConcernUsage">
+          <ownedRule xmi:id="Systems-Requirements-ConcernUsage-deriveConcernUsageConcernDefinition" xmi:type="uml:Constraint" name="deriveConcernUsageConcernDefinition">
+            <constrainedElement xmi:idref="Systems-Requirements-ConcernUsage" />
+            <specification xmi:id="Systems-Requirements-ConcernUsage-deriveConcernUsageConcernDefinition-specification0" xmi:type="uml:OpaqueExpression" body="concernDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(ConcernDefinition)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Requirements-ConcernUsage-_generalization.Systems-Requirements-RequirementUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Requirements-RequirementUsage" />
           </generalization>
@@ -475,6 +499,14 @@
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Systems-Requirements-FramedConcernMembership" xmi:type="uml:Class" name="FramedConcernMembership">
+          <ownedRule xmi:id="Systems-Requirements-FramedConcernMembership-deriveFramedConcernMembershipReferencedConcern" xmi:type="uml:Constraint" name="deriveFramedConcernMembershipReferencedConcern">
+            <constrainedElement xmi:idref="Systems-Requirements-FramedConcernMembership" />
+            <specification xmi:id="Systems-Requirements-FramedConcernMembership-deriveFramedConcernMembershipReferencedConcern-specification0" xmi:type="uml:OpaqueExpression" body="referencedConcern = let r : Feature = ownedConcern.referencedFeatureTarget() in if r.oclIsKindOf(ConcernUsage) then r.oclAsType(ConcernUsage) else ownedConcern endif" language="OCL2.0" name="" />
+          </ownedRule>
+          <ownedRule xmi:id="Systems-Requirements-FramedConcernMembership-deriveFramedConcernMembershipOwnedConcern" xmi:type="uml:Constraint" name="deriveFramedConcernMembershipOwnedConcern">
+            <constrainedElement xmi:idref="Systems-Requirements-FramedConcernMembership" />
+            <specification xmi:id="Systems-Requirements-FramedConcernMembership-deriveFramedConcernMembershipOwnedConcern-specification0" xmi:type="uml:OpaqueExpression" body="ownedConcern = let e : Element = ownedRelatedElement-&gt;first() in if e.oclIsKindOf(ConcernUsage) then e.oclAsType(ConcernUsage) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Requirements-FramedConcernMembership-_generalization.Systems-Requirements-RequirementConstraintMembership" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Requirements-RequirementConstraintMembership" />
           </generalization>
@@ -520,6 +552,10 @@
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Systems-Requirements-ActorMembership" xmi:type="uml:Class" name="ActorMembership">
+          <ownedRule xmi:id="Systems-Requirements-ActorMembership-deriveActorMembershipOwnedActorParameter" xmi:type="uml:Constraint" name="deriveActorMembershipOwnedActorParameter">
+            <constrainedElement xmi:idref="Systems-Requirements-ActorMembership" />
+            <specification xmi:id="Systems-Requirements-ActorMembership-deriveActorMembershipOwnedActorParameter-specification0" xmi:type="uml:OpaqueExpression" body="ownedActorParameter = let e : Element = ownedRelatedElement-&gt;first() in if e.oclIsKindOf(PartUsage) then e.oclAsType(PartUsage) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Requirements-ActorMembership-_generalization.Kernel-Behaviors-ParameterMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Kernel-Behaviors-ParameterMembership" />
           </generalization>
@@ -574,6 +610,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Requirements-StakeholderMembership" xmi:type="uml:Class" name="StakeholderMembership">
+          <ownedRule xmi:id="Systems-Requirements-StakeholderMembership-deriveStakeholderMembershipOwnedStakeholderParameter" xmi:type="uml:Constraint" name="deriveStakeholderMembershipOwnedStakeholderParameter">
+            <constrainedElement xmi:idref="Systems-Requirements-StakeholderMembership" />
+            <specification xmi:id="Systems-Requirements-StakeholderMembership-deriveStakeholderMembershipOwnedStakeholderParameter-specification0" xmi:type="uml:OpaqueExpression" body="ownedStakeholderParameter = let e : Element = ownedRelatedElement-&gt;first() in if e.oclIsKindOf(PartUsage) then e.oclAsType(PartUsage) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Requirements-StakeholderMembership-_generalization.Kernel-Behaviors-ParameterMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Kernel-Behaviors-ParameterMembership" />
           </generalization>
@@ -627,6 +667,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Requirements-SubjectMembership" xmi:type="uml:Class" name="SubjectMembership">
+          <ownedRule xmi:id="Systems-Requirements-SubjectMembership-deriveSubjectMembershipOwnedSubjectParameter" xmi:type="uml:Constraint" name="deriveSubjectMembershipOwnedSubjectParameter">
+            <constrainedElement xmi:idref="Systems-Requirements-SubjectMembership" />
+            <specification xmi:id="Systems-Requirements-SubjectMembership-deriveSubjectMembershipOwnedSubjectParameter-specification0" xmi:type="uml:OpaqueExpression" body="ownedSubjectParameter = let e : Element = ownedRelatedElement-&gt;first() in if e.oclIsKindOf(Usage) then e.oclAsType(Usage) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Requirements-SubjectMembership-_generalization.Kernel-Behaviors-ParameterMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Kernel-Behaviors-ParameterMembership" />
           </generalization>
@@ -912,6 +956,10 @@
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Systems-Requirements-RequirementConstraintMembership" xmi:type="uml:Class" name="RequirementConstraintMembership">
+          <ownedRule xmi:id="Systems-Requirements-RequirementConstraintMembership-deriveRequirementConstraintMembershipOwnedConstraint" xmi:type="uml:Constraint" name="deriveRequirementConstraintMembershipOwnedConstraint">
+            <constrainedElement xmi:idref="Systems-Requirements-RequirementConstraintMembership" />
+            <specification xmi:id="Systems-Requirements-RequirementConstraintMembership-deriveRequirementConstraintMembershipOwnedConstraint-specification0" xmi:type="uml:OpaqueExpression" body="ownedConstraint = let e : Element = ownedRelatedElement-&gt;first() in if e.oclIsKindOf(ConstraintUsage) then e.oclAsType(ConstraintUsage) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Requirements-RequirementConstraintMembership-_generalization.Core-Types-FeatureMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Core-Types-FeatureMembership" />
           </generalization>
@@ -1136,6 +1184,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Requirements-SatisfyRequirementUsage" xmi:type="uml:Class" name="SatisfyRequirementUsage">
+          <ownedRule xmi:id="Systems-Requirements-SatisfyRequirementUsage-deriveSatisfyRequirementUsageSatisfiedRequirement" xmi:type="uml:Constraint" name="deriveSatisfyRequirementUsageSatisfiedRequirement">
+            <constrainedElement xmi:idref="Systems-Requirements-SatisfyRequirementUsage" />
+            <specification xmi:id="Systems-Requirements-SatisfyRequirementUsage-deriveSatisfyRequirementUsageSatisfiedRequirement-specification0" xmi:type="uml:OpaqueExpression" body="satisfiedRequirement = let r : Feature = referencedFeatureTarget() in if r.oclIsKindOf(RequirementUsage) then r.oclAsType(RequirementUsage) else self endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Requirements-SatisfyRequirementUsage-_generalization.Systems-Requirements-RequirementUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Requirements-RequirementUsage" />
           </generalization>
@@ -1263,6 +1315,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Calculations-CalculationUsage" xmi:type="uml:Class" name="CalculationUsage">
+          <ownedRule xmi:id="Systems-Calculations-CalculationUsage-deriveCalculationUsageCalculationDefinition" xmi:type="uml:Constraint" name="deriveCalculationUsageCalculationDefinition">
+            <constrainedElement xmi:idref="Systems-Calculations-CalculationUsage" />
+            <specification xmi:id="Systems-Calculations-CalculationUsage-deriveCalculationUsageCalculationDefinition-specification0" xmi:type="uml:OpaqueExpression" body="calculationDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(Function)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Calculations-CalculationUsage-_generalization.Kernel-Functions-Expression" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Kernel-Functions-Expression" />
           </generalization>
@@ -1377,6 +1433,10 @@
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Systems-Metadata-MetadataUsage" xmi:type="uml:Class" name="MetadataUsage">
+          <ownedRule xmi:id="Systems-Metadata-MetadataUsage-deriveMetadataUsageMetadataDefinition" xmi:type="uml:Constraint" name="deriveMetadataUsageMetadataDefinition">
+            <constrainedElement xmi:idref="Systems-Metadata-MetadataUsage" />
+            <specification xmi:id="Systems-Metadata-MetadataUsage-deriveMetadataUsageMetadataDefinition-specification0" xmi:type="uml:OpaqueExpression" body="metadataDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(Metaclass)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Metadata-MetadataUsage-_generalization.Kernel-Metadata-MetadataFeature" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Kernel-Metadata-MetadataFeature" />
           </generalization>
@@ -1496,6 +1556,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Constraints-ConstraintUsage" xmi:type="uml:Class" name="ConstraintUsage">
+          <ownedRule xmi:id="Systems-Constraints-ConstraintUsage-deriveConstraintUsageConstraintDefinition" xmi:type="uml:Constraint" name="deriveConstraintUsageConstraintDefinition">
+            <constrainedElement xmi:idref="Systems-Constraints-ConstraintUsage" />
+            <specification xmi:id="Systems-Constraints-ConstraintUsage-deriveConstraintUsageConstraintDefinition-specification0" xmi:type="uml:OpaqueExpression" body="constraintDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(Predicate)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Constraints-ConstraintUsage-_generalization.Systems-Occurrences-OccurrenceUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Occurrences-OccurrenceUsage" />
           </generalization>
@@ -1648,6 +1712,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Cases-CaseUsage" xmi:type="uml:Class" name="CaseUsage">
+          <ownedRule xmi:id="Systems-Cases-CaseUsage-deriveCaseUsageCaseDefinition" xmi:type="uml:Constraint" name="deriveCaseUsageCaseDefinition">
+            <constrainedElement xmi:idref="Systems-Cases-CaseUsage" />
+            <specification xmi:id="Systems-Cases-CaseUsage-deriveCaseUsageCaseDefinition-specification0" xmi:type="uml:OpaqueExpression" body="caseDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(CaseDefinition)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Cases-CaseUsage-_generalization.Systems-Calculations-CalculationUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Calculations-CalculationUsage" />
           </generalization>
@@ -1874,6 +1942,10 @@
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Systems-Cases-ObjectiveMembership" xmi:type="uml:Class" name="ObjectiveMembership">
+          <ownedRule xmi:id="Systems-Cases-ObjectiveMembership-deriveObjectiveMembershipOwnedObjectiveRequirement" xmi:type="uml:Constraint" name="deriveObjectiveMembershipOwnedObjectiveRequirement">
+            <constrainedElement xmi:idref="Systems-Cases-ObjectiveMembership" />
+            <specification xmi:id="Systems-Cases-ObjectiveMembership-deriveObjectiveMembershipOwnedObjectiveRequirement-specification0" xmi:type="uml:OpaqueExpression" body="ownedObjectiveRequirement = let e : Element = ownedRelatedElement-&gt;first() in if e.oclIsKindOf(RequirementUsage) then e.oclAsType(RequirementUsage) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Cases-ObjectiveMembership-_generalization.Core-Types-FeatureMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Core-Types-FeatureMembership" />
           </generalization>
@@ -1954,6 +2026,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-States-TransitionFeatureMembership" xmi:type="uml:Class" name="TransitionFeatureMembership">
+          <ownedRule xmi:id="Systems-States-TransitionFeatureMembership-deriveTransitionFeatureMembershipTransitionFeature" xmi:type="uml:Constraint" name="deriveTransitionFeatureMembershipTransitionFeature">
+            <constrainedElement xmi:idref="Systems-States-TransitionFeatureMembership" />
+            <specification xmi:id="Systems-States-TransitionFeatureMembership-deriveTransitionFeatureMembershipTransitionFeature-specification0" xmi:type="uml:OpaqueExpression" body="transitionFeature = let e : Element = ownedRelatedElement-&gt;first() in if e.oclIsKindOf(Step) then e.oclAsType(Step) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-States-TransitionFeatureMembership-_generalization.Core-Types-FeatureMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Core-Types-FeatureMembership" />
           </generalization>
@@ -2093,6 +2169,10 @@
           </ownedLiteral>
         </packagedElement>
         <packagedElement xmi:id="Systems-States-ExhibitStateUsage" xmi:type="uml:Class" name="ExhibitStateUsage">
+          <ownedRule xmi:id="Systems-States-ExhibitStateUsage-deriveExhibitStateUsageExhibitedState" xmi:type="uml:Constraint" name="deriveExhibitStateUsageExhibitedState">
+            <constrainedElement xmi:idref="Systems-States-ExhibitStateUsage" />
+            <specification xmi:id="Systems-States-ExhibitStateUsage-deriveExhibitStateUsageExhibitedState-specification0" xmi:type="uml:OpaqueExpression" body="exhibitedState = let r : Feature = referencedFeatureTarget() in if r.oclIsKindOf(StateUsage) then r.oclAsType(StateUsage) else self endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-States-ExhibitStateUsage-_generalization.Systems-Actions-PerformActionUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Actions-PerformActionUsage" />
           </generalization>
@@ -2143,6 +2223,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-States-StateSubactionMembership" xmi:type="uml:Class" name="StateSubactionMembership">
+          <ownedRule xmi:id="Systems-States-StateSubactionMembership-deriveStateSubactionMembershipAction" xmi:type="uml:Constraint" name="deriveStateSubactionMembershipAction">
+            <constrainedElement xmi:idref="Systems-States-StateSubactionMembership" />
+            <specification xmi:id="Systems-States-StateSubactionMembership-deriveStateSubactionMembershipAction-specification0" xmi:type="uml:OpaqueExpression" body="action = let e : Element = ownedRelatedElement-&gt;first() in if e.oclIsKindOf(ActionUsage) then e.oclAsType(ActionUsage) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-States-StateSubactionMembership-_generalization.Core-Types-FeatureMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Core-Types-FeatureMembership" />
           </generalization>
@@ -2215,6 +2299,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-States-StateUsage" xmi:type="uml:Class" name="StateUsage">
+          <ownedRule xmi:id="Systems-States-StateUsage-deriveStateUsageStateDefinition" xmi:type="uml:Constraint" name="deriveStateUsageStateDefinition">
+            <constrainedElement xmi:idref="Systems-States-StateUsage" />
+            <specification xmi:id="Systems-States-StateUsage-deriveStateUsageStateDefinition-specification0" xmi:type="uml:OpaqueExpression" body="stateDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(Behavior)" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-States-StateUsage-_generalization.Systems-Actions-ActionUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Actions-ActionUsage" />
           </generalization>
@@ -2647,7 +2735,7 @@
             <ownedComment xmi:id="Systems-States-TransitionUsage-deriveTransitionUsageGuardExpression-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;triggerActions&lt;/code&gt; of a &lt;code&gt;TransitionUsage&lt;/code&gt; are the &lt;code&gt;transitionFeatures&lt;/code&gt; of the &lt;code&gt;ownedFeatureMemberships&lt;/code&gt; of the &lt;code&gt;TransitionUsage&lt;/code&gt; with &lt;code&gt;kind = trigger&lt;/code&gt;, which must all be &lt;code&gt;Expressions&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-States-TransitionUsage-deriveTransitionUsageGuardExpression" />
 </ownedComment>
-            <specification xmi:id="Systems-States-TransitionUsage-deriveTransitionUsageGuardExpression-specification0" xmi:type="uml:OpaqueExpression" body="guardExpression = ownedFeatureMembership-&gt;     selectByKind(TransitionFeatureMembership)-&gt;     select(kind = TransitionFeatureKind::trigger).transitionFeature-&gt;     selectByKind(Expression)" language="OCL2.0" name="">
+            <specification xmi:id="Systems-States-TransitionUsage-deriveTransitionUsageGuardExpression-specification0" xmi:type="uml:OpaqueExpression" body="guardExpression = ownedFeatureMembership-&gt;     selectByKind(TransitionFeatureMembership)-&gt;     select(kind = TransitionFeatureKind::guard).transitionFeature-&gt;     selectByKind(Expression)" language="OCL2.0" name="">
 </specification>
           </ownedRule>
           <ownedRule xmi:id="Systems-States-TransitionUsage-deriveTransitionUsageSource" xmi:type="uml:Constraint" name="deriveTransitionUsageSource">
@@ -2670,7 +2758,7 @@
             <ownedComment xmi:id="Systems-States-TransitionUsage-deriveTransitionUsageEffectAction-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;effectActions&lt;/code&gt; of a &lt;code&gt;TransitionUsage&lt;/code&gt; are the &lt;code&gt;transitionFeatures&lt;/code&gt; of the &lt;code&gt;ownedFeatureMemberships&lt;/code&gt; of the &lt;code&gt;TransitionUsage&lt;/code&gt; with &lt;code&gt;kind = effect&lt;/code&gt;, which must all be &lt;code&gt;ActionUsages&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-States-TransitionUsage-deriveTransitionUsageEffectAction" />
 </ownedComment>
-            <specification xmi:id="Systems-States-TransitionUsage-deriveTransitionUsageEffectAction-specification0" xmi:type="uml:OpaqueExpression" body="triggerAction = ownedFeatureMembership-&gt;     selectByKind(TransitionFeatureMembership)-&gt;     select(kind = TransitionFeatureKind::trigger).transitionFeatures-&gt;     selectByKind(AcceptActionUsage)" language="OCL2.0" name="">
+            <specification xmi:id="Systems-States-TransitionUsage-deriveTransitionUsageEffectAction-specification0" xmi:type="uml:OpaqueExpression" body="effectAction = ownedFeatureMembership-&gt;selectByKind(TransitionFeatureMembership)-&gt;select(kind = TransitionFeatureKind::effect).transitionFeature-&gt;selectByKind(ActionUsage)" language="OCL2.0" name="">
 </specification>
           </ownedRule>
           <ownedRule xmi:id="Systems-States-TransitionUsage-checkTransitionUsageSuccessionBindingConnector" xmi:type="uml:Constraint" name="checkTransitionUsageSuccessionBindingConnector">
@@ -2796,6 +2884,10 @@
       </packagedElement>
       <packagedElement xmi:id="Systems-UseCases" xmi:type="uml:Package" URI="" name="UseCases">
         <packagedElement xmi:id="Systems-UseCases-UseCaseUsage" xmi:type="uml:Class" name="UseCaseUsage">
+          <ownedRule xmi:id="Systems-UseCases-UseCaseUsage-deriveUseCaseUsageUseCaseDefinition" xmi:type="uml:Constraint" name="deriveUseCaseUsageUseCaseDefinition">
+            <constrainedElement xmi:idref="Systems-UseCases-UseCaseUsage" />
+            <specification xmi:id="Systems-UseCases-UseCaseUsage-deriveUseCaseUsageUseCaseDefinition-specification0" xmi:type="uml:OpaqueExpression" body="useCaseDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(UseCaseDefinition)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-UseCases-UseCaseUsage-_generalization.Systems-Cases-CaseUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Cases-CaseUsage" />
           </generalization>
@@ -2845,6 +2937,10 @@
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Systems-UseCases-IncludeUseCaseUsage" xmi:type="uml:Class" name="IncludeUseCaseUsage">
+          <ownedRule xmi:id="Systems-UseCases-IncludeUseCaseUsage-deriveIncludeUseCaseUsageUseCaseIncluded" xmi:type="uml:Constraint" name="deriveIncludeUseCaseUsageUseCaseIncluded">
+            <constrainedElement xmi:idref="Systems-UseCases-IncludeUseCaseUsage" />
+            <specification xmi:id="Systems-UseCases-IncludeUseCaseUsage-deriveIncludeUseCaseUsageUseCaseIncluded-specification0" xmi:type="uml:OpaqueExpression" body="useCaseIncluded = let r : Feature = referencedFeatureTarget() in if r.oclIsKindOf(UseCaseUsage) then r.oclAsType(UseCaseUsage) else self endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-UseCases-IncludeUseCaseUsage-_generalization.Systems-UseCases-UseCaseUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-UseCases-UseCaseUsage" />
           </generalization>
@@ -2971,6 +3067,10 @@
       </packagedElement>
       <packagedElement xmi:id="Systems-Actions" xmi:type="uml:Package" URI="" name="Actions">
         <packagedElement xmi:id="Systems-Actions-PerformActionUsage" xmi:type="uml:Class" name="PerformActionUsage">
+          <ownedRule xmi:id="Systems-Actions-PerformActionUsage-derivePerformActionUsagePerformedAction" xmi:type="uml:Constraint" name="derivePerformActionUsagePerformedAction">
+            <constrainedElement xmi:idref="Systems-Actions-PerformActionUsage" />
+            <specification xmi:id="Systems-Actions-PerformActionUsage-derivePerformActionUsagePerformedAction-specification0" xmi:type="uml:OpaqueExpression" body="performedAction = let r : Feature = referencedFeatureTarget() in if r.oclIsKindOf(ActionUsage) then r.oclAsType(ActionUsage) else self endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Actions-PerformActionUsage-_generalization.Systems-Occurrences-EventOccurrenceUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Occurrences-EventOccurrenceUsage" />
           </generalization>
@@ -3084,6 +3184,10 @@
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Systems-Actions-ActionUsage" xmi:type="uml:Class" name="ActionUsage">
+          <ownedRule xmi:id="Systems-Actions-ActionUsage-deriveActionUsageActionDefinition" xmi:type="uml:Constraint" name="deriveActionUsageActionDefinition">
+            <constrainedElement xmi:idref="Systems-Actions-ActionUsage" />
+            <specification xmi:id="Systems-Actions-ActionUsage-deriveActionUsageActionDefinition-specification0" xmi:type="uml:OpaqueExpression" body="actionDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(Behavior)" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Actions-ActionUsage-_generalization.Kernel-Behaviors-Step" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Kernel-Behaviors-Step" />
           </generalization>
@@ -4371,6 +4475,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Occurrences-EventOccurrenceUsage" xmi:type="uml:Class" name="EventOccurrenceUsage">
+          <ownedRule xmi:id="Systems-Occurrences-EventOccurrenceUsage-deriveEventOccurrenceUsageIsReference" xmi:type="uml:Constraint" name="deriveEventOccurrenceUsageIsReference">
+            <constrainedElement xmi:idref="Systems-Occurrences-EventOccurrenceUsage" />
+            <specification xmi:id="Systems-Occurrences-EventOccurrenceUsage-deriveEventOccurrenceUsageIsReference-specification0" xmi:type="uml:OpaqueExpression" body="isReference = true" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Occurrences-EventOccurrenceUsage-_generalization.Systems-Occurrences-OccurrenceUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Occurrences-OccurrenceUsage" />
           </generalization>
@@ -4454,6 +4562,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Occurrences-OccurrenceUsage" xmi:type="uml:Class" name="OccurrenceUsage">
+          <ownedRule xmi:id="Systems-Occurrences-OccurrenceUsage-deriveOccurrenceUsageOccurrenceDefinition" xmi:type="uml:Constraint" name="deriveOccurrenceUsageOccurrenceDefinition">
+            <constrainedElement xmi:idref="Systems-Occurrences-OccurrenceUsage" />
+            <specification xmi:id="Systems-Occurrences-OccurrenceUsage-deriveOccurrenceUsageOccurrenceDefinition-specification0" xmi:type="uml:OpaqueExpression" body="occurrenceDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(Class)" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Occurrences-OccurrenceUsage-_generalization.Systems-DefinitionAndUsage-Usage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-DefinitionAndUsage-Usage" />
           </generalization>
@@ -4682,6 +4794,18 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-DefinitionAndUsage-Usage" xmi:type="uml:Class" name="Usage">
+          <ownedRule xmi:id="Systems-DefinitionAndUsage-Usage-deriveUsageDefinition" xmi:type="uml:Constraint" name="deriveUsageDefinition">
+            <constrainedElement xmi:idref="Systems-DefinitionAndUsage-Usage" />
+            <specification xmi:id="Systems-DefinitionAndUsage-Usage-deriveUsageDefinition-specification0" xmi:type="uml:OpaqueExpression" body="definition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(Classifier)" language="OCL2.0" name="" />
+          </ownedRule>
+          <ownedRule xmi:id="Systems-DefinitionAndUsage-Usage-deriveUsageOwningUsage" xmi:type="uml:Constraint" name="deriveUsageOwningUsage">
+            <constrainedElement xmi:idref="Systems-DefinitionAndUsage-Usage" />
+            <specification xmi:id="Systems-DefinitionAndUsage-Usage-deriveUsageOwningUsage-specification0" xmi:type="uml:OpaqueExpression" body="owningUsage = if owningType.oclIsKindOf(Usage) then owningType.oclAsType(Usage) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
+          <ownedRule xmi:id="Systems-DefinitionAndUsage-Usage-deriveUsageOwningDefinition" xmi:type="uml:Constraint" name="deriveUsageOwningDefinition">
+            <constrainedElement xmi:idref="Systems-DefinitionAndUsage-Usage" />
+            <specification xmi:id="Systems-DefinitionAndUsage-Usage-deriveUsageOwningDefinition-specification0" xmi:type="uml:OpaqueExpression" body="owningDefinition = if owningType.oclIsKindOf(Definition) then owningType.oclAsType(Definition) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-DefinitionAndUsage-Usage-_generalization.Core-Features-Feature" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Core-Features-Feature" />
           </generalization>
@@ -5105,7 +5229,7 @@
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Usage-deriveUsageNestedEnumeration-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedEnumerations&lt;/code&gt; of a &lt;code&gt;Usage&lt;/code&gt; are all its &lt;code&gt;ownedUsages&lt;/code&gt; that are &lt;code&gt;EnumerationUsages&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-DefinitionAndUsage-Usage-deriveUsageNestedEnumeration" />
 </ownedComment>
-            <specification xmi:id="Systems-DefinitionAndUsage-Usage-deriveUsageNestedEnumeration-specification0" xmi:type="uml:OpaqueExpression" body="ownedNested = nestedUsage-&gt;selectByKind(EnumerationUsage)" language="OCL2.0" name="" />
+            <specification xmi:id="Systems-DefinitionAndUsage-Usage-deriveUsageNestedEnumeration-specification0" xmi:type="uml:OpaqueExpression" body="nestedEnumeration = nestedUsage-&gt;selectByKind(EnumerationUsage)" language="OCL2.0" name="" />
           </ownedRule>
           <ownedRule xmi:id="Systems-DefinitionAndUsage-Usage-deriveUsageNestedConstraint" xmi:type="uml:Constraint" name="deriveUsageNestedConstraint">
             <constrainedElement xmi:idref="Systems-DefinitionAndUsage-Usage" />
@@ -5377,6 +5501,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-DefinitionAndUsage-ReferenceUsage" xmi:type="uml:Class" name="ReferenceUsage">
+          <ownedRule xmi:id="Systems-DefinitionAndUsage-ReferenceUsage-deriveReferenceUsageIsReference" xmi:type="uml:Constraint" name="deriveReferenceUsageIsReference">
+            <constrainedElement xmi:idref="Systems-DefinitionAndUsage-ReferenceUsage" />
+            <specification xmi:id="Systems-DefinitionAndUsage-ReferenceUsage-deriveReferenceUsageIsReference-specification0" xmi:type="uml:OpaqueExpression" body="isReference = true" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-DefinitionAndUsage-ReferenceUsage-_generalization.Systems-DefinitionAndUsage-Usage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-DefinitionAndUsage-Usage" />
           </generalization>
@@ -5444,6 +5572,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-DefinitionAndUsage-VariantMembership" xmi:type="uml:Class" name="VariantMembership">
+          <ownedRule xmi:id="Systems-DefinitionAndUsage-VariantMembership-deriveVariantMembershipOwnedVariantUsage" xmi:type="uml:Constraint" name="deriveVariantMembershipOwnedVariantUsage">
+            <constrainedElement xmi:idref="Systems-DefinitionAndUsage-VariantMembership" />
+            <specification xmi:id="Systems-DefinitionAndUsage-VariantMembership-deriveVariantMembershipOwnedVariantUsage-specification0" xmi:type="uml:OpaqueExpression" body="ownedVariantUsage = let e : Element = ownedRelatedElement-&gt;first() in if e.oclIsKindOf(Usage) then e.oclAsType(Usage) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-DefinitionAndUsage-VariantMembership-_generalization.Root-Namespaces-OwningMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Root-Namespaces-OwningMembership" />
           </generalization>
@@ -6797,6 +6929,14 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Attributes-AttributeUsage" xmi:type="uml:Class" name="AttributeUsage">
+          <ownedRule xmi:id="Systems-Attributes-AttributeUsage-deriveAttributeUsageIsReference" xmi:type="uml:Constraint" name="deriveAttributeUsageIsReference">
+            <constrainedElement xmi:idref="Systems-Attributes-AttributeUsage" />
+            <specification xmi:id="Systems-Attributes-AttributeUsage-deriveAttributeUsageIsReference-specification0" xmi:type="uml:OpaqueExpression" body="isReference = true" language="OCL2.0" name="" />
+          </ownedRule>
+          <ownedRule xmi:id="Systems-Attributes-AttributeUsage-deriveAttributeUsageAttributeDefinition" xmi:type="uml:Constraint" name="deriveAttributeUsageAttributeDefinition">
+            <constrainedElement xmi:idref="Systems-Attributes-AttributeUsage" />
+            <specification xmi:id="Systems-Attributes-AttributeUsage-deriveAttributeUsageAttributeDefinition-specification0" xmi:type="uml:OpaqueExpression" body="attributeDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(DataType)" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Attributes-AttributeUsage-_generalization.Systems-DefinitionAndUsage-Usage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-DefinitionAndUsage-Usage" />
           </generalization>
@@ -6912,7 +7052,7 @@
             <ownedComment xmi:id="Systems-Parts-PartUsage-derivePartUsagePartDefinition-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;partDefinitions&lt;/code&gt; of an &lt;code&gt;PartUsage&lt;/code&gt; are those &lt;code&gt;itemDefinitions&lt;/code&gt; that are &lt;code&gt;PartDefinitions&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Systems-Parts-PartUsage-derivePartUsagePartDefinition" />
 </ownedComment>
-            <specification xmi:id="Systems-Parts-PartUsage-derivePartUsagePartDefinition-specification0" xmi:type="uml:OpaqueExpression" body="itemDefinition-&gt;selectByKind(PartDefinition)" language="OCL2.0" name="" />
+            <specification xmi:id="Systems-Parts-PartUsage-derivePartUsagePartDefinition-specification0" xmi:type="uml:OpaqueExpression" body="partDefinition = itemDefinition-&gt;selectByKind(PartDefinition)" language="OCL2.0" name="" />
           </ownedRule>
           <ownedRule xmi:id="Systems-Parts-PartUsage-checkPartUsageSubpartSpecialization" xmi:type="uml:Constraint" name="checkPartUsageSubpartSpecialization">
             <constrainedElement xmi:idref="Systems-Parts-PartUsage" />
@@ -6940,6 +7080,10 @@
       </packagedElement>
       <packagedElement xmi:id="Systems-AnalysisCases" xmi:type="uml:Package" URI="" name="AnalysisCases">
         <packagedElement xmi:id="Systems-AnalysisCases-AnalysisCaseUsage" xmi:type="uml:Class" name="AnalysisCaseUsage">
+          <ownedRule xmi:id="Systems-AnalysisCases-AnalysisCaseUsage-deriveAnalysisCaseUsageAnalysisCaseDefinition" xmi:type="uml:Constraint" name="deriveAnalysisCaseUsageAnalysisCaseDefinition">
+            <constrainedElement xmi:idref="Systems-AnalysisCases-AnalysisCaseUsage" />
+            <specification xmi:id="Systems-AnalysisCases-AnalysisCaseUsage-deriveAnalysisCaseUsageAnalysisCaseDefinition-specification0" xmi:type="uml:OpaqueExpression" body="analysisCaseDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(AnalysisCaseDefinition)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-AnalysisCases-AnalysisCaseUsage-_generalization.Systems-Cases-CaseUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Cases-CaseUsage" />
           </generalization>
@@ -7084,6 +7228,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Ports-PortConjugation" xmi:type="uml:Class" name="PortConjugation">
+          <ownedRule xmi:id="Systems-Ports-PortConjugation-derivePortConjugationConjugatedPortDefinition" xmi:type="uml:Constraint" name="derivePortConjugationConjugatedPortDefinition">
+            <constrainedElement xmi:idref="Systems-Ports-PortConjugation" />
+            <specification xmi:id="Systems-Ports-PortConjugation-derivePortConjugationConjugatedPortDefinition-specification0" xmi:type="uml:OpaqueExpression" body="conjugatedPortDefinition = if owningRelatedElement.oclIsKindOf(ConjugatedPortDefinition) then owningRelatedElement.oclAsType(ConjugatedPortDefinition) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Ports-PortConjugation-_generalization.Core-Types-Conjugation" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Core-Types-Conjugation" />
           </generalization>
@@ -7130,6 +7278,14 @@
           <memberEnd xmi:idref="Systems-Ports-ConjugatedPortDefinition-originalPortDefinition" />
         </packagedElement>
         <packagedElement xmi:id="Systems-Ports-ConjugatedPortDefinition" xmi:type="uml:Class" name="ConjugatedPortDefinition">
+          <ownedRule xmi:id="Systems-Ports-ConjugatedPortDefinition-deriveConjugatedPortDefinitionOriginalPortDefinition" xmi:type="uml:Constraint" name="deriveConjugatedPortDefinitionOriginalPortDefinition">
+            <constrainedElement xmi:idref="Systems-Ports-ConjugatedPortDefinition" />
+            <specification xmi:id="Systems-Ports-ConjugatedPortDefinition-deriveConjugatedPortDefinitionOriginalPortDefinition-specification0" xmi:type="uml:OpaqueExpression" body="originalPortDefinition = ownedPortConjugator.originalPortDefinition" language="OCL2.0" name="" />
+          </ownedRule>
+          <ownedRule xmi:id="Systems-Ports-ConjugatedPortDefinition-deriveConjugatedPortDefinitionOwnedPortConjugator" xmi:type="uml:Constraint" name="deriveConjugatedPortDefinitionOwnedPortConjugator">
+            <constrainedElement xmi:idref="Systems-Ports-ConjugatedPortDefinition" />
+            <specification xmi:id="Systems-Ports-ConjugatedPortDefinition-deriveConjugatedPortDefinitionOwnedPortConjugator-specification0" xmi:type="uml:OpaqueExpression" body="ownedPortConjugator = ownedRelationship-&gt;selectByKind(PortConjugation)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Ports-ConjugatedPortDefinition-_generalization.Systems-Ports-PortDefinition" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Ports-PortDefinition" />
           </generalization>
@@ -7290,6 +7446,10 @@
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Systems-Ports-PortUsage" xmi:type="uml:Class" name="PortUsage">
+          <ownedRule xmi:id="Systems-Ports-PortUsage-derivePortUsagePortDefinition" xmi:type="uml:Constraint" name="derivePortUsagePortDefinition">
+            <constrainedElement xmi:idref="Systems-Ports-PortUsage" />
+            <specification xmi:id="Systems-Ports-PortUsage-derivePortUsagePortDefinition-specification0" xmi:type="uml:OpaqueExpression" body="portDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(PortDefinition)" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Ports-PortUsage-_generalization.Systems-Occurrences-OccurrenceUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Occurrences-OccurrenceUsage" />
           </generalization>
@@ -7384,6 +7544,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Views-ViewUsage" xmi:type="uml:Class" name="ViewUsage">
+          <ownedRule xmi:id="Systems-Views-ViewUsage-deriveViewUsageViewDefinition" xmi:type="uml:Constraint" name="deriveViewUsageViewDefinition">
+            <constrainedElement xmi:idref="Systems-Views-ViewUsage" />
+            <specification xmi:id="Systems-Views-ViewUsage-deriveViewUsageViewDefinition-specification0" xmi:type="uml:OpaqueExpression" body="viewDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(ViewDefinition)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Views-ViewUsage-_generalization.Systems-Parts-PartUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Parts-PartUsage" />
           </generalization>
@@ -7702,6 +7866,10 @@
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Systems-Views-RenderingUsage" xmi:type="uml:Class" name="RenderingUsage">
+          <ownedRule xmi:id="Systems-Views-RenderingUsage-deriveRenderingUsageRenderingDefinition" xmi:type="uml:Constraint" name="deriveRenderingUsageRenderingDefinition">
+            <constrainedElement xmi:idref="Systems-Views-RenderingUsage" />
+            <specification xmi:id="Systems-Views-RenderingUsage-deriveRenderingUsageRenderingDefinition-specification0" xmi:type="uml:OpaqueExpression" body="renderingDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(RenderingDefinition)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Views-RenderingUsage-_generalization.Systems-Parts-PartUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Parts-PartUsage" />
           </generalization>
@@ -7898,6 +8066,10 @@
 </ownedComment>
         </packagedElement>
         <packagedElement xmi:id="Systems-Views-ViewRenderingMembership" xmi:type="uml:Class" name="ViewRenderingMembership">
+          <ownedRule xmi:id="Systems-Views-ViewRenderingMembership-deriveViewRenderingMembershipOwnedRendering" xmi:type="uml:Constraint" name="deriveViewRenderingMembershipOwnedRendering">
+            <constrainedElement xmi:idref="Systems-Views-ViewRenderingMembership" />
+            <specification xmi:id="Systems-Views-ViewRenderingMembership-deriveViewRenderingMembershipOwnedRendering-specification0" xmi:type="uml:OpaqueExpression" body="ownedRendering = let e : Element = ownedRelatedElement-&gt;first() in if e.oclIsKindOf(RenderingUsage) then e.oclAsType(RenderingUsage) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Views-ViewRenderingMembership-_generalization.Core-Types-FeatureMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Core-Types-FeatureMembership" />
           </generalization>
@@ -7968,6 +8140,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Views-ViewpointUsage" xmi:type="uml:Class" name="ViewpointUsage">
+          <ownedRule xmi:id="Systems-Views-ViewpointUsage-deriveViewpointUsageViewpointDefinition" xmi:type="uml:Constraint" name="deriveViewpointUsageViewpointDefinition">
+            <constrainedElement xmi:idref="Systems-Views-ViewpointUsage" />
+            <specification xmi:id="Systems-Views-ViewpointUsage-deriveViewpointUsageViewpointDefinition-specification0" xmi:type="uml:OpaqueExpression" body="viewpointDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(ViewpointDefinition)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Views-ViewpointUsage-_generalization.Systems-Requirements-RequirementUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Requirements-RequirementUsage" />
           </generalization>
@@ -8079,6 +8255,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Connections-ConnectionUsage" xmi:type="uml:Class" name="ConnectionUsage">
+          <ownedRule xmi:id="Systems-Connections-ConnectionUsage-deriveConnectionUsageConnectionDefinition" xmi:type="uml:Constraint" name="deriveConnectionUsageConnectionDefinition">
+            <constrainedElement xmi:idref="Systems-Connections-ConnectionUsage" />
+            <specification xmi:id="Systems-Connections-ConnectionUsage-deriveConnectionUsageConnectionDefinition-specification0" xmi:type="uml:OpaqueExpression" body="connectionDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(AssociationStructure)" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Connections-ConnectionUsage-_generalization.Systems-Parts-PartUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Parts-PartUsage" />
           </generalization>
@@ -8126,6 +8306,10 @@
           </ownedComment>
         </packagedElement>
         <packagedElement xmi:id="Systems-Connections-ConnectionDefinition" xmi:type="uml:Class" name="ConnectionDefinition">
+          <ownedRule xmi:id="Systems-Connections-ConnectionDefinition-deriveConnectionDefinitionConnectionEnd" xmi:type="uml:Constraint" name="deriveConnectionDefinitionConnectionEnd">
+            <constrainedElement xmi:idref="Systems-Connections-ConnectionDefinition" />
+            <specification xmi:id="Systems-Connections-ConnectionDefinition-deriveConnectionDefinitionConnectionEnd-specification0" xmi:type="uml:OpaqueExpression" body="connectionEnd = feature-&gt;select(isEnd)-&gt;selectByKind(Usage)" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Connections-ConnectionDefinition-_generalization.Kernel-Associations-AssociationStructure" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Kernel-Associations-AssociationStructure" />
           </generalization>
@@ -8217,6 +8401,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Interfaces-InterfaceUsage" xmi:type="uml:Class" name="InterfaceUsage">
+          <ownedRule xmi:id="Systems-Interfaces-InterfaceUsage-deriveInterfaceUsageInterfaceDefinition" xmi:type="uml:Constraint" name="deriveInterfaceUsageInterfaceDefinition">
+            <constrainedElement xmi:idref="Systems-Interfaces-InterfaceUsage" />
+            <specification xmi:id="Systems-Interfaces-InterfaceUsage-deriveInterfaceUsageInterfaceDefinition-specification0" xmi:type="uml:OpaqueExpression" body="interfaceDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(InterfaceDefinition)" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Interfaces-InterfaceUsage-_generalization.Systems-Connections-ConnectionUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Connections-ConnectionUsage" />
           </generalization>
@@ -8263,6 +8451,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-Interfaces-InterfaceDefinition" xmi:type="uml:Class" name="InterfaceDefinition">
+          <ownedRule xmi:id="Systems-Interfaces-InterfaceDefinition-deriveInterfaceDefinitionInterfaceEnd" xmi:type="uml:Constraint" name="deriveInterfaceDefinitionInterfaceEnd">
+            <constrainedElement xmi:idref="Systems-Interfaces-InterfaceDefinition" />
+            <specification xmi:id="Systems-Interfaces-InterfaceDefinition-deriveInterfaceDefinitionInterfaceEnd-specification0" xmi:type="uml:OpaqueExpression" body="interfaceEnd = feature-&gt;select(isEnd)-&gt;selectByKind(PortUsage)" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Interfaces-InterfaceDefinition-_generalization.Systems-Connections-ConnectionDefinition" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Connections-ConnectionDefinition" />
           </generalization>
@@ -8343,6 +8535,10 @@
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Systems-Allocations-AllocationUsage" xmi:type="uml:Class" name="AllocationUsage">
+          <ownedRule xmi:id="Systems-Allocations-AllocationUsage-deriveAllocationUsageAllocationDefinition" xmi:type="uml:Constraint" name="deriveAllocationUsageAllocationDefinition">
+            <constrainedElement xmi:idref="Systems-Allocations-AllocationUsage" />
+            <specification xmi:id="Systems-Allocations-AllocationUsage-deriveAllocationUsageAllocationDefinition-specification0" xmi:type="uml:OpaqueExpression" body="allocationDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(AllocationDefinition)" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-Allocations-AllocationUsage-_generalization.Systems-Connections-ConnectionUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Connections-ConnectionUsage" />
           </generalization>
@@ -8411,6 +8607,14 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-VerificationCases-RequirementVerificationMembership" xmi:type="uml:Class" name="RequirementVerificationMembership">
+          <ownedRule xmi:id="Systems-VerificationCases-RequirementVerificationMembership-deriveRequirementVerificationMembershipVerifiedRequirement" xmi:type="uml:Constraint" name="deriveRequirementVerificationMembershipVerifiedRequirement">
+            <constrainedElement xmi:idref="Systems-VerificationCases-RequirementVerificationMembership" />
+            <specification xmi:id="Systems-VerificationCases-RequirementVerificationMembership-deriveRequirementVerificationMembershipVerifiedRequirement-specification0" xmi:type="uml:OpaqueExpression" body="verifiedRequirement = let r : Feature = ownedRequirement.referencedFeatureTarget() in if r.oclIsKindOf(RequirementUsage) then r.oclAsType(RequirementUsage) else ownedRequirement endif" language="OCL2.0" name="" />
+          </ownedRule>
+          <ownedRule xmi:id="Systems-VerificationCases-RequirementVerificationMembership-deriveRequirementVerificationMembershipOwnedRequirement" xmi:type="uml:Constraint" name="deriveRequirementVerificationMembershipOwnedRequirement">
+            <constrainedElement xmi:idref="Systems-VerificationCases-RequirementVerificationMembership" />
+            <specification xmi:id="Systems-VerificationCases-RequirementVerificationMembership-deriveRequirementVerificationMembershipOwnedRequirement-specification0" xmi:type="uml:OpaqueExpression" body="ownedRequirement = let e : Element = ownedRelatedElement-&gt;first() in if e.oclIsKindOf(RequirementUsage) then e.oclAsType(RequirementUsage) else null endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-VerificationCases-RequirementVerificationMembership-_generalization.Systems-Requirements-RequirementConstraintMembership" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Requirements-RequirementConstraintMembership" />
           </generalization>
@@ -8523,6 +8727,10 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Systems-VerificationCases-VerificationCaseUsage" xmi:type="uml:Class" name="VerificationCaseUsage">
+          <ownedRule xmi:id="Systems-VerificationCases-VerificationCaseUsage-deriveVerificationCaseUsageVerificationCaseDefinition" xmi:type="uml:Constraint" name="deriveVerificationCaseUsageVerificationCaseDefinition">
+            <constrainedElement xmi:idref="Systems-VerificationCases-VerificationCaseUsage" />
+            <specification xmi:id="Systems-VerificationCases-VerificationCaseUsage-deriveVerificationCaseUsageVerificationCaseDefinition-specification0" xmi:type="uml:OpaqueExpression" body="verificationCaseDefinition = let types : OrderedSet(Type) = OrderedSet{self}-&gt;closure(typingFeatures()).ownedTyping.type-&gt;asOrderedSet() in types-&gt;reject(t1 | types-&gt;exists(t2 | t2 &lt;&gt; t1 and t2.specializes(t1)))-&gt;selectByKind(VerificationCaseDefinition)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Systems-VerificationCases-VerificationCaseUsage-_generalization.Systems-Cases-CaseUsage" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Cases-CaseUsage" />
           </generalization>
