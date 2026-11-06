@@ -182,6 +182,16 @@
           <upperValue xmi:id="Test-Element-namedOwned_-result-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="*" />
         </ownedParameter>
       </ownedOperation>
+      <ownedOperation xmi:id="Test-Element-upperName_" xmi:type="uml:Operation" name="upperName">
+        <bodyCondition xmi:id="Test-Element-upperName_-body" xmi:type="uml:Constraint" name="body">
+          <specification xmi:id="Test-Element-upperName_-body-specification0" xmi:type="uml:OpaqueExpression" body="name?.uppercase()" language="Kotlin" name="" />
+        </bodyCondition>
+        <ownedParameter xmi:id="Test-Element-upperName_-result" xmi:type="uml:Parameter" name="result" direction="return">
+          <lowerValue xmi:id="Test-Element-upperName_-result-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+          <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
+          <upperValue xmi:id="Test-Element-upperName_-result-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+        </ownedParameter>
+      </ownedOperation>
       <ownedOperation xmi:id="Test-Element-depth_" xmi:type="uml:Operation" name="depth">
         <bodyCondition xmi:id="Test-Element-depth_-body" xmi:type="uml:Constraint" name="body">
           <specification xmi:id="Test-Element-depth_-body-specification0" xmi:type="uml:OpaqueExpression" body="if owner = null then 0 else owner.depth() + 1 endif" language="OCL2.0" name="" />

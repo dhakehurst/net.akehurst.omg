@@ -58,6 +58,7 @@ Also: the result parameters named `result` (the `evaluate` operations and `Type:
 | `(shortMemberName = null or (shortMemberName <> other.shortMemberName and shortMemberName <> other.memberName)) and (memberName = null or (memberName <> other.shortMemberName and memberName <> other.memberName)))` | `(memberShortName = null or (memberShortName <> other.memberShortName and memberShortName <> other.memberName)) and (memberName = null or (memberName <> other.memberShortName and memberName <> other.memberName))` |
 | `specializes(otherType) or supertype.oclIsKindOf(Feature) and` | `specializes(otherType) or otherType.oclIsKindOf(Feature) and` |
 | `ownedRedefinitions.allRedefinedFeatures()->exists(f \|` | `allRedefinedFeatures()->exists(f \|` |
+| `supertypes(false)->excluding(excludedSelf).` | `supertypes(false)->reject(t \| excludedSelf->includes(t)).` |
 
 ## Rules corrected so the derivation is found
 
@@ -128,7 +129,18 @@ A property that redefines another is read through the redefining one in a subcla
 | Step::parameter | `feature->select(f \| directionOf(f) <> null)` | as Type::directedFeature (pilot uses each feature's own direction) |
 | Function::expression | `step->selectByKind(Expression)` | pilot (subset of Behavior::step) |
 
-Not added (left as TODO in the generated code):
+Added 2026-11-06 (decided by David):
 
-- `Function::isModelLevelEvaluable`: the pilot computes it in Java from the model library (`ModelLevelLibraryFunctionFactory`); there is no OCL form.
-- `InstantiationExpression::argument`: the existing rules on the subclasses `InvocationExpression` and `ConstructorExpression` use `Feature::valuation`, which does not exist in the metamodel.
+| property / operation | derivation | source |
+|---|---|---|
+| Element::escapedName() | Kotlin body (language `Kotlin`; the generator copies it as is): `name`, else `shortName`; returned as is if it is a basic name `[a-zA-Z_][a-zA-Z0-9_]*`, otherwise surrounded by `'` with `\b \t \n \f \r " ' \\` escaped | spec description; pilot `Element_escapedName_InvocationDelegate` / `ElementUtil.escapeName` (OCL has no pattern matching) |
+| Function::isModelLevelEvaluable | `Set{...}->includes(qualifiedName)`, the set being the qualified names of the functions marked "Yes" in KerML Tables 5 and 7 (8.2.5.8) | spec; same list as the pilot's `ModelLevelLibraryFunctionFactory` |
+| Feature::valuation | `ownedMembership->selectByKind(FeatureValue)->first()` | spec description of the end. It was a non-navigable end owned by `A_featureWithValue_valuation`; it is now an owned attribute of Feature, so the rules that use it can navigate to it |
+
+Rules corrected 2026-11-06. The spec puts the argument rules on the subclasses, but the property is declared on InstantiationExpression; as for `Import::importedElement`, one rule on InstantiationExpression combines them, choosing by `oclIsKindOf` (as the pilot's `ExpressionUtil.getArgumentOf` does). The subclass rules are kept, with their names fixed:
+
+| rule | was | now |
+|---|---|---|
+| deriveInvocationExpressionArgument | `instantiatedType.input->collect(inp \| ownedFeatures->select(redefines(inp)).valuation->select(v \| v <> null).value )` | `argument = instantiatedType.input->collect(inp \| ownedFeature->select(redefines(inp)).valuation->select(v \| v <> null).value )` |
+| deriveInstantiationExpressionArgument (added) | (none) | `argument = if instantiatedType = null then OrderedSet{} else if self.oclIsKindOf(InvocationExpression) then <InvocationExpression rule>->asOrderedSet() else if self.oclIsKindOf(ConstructorExpression) then <ConstructorExpression rule>->asOrderedSet() else OrderedSet{} endif endif endif` |
+| deriveConstructorExpressionArgument | `instantiatedType.feature->collect(f \| result.ownedFeatures->select(redefines(f)).valuation->select(v \| v <> null).value )` | `argument = instantiatedType.feature->collect(f \| result.ownedFeature->select(redefines(f)).valuation->select(v \| v <> null).value )` |

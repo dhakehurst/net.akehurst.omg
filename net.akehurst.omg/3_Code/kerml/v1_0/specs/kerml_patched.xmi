@@ -389,6 +389,10 @@
           </ownedRule>
         </packagedElement>
         <packagedElement xmi:id="Kernel-Expressions-InstantiationExpression" xmi:type="uml:Class" isAbstract="true" name="InstantiationExpression">
+          <ownedRule xmi:id="Kernel-Expressions-InstantiationExpression-deriveInstantiationExpressionArgument" xmi:type="uml:Constraint" name="deriveInstantiationExpressionArgument">
+            <constrainedElement xmi:idref="Kernel-Expressions-InstantiationExpression" />
+            <specification xmi:id="Kernel-Expressions-InstantiationExpression-deriveInstantiationExpressionArgument-specification0" xmi:type="uml:OpaqueExpression" body="argument = if instantiatedType = null then OrderedSet{} else if self.oclIsKindOf(InvocationExpression) then instantiatedType.input-&gt;collect(inp | ownedFeature-&gt;select(redefines(inp)).valuation-&gt;select(v | v &lt;&gt; null).value)-&gt;asOrderedSet() else if self.oclIsKindOf(ConstructorExpression) then instantiatedType.feature-&gt;collect(f | result.ownedFeature-&gt;select(redefines(f)).valuation-&gt;select(v | v &lt;&gt; null).value)-&gt;asOrderedSet() else OrderedSet{} endif endif endif" language="OCL2.0" name="" />
+          </ownedRule>
           <generalization xmi:id="Kernel-Expressions-InstantiationExpression-_generalization.Kernel-Functions-Expression" xmi:type="uml:Generalization">
             <general xmi:idref="Kernel-Functions-Expression" />
           </generalization>
@@ -650,7 +654,7 @@
             <ownedComment xmi:id="Kernel-Expressions-InvocationExpression-deriveInvocationExpressionArgument-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;arguments&lt;/code&gt; of an &lt;code&gt;InvocationExpression&lt;/code&gt; are the &lt;code&gt;value&lt;/code&gt; &lt;code&gt;Expressions&lt;/code&gt; of the &lt;code&gt;FeatureValues&lt;/code&gt; of its &lt;code&gt;ownedFeatures&lt;/code&gt;, in an order corresponding to the order of the &lt;code&gt;input&lt;/code&gt; parameters of the &lt;code&gt;instantiatedType&lt;/code&gt; that the &lt;code&gt;ownedFeatures&lt;/code&gt; redefine.&lt;/p&gt;">
               <annotatedElement xmi:idref="Kernel-Expressions-InvocationExpression-deriveInvocationExpressionArgument" />
 </ownedComment>
-            <specification xmi:id="Kernel-Expressions-InvocationExpression-deriveInvocationExpressionArgument-specification0" xmi:type="uml:OpaqueExpression" body="instantiatedType.input-&gt;collect(inp |      ownedFeatures-&gt;select(redefines(inp)).valuation-&gt;     select(v | v &lt;&gt; null).value )" language="OCL2.0" name="">
+            <specification xmi:id="Kernel-Expressions-InvocationExpression-deriveInvocationExpressionArgument-specification0" xmi:type="uml:OpaqueExpression" body="argument = instantiatedType.input-&gt;collect(inp |      ownedFeature-&gt;select(redefines(inp)).valuation-&gt;     select(v | v &lt;&gt; null).value )" language="OCL2.0" name="">
 </specification>
           </ownedRule>
           <ownedRule xmi:id="Kernel-Expressions-InvocationExpression-checkInvocationExpressionBehaviorBindingConnector" xmi:type="uml:Constraint" name="checkInvocationExpressionBehaviorBindingConnector">
@@ -814,7 +818,7 @@
             <ownedComment xmi:id="Kernel-Expressions-ConstructorExpression-deriveConstructorExpressionArgument-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;arguments&lt;/code&gt; of a &lt;code&gt;ConstructorExpression&lt;/code&gt; are the &lt;code&gt;value&lt;/code&gt; &lt;code&gt;Expressions&lt;/code&gt; of the &lt;code&gt;FeatureValues&lt;/code&gt; of the &lt;code&gt;ownedFeatures&lt;/code&gt; of its &lt;code&gt;result&lt;/code&gt; parameter, in an order corresponding to the order of the &lt;code&gt;features&lt;/code&gt; of the &lt;code&gt;instantiatedType&lt;/code&gt; that the &lt;code&gt;result&lt;/code&gt; &lt;code&gt;ownedFeatures&lt;/code&gt; redefine.&lt;/p&gt;">
               <annotatedElement xmi:idref="Kernel-Expressions-ConstructorExpression-deriveConstructorExpressionArgument" />
 </ownedComment>
-            <specification xmi:id="Kernel-Expressions-ConstructorExpression-deriveConstructorExpressionArgument-specification0" xmi:type="uml:OpaqueExpression" body="instantiatedType.feature-&gt;collect(f |      result.ownedFeatures-&gt;select(redefines(f)).valuation-&gt;     select(v | v &lt;&gt; null).value )" language="OCL2.0" name="">
+            <specification xmi:id="Kernel-Expressions-ConstructorExpression-deriveConstructorExpressionArgument-specification0" xmi:type="uml:OpaqueExpression" body="argument = instantiatedType.feature-&gt;collect(f |      result.ownedFeature-&gt;select(redefines(f)).valuation-&gt;     select(v | v &lt;&gt; null).value )" language="OCL2.0" name="">
 </specification>
           </ownedRule>
           <ownedRule xmi:id="Kernel-Expressions-ConstructorExpression-checkConstructorExpressionResultSpecialization" xmi:type="uml:Constraint" name="checkConstructorExpressionResultSpecialization">
@@ -1558,6 +1562,10 @@
           <ownedComment xmi:id="Kernel-Functions-Function-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;A &lt;code&gt;Function&lt;/code&gt; is a &lt;code&gt;Behavior&lt;/code&gt; that has an &lt;code&gt;out&lt;/code&gt; &lt;code&gt;parameter&lt;/code&gt; that is identified as its &lt;code&gt;result&lt;/code&gt;. A &lt;code&gt;Function&lt;/code&gt; represents the performance of a calculation that produces the values of its &lt;code&gt;result&lt;/code&gt; &lt;code&gt;parameter&lt;/code&gt;. This calculation may be decomposed into &lt;code&gt;Expressions&lt;/code&gt; that are &lt;code&gt;steps&lt;/code&gt; of the &lt;code&gt;Function&lt;/code&gt;.&lt;/p&gt; ">
             <annotatedElement xmi:idref="Kernel-Functions-Function" />
 </ownedComment>
+          <ownedRule xmi:id="Kernel-Functions-Function-deriveFunctionIsModelLevelEvaluable" xmi:type="uml:Constraint" name="deriveFunctionIsModelLevelEvaluable">
+            <constrainedElement xmi:idref="Kernel-Functions-Function" />
+            <specification xmi:id="Kernel-Functions-Function-deriveFunctionIsModelLevelEvaluable-specification0" xmi:type="uml:OpaqueExpression" body="isModelLevelEvaluable = Set{'BaseFunctions::istype', 'BaseFunctions::hastype', 'BaseFunctions::\'@\'', 'BaseFunctions::\'@@\'', 'BaseFunctions::as', 'BaseFunctions::meta', 'BaseFunctions::\'==\'', 'BaseFunctions::\'!=\'', 'BaseFunctions::\'===\'', 'BaseFunctions::\'!==\'', 'BaseFunctions::\'#\'', 'BaseFunctions::\',\'', 'DataFunctions::xor', 'DataFunctions::not', 'DataFunctions::\'|\'', 'DataFunctions::\'&amp;\'', 'DataFunctions::\'&lt;\'', 'DataFunctions::\'&gt;\'', 'DataFunctions::\'&lt;=\'', 'DataFunctions::\'&gt;=\'', 'DataFunctions::\'+\'', 'DataFunctions::\'-\'', 'DataFunctions::\'*\'', 'DataFunctions::\'/\'', 'DataFunctions::\'%\'', 'DataFunctions::\'^\'', 'DataFunctions::\'..\'', 'ControlFunctions::\'??\'', 'ControlFunctions::if', 'ControlFunctions::or', 'ControlFunctions::and', 'ControlFunctions::implies', 'ControlFunctions::\'.\'', 'ControlFunctions::collect', 'ControlFunctions::select'}-&gt;includes(qualifiedName)" language="OCL2.0" name="" />
+          </ownedRule>
           <ownedRule xmi:id="Kernel-Functions-Function-validateFunctionResultParameterMembership" xmi:type="uml:Constraint" name="validateFunctionResultParameterMembership">
             <constrainedElement xmi:idref="Kernel-Functions-Function" />
             <ownedComment xmi:id="Kernel-Functions-Function-validateFunctionResultParameterMembership-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;A &lt;code&gt;Function&lt;/code&gt; must have exactly one &lt;code&gt;featureMembership&lt;/code&gt; (owned or inherited) that is a &lt;code&gt;ResultParameterMembership&lt;/code&gt;.&lt;/p&gt;">
@@ -1901,16 +1909,6 @@
         <packagedElement xmi:id="Kernel-FeatureValues-A_featureWithValue_valuation" xmi:type="uml:Association" name="A_featureWithValue_valuation">
           <memberEnd xmi:idref="Kernel-FeatureValues-FeatureValue-featureWithValue" />
           <memberEnd xmi:idref="Kernel-FeatureValues-A_featureWithValue_valuation-valuation" />
-          <ownedEnd xmi:id="Kernel-FeatureValues-A_featureWithValue_valuation-valuation" xmi:type="uml:Property" isDerived="true" name="valuation">
-            <association xmi:idref="Kernel-FeatureValues-A_featureWithValue_valuation" />
-            <lowerValue xmi:id="Kernel-FeatureValues-A_featureWithValue_valuation-valuation-lowerValue" xmi:type="uml:LiteralInteger" name="" />
-            <ownedComment xmi:id="Kernel-FeatureValues-A_featureWithValue_valuation-valuation-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The (at most one) &lt;code&gt;ownedMembership&lt;/code&gt; of this Feature that is the FeatureValue that provides the value of the Feature.&lt;/p&gt;">
-              <annotatedElement xmi:idref="Kernel-FeatureValues-A_featureWithValue_valuation-valuation" />
-            </ownedComment>
-            <subsettedProperty xmi:idref="Root-Namespaces-Namespace-ownedMembership" />
-            <type xmi:idref="Kernel-FeatureValues-FeatureValue" />
-            <upperValue xmi:id="Kernel-FeatureValues-A_featureWithValue_valuation-valuation-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
-          </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Kernel-FeatureValues-A_value_expressedValuation" xmi:type="uml:Association" name="A_value_expressedValuation">
           <memberEnd xmi:idref="Kernel-FeatureValues-FeatureValue-value" />
@@ -3523,7 +3521,7 @@
           </ownedOperation>
           <ownedOperation xmi:id="Core-Types-Type-directionOfExcluding_Feature_Type" xmi:type="uml:Operation" name="directionOfExcluding">
             <bodyCondition xmi:id="Core-Types-Type-directionOfExcluding_Feature_Type-unnamed1" xmi:type="uml:Constraint" name="unnamed1">
-              <specification xmi:id="Core-Types-Type-directionOfExcluding_Feature_Type-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="let excludedSelf : Set(Type) = excluded-&gt;including(self) in  if feature.owningType = self then feature.direction else     let directions : Sequence(FeatureDirectionKind) =         supertypes(false)-&gt;excluding(excludedSelf).         directionOfExcluding(feature, excludedSelf)-&gt;         select(d | d &lt;&gt; null) in     if directions-&gt;isEmpty() then null  else     let direction : FeatureDirectionKind = directions-&gt;first() in     if not isConjugated then direction     else if direction = FeatureDirectionKind::_'in' then FeatureDirectionKind::out     else if direction = FeatureDirectionKind::out then FeatureDirectionKind::_'in'     else direction     endif endif endif   endif endif" language="OCL2.0" name="">
+              <specification xmi:id="Core-Types-Type-directionOfExcluding_Feature_Type-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="let excludedSelf : Set(Type) = excluded-&gt;including(self) in  if feature.owningType = self then feature.direction else     let directions : Sequence(FeatureDirectionKind) =         supertypes(false)-&gt;reject(t | excludedSelf-&gt;includes(t)).         directionOfExcluding(feature, excludedSelf)-&gt;         select(d | d &lt;&gt; null) in     if directions-&gt;isEmpty() then null  else     let direction : FeatureDirectionKind = directions-&gt;first() in     if not isConjugated then direction     else if direction = FeatureDirectionKind::_'in' then FeatureDirectionKind::out     else if direction = FeatureDirectionKind::out then FeatureDirectionKind::_'in'     else direction     endif endif endif   endif endif" language="OCL2.0" name="">
 </specification>
             </bodyCondition>
             <ownedComment xmi:id="Core-Types-Type-directionOfExcluding_Feature_Type-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;Return the direction of the given &lt;code&gt;feature&lt;/code&gt; relative to this &lt;code&gt;Type&lt;/code&gt;, excluding a given set of &lt;code&gt;Types&lt;/code&gt; from the search of supertypes of this &lt;code&gt;Type&lt;/code&gt;.&lt;/p&gt;">
@@ -4839,6 +4837,20 @@
           </ownedEnd>
         </packagedElement>
         <packagedElement xmi:id="Core-Features-Feature" xmi:type="uml:Class" name="Feature">
+          <ownedAttribute xmi:id="Kernel-FeatureValues-A_featureWithValue_valuation-valuation" xmi:type="uml:Property" isDerived="true" name="valuation">
+            <association xmi:idref="Kernel-FeatureValues-A_featureWithValue_valuation" />
+            <lowerValue xmi:id="Kernel-FeatureValues-A_featureWithValue_valuation-valuation-lowerValue" xmi:type="uml:LiteralInteger" name="" />
+            <ownedComment xmi:id="Kernel-FeatureValues-A_featureWithValue_valuation-valuation-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The (at most one) &lt;code&gt;ownedMembership&lt;/code&gt; of this Feature that is the FeatureValue that provides the value of the Feature.&lt;/p&gt;">
+              <annotatedElement xmi:idref="Kernel-FeatureValues-A_featureWithValue_valuation-valuation" />
+            </ownedComment>
+            <subsettedProperty xmi:idref="Root-Namespaces-Namespace-ownedMembership" />
+            <type xmi:idref="Kernel-FeatureValues-FeatureValue" />
+            <upperValue xmi:id="Kernel-FeatureValues-A_featureWithValue_valuation-valuation-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
+          </ownedAttribute>
+          <ownedRule xmi:id="Core-Features-Feature-deriveFeatureValuation" xmi:type="uml:Constraint" name="deriveFeatureValuation">
+            <constrainedElement xmi:idref="Core-Features-Feature" />
+            <specification xmi:id="Core-Features-Feature-deriveFeatureValuation-specification0" xmi:type="uml:OpaqueExpression" body="valuation = ownedMembership-&gt;selectByKind(FeatureValue)-&gt;first()" language="OCL2.0" name="" />
+          </ownedRule>
           <ownedRule xmi:id="Core-Features-Feature-deriveFeatureEndOwningType" xmi:type="uml:Constraint" name="deriveFeatureEndOwningType">
             <constrainedElement xmi:idref="Core-Features-Feature" />
             <specification xmi:id="Core-Features-Feature-deriveFeatureEndOwningType-specification0" xmi:type="uml:OpaqueExpression" body="endOwningType = if isEnd then owningType else null endif" language="OCL2.0" name="" />
@@ -7528,6 +7540,9 @@
             <annotatedElement xmi:idref="Root-Elements-Element" />
 </ownedComment>
           <ownedOperation xmi:id="Root-Elements-Element-escapedName_" xmi:type="uml:Operation" name="escapedName">
+            <bodyCondition xmi:id="Root-Elements-Element-escapedName_-unnamed1" xmi:type="uml:Constraint" name="unnamed1">
+              <specification xmi:id="Root-Elements-Element-escapedName_-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="(name ?: shortName)?.let { n -&gt; if (n.isEmpty() || Regex(&quot;[a-zA-Z_][a-zA-Z0-9_]*&quot;).matches(n)) n else &quot;'&quot; + n.map { c -&gt; when (c) { '\b' -&gt; &quot;\\b&quot;; '\t' -&gt; &quot;\\t&quot;; '\n' -&gt; &quot;\\n&quot;; '\u000C' -&gt; &quot;\\f&quot;; '\r' -&gt; &quot;\\r&quot;; '&quot;' -&gt; &quot;\\\&quot;&quot;; '\'' -&gt; &quot;\\'&quot;; '\\' -&gt; &quot;\\\\&quot;; else -&gt; c.toString() } }.joinToString(&quot;&quot;) + &quot;'&quot; }" language="Kotlin" name="" />
+            </bodyCondition>
             <ownedComment xmi:id="Root-Elements-Element-escapedName_-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;Return &lt;code&gt;name&lt;/code&gt;, if that is not null, otherwise the &lt;code&gt;shortName&lt;/code&gt;, if that is not null, otherwise null. If the returned value is non-null, it is returned as-is if it has the form of a basic name, or, otherwise, represented as a restricted name according to the lexical structure of the KerML textual notation (i.e., surrounded by single quote characters and with special characters escaped).&lt;/p&gt;">
               <annotatedElement xmi:idref="Root-Elements-Element-escapedName_" />
 </ownedComment>

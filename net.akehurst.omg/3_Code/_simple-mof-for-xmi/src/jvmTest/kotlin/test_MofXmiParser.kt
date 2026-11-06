@@ -117,6 +117,8 @@ class test_MofXmiParser {
         assertTrue(op("Element", "describe").isAbstract)
         assertNull(op("Element", "describe").bodyCondition)
         assertEquals(false, op("Element", "informal").bodyCondition?.isOcl, "language is English")
+        assertEquals(true, op("Element", "upperName").bodyCondition?.isKotlin)
+        assertEquals(false, op("Element", "upperName").bodyCondition?.isOcl)
         assertEquals(setOf("Test-Element-describe_"), op("Package", "describe").redefinedOperationRef)
         assertTrue(op("Package", "describe").isOverride)
         assertFalse(op("Element", "describe").isOverride)

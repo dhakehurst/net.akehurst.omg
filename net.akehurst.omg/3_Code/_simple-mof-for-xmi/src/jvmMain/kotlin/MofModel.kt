@@ -16,8 +16,8 @@
 
 package net.akehurst.omg._simple_mof_for_xmi
 
-import net.akehurst.language.collections.transitiveClosure
-import std.extensions.decapitalise
+import net.akehurst.kotlinx.collections.transitiveClosure
+import net.akehurst.kotlinx.utils.decapitalise
 import kotlin.collections.plus
 import kotlin.collections.toSet
 
@@ -1024,6 +1024,7 @@ class MofOperation(
 
     private val translation: Pair<String?, String?> by lazy {
         when {
+            true == bodyCondition?.isKotlin -> Pair(bodyCondition!!.body.trim(), null)
             true != bodyCondition?.isOcl -> Pair(null, "the body is not OCL")
             else -> bodyOcl?.let { OclToKotlin(model).translateOperationOrReason(this, it) } ?: Pair(null, "no OCL body")
         }
@@ -1036,8 +1037,9 @@ class MofOperation(
     val bodyDoc: String
         get() {
             val c = bodyCondition
-            val lines = when (c) {
-                null -> mutableListOf("No OCL body in the source XMI.")
+            val lines = when {
+                null == c -> mutableListOf("No OCL body in the source XMI.")
+                c.isKotlin -> mutableListOf("Kotlin body condition '${c.name}' (added in the patched XMI, as OCL cannot express it):", "<pre>") + c.body.trimEnd().lines() + "</pre>"
                 else -> mutableListOf("OCL body condition '${c.name}'${c.language?.let { " ($it)" } ?: ""}:", "<pre>") + c.body.trimEnd().lines() + "</pre>"
             }.toMutableList()
             if (null != c) translation.second?.let { lines.add("Not translated: $it.") }
@@ -1124,6 +1126,9 @@ data class MofConstraint(
 ) {
     /** true unless the language names something other than OCL (e.g. 'English') */
     val isOcl: Boolean get() = null == language || language.isBlank() || language.startsWith("OCL", ignoreCase = true)
+
+    /** true when the language is 'Kotlin': the body is a Kotlin expression, used as is (added in a patched XMI where OCL can't express the rule) */
+    val isKotlin: Boolean get() = "Kotlin".equals(language?.trim(), ignoreCase = true)
 }
 
 enum class MofAggregationKind {

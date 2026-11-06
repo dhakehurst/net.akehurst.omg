@@ -189,6 +189,13 @@ class test_TestModel {
         assertFalse(root.isNamed("A"))
     }
 
+    // upperName() has a Kotlin body in the XMI, copied as is
+    @Test
+    fun operation_with_kotlin_body() {
+        val root = model()
+        assertEquals("ROOT", root.upperName())
+    }
+
     // namedOwned() = ownedElement->select(e | e.name <> null)
     @Test
     fun operation_select() {

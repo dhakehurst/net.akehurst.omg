@@ -160,5 +160,9 @@ class test_OclToKotlin {
         assertTrue(op("Element", "informal").bodyDoc.contains("Not translated: the body is not OCL."))
         assertEquals("TODO(\"Operation 'Test.Element.depth' is not implemented\")", op("Element", "depth").bodyKotlin)
         assertTrue(op("Element", "depth").bodyDoc.contains("Not translated: arithmetic on non integers."))
+        // a body in language 'Kotlin' (added in a patched XMI where OCL can't express the rule) is used as is
+        assertEquals("name?.uppercase()", op("Element", "upperName").bodyKotlin)
+        assertTrue(op("Element", "upperName").bodyDoc.contains("Kotlin body condition 'body'"))
+        assertFalse(op("Element", "upperName").bodyDoc.contains("Not translated"))
     }
 }
