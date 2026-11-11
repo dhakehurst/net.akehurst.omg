@@ -305,7 +305,7 @@ format PropertyGetterSglCmp {
         accessor := "override val ${validName}: ${typeName}${nullable} get() = ${validName}Value.get()$opt"
         mutable := "
             override val ${validName}Value: Value<${typeName}?> = ManagedValue(
-                null, \"${parentType.validName}.${validName}\", ${validTypeNameNotNullable}::class,
+                null, \"${parentType.validName}.${validName}\", _k_${validName},
                 $onChanged
             )
         "
@@ -393,7 +393,7 @@ format PropertyGetterSglRef {
         accessor := "override val ${validName}: ${typeName}${nullable} get() = ${validName}Reference.resolved$opt"
         mutable := "
             override val ${validName}Reference: Reference<Any, ${typeName}> = ManagedReference(
-                null, \"${parentType.validName}.${validName}\", ${validTypeNameNotNullable}::class,
+                null, \"${parentType.validName}.${validName}\", _k_${validName},
                 $onChanged
             )
         "
@@ -529,7 +529,7 @@ format PropertyGetterColCmp {
         }
         impl := "
             = Managed${colTypeName}(
-                \"${parentType.validName}.${validName}\",${type.validName}::class,
+                \"${parentType.validName}.${validName}\", _k_${validName},
                 $onAdded
                 $onRemoved
             )
@@ -659,7 +659,7 @@ format PropertyGetterColRef {
         typeName := type.isPrimitive ? type.validName : type.validName+'_NN'
         impl := "
             = ManagedReference${colTypeName}(
-                \"${parentType.validName}.${validName}\",${typeName}::class,
+                \"${parentType.validName}.${validName}\", _k_${validName},
                  $onAdded
                  $onRemoved
             )
@@ -689,11 +689,11 @@ format PropertyGetterDerived {
             isSingle -> {
                 nullable := isOptional ? '?' : ''
                 "
-                    override val ${validName}Derived: Derived<${typeName}${nullable}> = ManagedDerived($dname, ${typeName}::class) { $derive as ${typeName}${nullable} }
+                    override val ${validName}Derived: Derived<${typeName}${nullable}> = ManagedDerived($dname, _k_${validName}) { $derive as ${typeName}${nullable} }
                     override val ${validName}: ${typeName}${nullable} get() = ${validName}Derived.get()
                 "
             }
-            else -> "override val ${validName}: ${colTypeName}<${typeName}> = Derived${colTypeName}($dname, ${typeName}::class) { $derive as ${colTypeName}<${typeName}> }"
+            else -> "override val ${validName}: ${colTypeName}<${typeName}> = Derived${colTypeName}($dname, _k_${validName}) { $derive as ${colTypeName}<${typeName}> }"
         }
     }
 }
@@ -711,13 +711,13 @@ format PropertyUnion {
                 nullable := union.isOptional ? '?' : ''
                 "
                   // Derived union ${union.parentType.validName}.${union.validName} of [$[subs sep ', ']]
-                  override val ${union.validName}Derived: Derived<${typeName}${nullable}> = ManagedDerived($dname, ${typeName}::class) { ${allv}.firstOrNull() as ${typeName}${nullable} }
+                  override val ${union.validName}Derived: Derived<${typeName}${nullable}> = ManagedDerived($dname, _k_${union.validName}) { ${allv}.firstOrNull() as ${typeName}${nullable} }
                   override val ${union.validName}: ${typeName}${nullable} get() = ${union.validName}Derived.get()
                 "
             }
             else -> "
                   // Derived union ${union.parentType.validName}.${union.validName} of [$[subs sep ', ']]
-                  override val ${union.validName}: ${union.colTypeName}<${typeName}> = Derived${union.colTypeName}($dname, ${typeName}::class) { ${allv}.map { it as ${typeName} }.to${union.colTypeName}() }
+                  override val ${union.validName}: ${union.colTypeName}<${typeName}> = Derived${union.colTypeName}($dname, _k_${union.validName}) { ${allv}.map { it as ${typeName} }.to${union.colTypeName}() }
             "
         }
     }
@@ -746,6 +746,30 @@ format PropertyGetter {
             else -> 'ERROR'
         }
         else -> 'ERROR'
+    }
+}
+
+format PropertyKClass {
+    // One KClass per property, at file level: on the JVM each 'X::class' allocates a new object,
+    // so passing 'X::class' to the holder in every instance costs one object per property per instance.
+    MofClassAttributeImplInfo -> "$[attributes sep $EOL]"
+    MofRedefinedAttributeImplInfo -> when {
+        attribute.isDerivedUnion -> ''
+        else -> "$attribute"
+    }
+    MofProperty -> {
+        typeName := type.isPrimitive ? type.validName : type.validName+'_NN'
+        kt := when {
+            isDerivedOnly -> typeName
+            isSingle -> type.validName
+            isComposite -> type.validName
+            else -> typeName
+        }
+        "private val _k_${validName} = ${kt}::class"
+    }
+    MofUnionImpl -> {
+        typeName := union.type.isPrimitive ? union.type.validName : union.type.validName+'_NN'
+        "private val _k_${union.validName} = ${typeName}::class"
     }
 }
 
@@ -805,6 +829,9 @@ format RamPackageFile {
         import ${TARGET_PACKAGE}.ram.SubsetExt.setIfInstance
         import ${TARGET_PACKAGE}.ram.SubsetExt.addIfStored
         import ${TARGET_PACKAGE}.ram.SubsetExt.removeIfStored
+
+        $[allNormalisedAttribute sep $EOL via PropertyKClass]
+        $[unionImpls sep $EOL via PropertyKClass]
 
         internal data class ${validName}Ram(override val _factory: ${parentPackage.validName}_PackageFactory, override val _identity:Any) : ${validName}_NN {
             $[allNormalisedAttribute sep $EOL via PropertyGetter]
