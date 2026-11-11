@@ -95,13 +95,17 @@ class test_Templates {
             r,
             "internal data class RelationshipRam(",
             // a derived property delegates to the derivation
-            "override val nameDerived: Derived<String?> = ManagedDerived(\"Element.name\", String::class) { test.api.Test.Test_Derivations.Element_name(this) as String? }",
+            "override val nameDerived: Derived<String?> get() = ManagedDerived(\"Element.name\", _k_name) { test.api.Test.Test_Derivations.Element_name(this) as String? }",
             // a derived union is the union of its stored subsets
-            "override val relatedElementList: List<Element_NN> = DerivedList(\"Relationship.relatedElementList\", Element_NN::class) { (listOfNotNull(owningRelatedElement) + ownedRelatedElementOrderedSet + targetOrderedSet).map { it as Element_NN }.toList() }",
+            "override val relatedElementList: List<Element_NN> get() = DerivedList(\"Relationship.relatedElementList\", _k_relatedElementList) { (listOfNotNull(owningRelatedElement) + ownedRelatedElementOrderedSet + targetOrderedSet).map { it as Element_NN }.toList() }",
             // a composite end sets its opposite
             "item.owningRelationshipReference.mutable.set(this._identity, this)",
             // the association owned end is held in the ram
-            "override val A_target_targetOf_targetOfSetReference: Set<Reference<Any, Relationship_NN>> = ManagedReferenceSet(",
+            "override val A_target_targetOf_targetOfSetReference: Set<Reference<Any, Relationship_NN>> get() = _A_target_targetOf_targetOfSetReference ?: ManagedReferenceSet<Relationship_NN>(",
+            // holders are created on first use; reading a single value does not create one
+            "private var _declaredNameValue: Value<String?>? = null",
+            "override val declaredName: String? get() = _declaredNameValue?.get()",
+            "override val targetOrderedSet: OrderedSet<Element> get() = (_targetOrderedSetReference ?: emptyList()).map{",
         )
     }
 }
