@@ -16,6 +16,8 @@
 
 package net.akehurst.omg.uml.v2_5_1.xmi
 
+import net.akehurst.kotlinx.utils.ReferenceImmutable
+
 data class XmiReadOptions(
     /** collect problems in the result (true), or throw [XmiReadException] on the first error (false) */
     val lenient: Boolean = true,
@@ -176,29 +178,59 @@ class XmiResourceSet(
     }
 
     private fun resolvePending() {
-        // resolving may load more documents, which add to pending
+        // resolving may load more documents, which add to pending; so resolve first, then set
+        val resolvedValues = ArrayList<Any>(pending.size)
         var i = 0
         while (i < pending.size) {
             val p = pending[i]
-            val resolved = resolveReference(p.document, p.text, p.isHref, p.line)
+            resolvedValues.add(resolveReference(p.document, p.text, p.isHref, p.line))
+            i++
+        }
+        // group by owner and feature, keeping the order written, because a mutator sets the whole value
+        val groups = LinkedHashMap<Pair<Any, XmiMetaFeature>, MutableList<Pair<XmiPendingReference, Any>>>()
+        for ((idx, p) in pending.withIndex()) {
+            groups.getOrPut(Pair(IdentityKey(p.owner), p.feature)) { mutableListOf() }.add(Pair(p, resolvedValues[idx]))
+        }
+        pending.clear()
+        for ((key, entries) in groups) {
+            val owner = (key.first as IdentityKey).obj
+            val f = key.second
+            val first = entries.first().first
             try {
-                when {
-                    resolved is XmiProxy -> when (p.feature.kind) {
-                        XmiFeatureKind.COMPOSITE -> issueCollector.warning(XmiIssueKind.UNRESOLVED_REFERENCE, "Contained element '${p.text}' of '${p.feature.name}' not found; ignored", p.document.uri, p.line)
-                        else -> p.feature.addReference(p.owner, resolved, null)
+                when (f.kind) {
+                    XmiFeatureKind.COMPOSITE -> {
+                        // contained elements given by id: added to those already read inline
+                        val found = entries.mapNotNull { (p, r) ->
+                            if (r is XmiProxy) {
+                                issueCollector.warning(XmiIssueKind.UNRESOLVED_REFERENCE, "Contained element '${p.text}' of '${f.name}' not found; ignored", p.document.uri, p.line)
+                                null
+                            } else r
+                        }
+                        if (f.isMany) {
+                            val existing = (f.get(owner) as? Collection<*>)?.filterNotNull() ?: emptyList()
+                            f.set(owner, existing + found.filter { it !in existing })
+                        } else if (found.isNotEmpty()) f.set(owner, found.last())
                     }
 
-                    p.feature.kind == XmiFeatureKind.COMPOSITE -> p.feature.addValue(p.owner, resolved)
-                    else -> p.feature.addReference(p.owner, identityOf(resolved), resolved)
+                    else -> {
+                        val refs = entries.map { (_, r) ->
+                            if (r is XmiProxy) ReferenceImmutable<Any, Any>(r, null) else ReferenceImmutable<Any, Any>(identityOf(r), r)
+                        }
+                        if (f.isMany) f.set(owner, refs) else f.set(owner, refs.last())
+                    }
                 }
             } catch (e: XmiReadException) {
                 throw e
             } catch (e: Exception) {
-                issueCollector.error(XmiIssueKind.INVALID_VALUE, "Could not set reference '${p.feature.name}' to '${p.text}': ${e.message}", p.document.uri, p.line)
+                issueCollector.error(XmiIssueKind.INVALID_VALUE, "Could not set '${f.name}' to ${entries.map { it.first.text }}: ${e.message}", first.document.uri, first.line)
             }
-            i++
         }
-        pending.clear()
+    }
+
+    /** compares by identity, so objects whose equals is overridden are kept apart */
+    private class IdentityKey(val obj: Any) {
+        override fun equals(other: Any?) = other is IdentityKey && other.obj === obj
+        override fun hashCode() = obj.hashCode()
     }
 
     /** the identity an object was created with */

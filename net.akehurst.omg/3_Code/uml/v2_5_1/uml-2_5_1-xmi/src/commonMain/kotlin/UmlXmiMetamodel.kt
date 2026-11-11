@@ -16,73 +16,44 @@
 
 package net.akehurst.omg.uml.v2_5_1.xmi
 
+import net.akehurst.language.types.api.CollectionType
+import net.akehurst.language.types.api.DataType
+import net.akehurst.language.types.api.EnumType
+import net.akehurst.language.types.api.InterfaceType
+import net.akehurst.language.types.api.PrimitiveType
+import net.akehurst.language.types.api.PropertyDeclaration
+import net.akehurst.language.types.api.TypeDefinition
+import net.akehurst.language.types.api.TypesDomain
+import net.akehurst.omg.uml.v2_5_1.agl.types.UMLTypesDomain
+import net.akehurst.omg.uml.v2_5_1.agl.types.UMLTypesMutation
 import net.akehurst.omg.uml.v2_5_1.api.UML.CommonStructure.Element
 import net.akehurst.omg.uml.v2_5_1.api.UML_ModelFactory
 import net.akehurst.omg.uml.v2_5_1.ram.UML_ModelFactoryRam
 
-/** A metaclass as generated from the metamodel XMI by the xmi template (see _templates/xmi). */
-class XmiGenClass(
-    val name: String,
-    val isAbstract: Boolean,
-    val superclassNames: List<String>,
-    val construct: ((UML_ModelFactory, Any) -> Any)?,
-    val ownedFeatures: List<XmiGenFeature>,
-)
-
-/** A property as generated from the metamodel XMI by the xmi template (see _templates/xmi). */
-class XmiGenFeature(
-    override val name: String,
-    override val kind: XmiFeatureKind,
-    override val isMany: Boolean,
-    override val typeName: String,
-    override val isDerived: Boolean,
-    private val converter: ((String) -> Any?)?,
-    private val adder: ((Any, Any) -> Unit)?,
-    private val referenceAdder: ((Any, Any, Any?) -> Unit)?,
-) : XmiMetaFeature {
-    companion object {
-        fun derived(name: String, typeName: String, isMany: Boolean) =
-            XmiGenFeature(name, XmiFeatureKind.DATA, isMany, typeName, true, null, null, null)
-
-        fun data(name: String, typeName: String, isMany: Boolean, convert: (String) -> Any?, add: (Any, Any) -> Unit) =
-            XmiGenFeature(name, XmiFeatureKind.DATA, isMany, typeName, false, convert, add, null)
-
-        fun composite(name: String, typeName: String, isMany: Boolean, add: (Any, Any) -> Unit) =
-            XmiGenFeature(name, XmiFeatureKind.COMPOSITE, isMany, typeName, false, null, add, null)
-
-        fun reference(name: String, typeName: String, isMany: Boolean, add: (Any, Any, Any?) -> Unit) =
-            XmiGenFeature(name, XmiFeatureKind.REFERENCE, isMany, typeName, false, null, null, add)
-    }
-
-    override fun convert(text: String): Any? = converter?.invoke(text)
-    override fun addValue(obj: Any, value: Any) {
-        (adder ?: error("'$name' is derived or a reference")).invoke(obj, value)
-    }
-
-    override fun addReference(obj: Any, identity: Any, resolved: Any?) {
-        (referenceAdder ?: error("'$name' is not a reference")).invoke(obj, identity, resolved)
-    }
-
-    override fun toString(): String = "$name: $typeName${if (isMany) "[*]" else ""} ($kind${if (isDerived) ", derived" else ""})"
-}
-
 /**
- * The UML 2.5.1 metamodel for the XMI reader: creates objects with [factory].
- * Features are looked up by their XMI name in the metaclass, then in its superclasses (nearest first),
+ * The UML 2.5.1 metamodel for the XMI reader, from the AGL types of UML ([UMLTypesDomain]):
+ * objects are created by the types' constructors (with [factory]) and set by the properties' mutators.
+ * Features are looked up by their metamodel name in the metaclass, then in its supertypes (nearest first),
  * so a redefining property is found before the property it redefines.
  */
 class UmlXmiMetamodel(
     val factory: UML_ModelFactory = UML_ModelFactoryRam("UML"),
 ) : XmiMetamodel, XmiIdentityProvider {
 
-    private val genClasses: Map<String, XmiGenClass> by lazy { UML_XmiMetaclasses.all.associateBy { it.name } }
+    val typesDomain: TypesDomain = UMLTypesDomain(factory).types
+
+    private val typesByName: Map<String, TypeDefinition> by lazy {
+        typesDomain.namespace.flatMap { ns -> ns.ownedTypes }
+            .filter { it is DataType || it is InterfaceType }
+            .associateBy { it.name.value }
+    }
     private val metaclasses = mutableMapOf<String, Metaclass?>()
     private val metaclassByObjectClass = mutableMapOf<kotlin.reflect.KClass<*>, Metaclass>()
 
     override fun metaclass(name: String): XmiMetaclass? = metaclassInternal(name)
 
     private fun metaclassInternal(name: String): Metaclass? = metaclasses.getOrPut(name) {
-        genClasses[name]?.let { Metaclass(it) }
+        typesByName[name]?.let { Metaclass(it) }
     }
 
     override fun metaclassOf(obj: Any): XmiMetaclass? = metaclassByObjectClass[obj::class]
@@ -90,12 +61,12 @@ class UmlXmiMetamodel(
     override fun identityOf(obj: Any): Any? = (obj as? Element)?._identity
 
     /** all metaclass names, concrete and abstract */
-    val metaclassNames: Set<String> get() = genClasses.keys
+    val metaclassNames: Set<String> get() = typesByName.keys
 
-    inner class Metaclass(private val gen: XmiGenClass) : XmiMetaclass {
-        override val name: String get() = gen.name
-        override val isAbstract: Boolean get() = gen.isAbstract
-        override val superclassNames: List<String> get() = gen.superclassNames
+    inner class Metaclass(val type: TypeDefinition) : XmiMetaclass {
+        override val name: String get() = type.name.value
+        override val isAbstract: Boolean get() = type !is DataType
+        override val superclassNames: List<String> get() = type.supertypes.map { it.typeName.value }
 
         /** this metaclass and all its superclasses, nearest first */
         val linearisation: List<Metaclass> by lazy {
@@ -104,7 +75,7 @@ class UmlXmiMetamodel(
             queue.add(this)
             while (queue.isNotEmpty()) {
                 val c = queue.removeFirst()
-                if (c !in result) {
+                if (result.none { it.type === c.type }) {
                     result.add(c)
                     c.superclassNames.mapNotNullTo(queue) { metaclassInternal(it) }
                 }
@@ -112,28 +83,67 @@ class UmlXmiMetamodel(
             result
         }
 
-        private val features: Map<String, XmiGenFeature> by lazy {
-            val m = mutableMapOf<String, XmiGenFeature>()
-            for (c in linearisation) for (f in c.gen.ownedFeatures) {
+        private val features: Map<String, Feature> by lazy {
+            val m = mutableMapOf<String, Feature>()
+            for (c in linearisation) for (p in c.type.property) {
                 // the nearest declaration wins, so a redefining property is found before the one it redefines
-                if (f.name !in m) m[f.name] = f
+                if (p.name.value !in m) m[p.name.value] = Feature(p)
             }
             m
         }
 
         override fun feature(name: String): XmiMetaFeature? = features[name]
 
-        /** all features, owned and inherited, by XMI name */
+        /** all features, owned and inherited, by metamodel name */
         val allFeatures: Map<String, XmiMetaFeature> get() = features
 
         fun isSubclassOf(superclassName: String): Boolean = linearisation.any { it.name == superclassName }
 
         override fun construct(identity: Any): Any {
-            val obj = (gen.construct ?: error("Metaclass '$name' is abstract")).invoke(factory, identity)
+            val ctor = (type as? DataType)?.constructors?.firstOrNull { it.parameters.size == 1 }
+                ?: error("Metaclass '$name' has no constructor")
+            val obj = (ctor.execution ?: error("Constructor of '$name' has no execution")).invoke(listOf(identity))
+                ?: error("Constructor of '$name' returned null")
             metaclassByObjectClass.getOrPut(obj::class) { this }
             return obj
         }
 
         override fun toString(): String = "uml:$name"
+    }
+
+    /** a property of an AGL type, as the XMI reader uses it */
+    class Feature(val property: PropertyDeclaration) : XmiMetaFeature {
+        override val name: String get() = property.name.value
+        override val isMany: Boolean = property.typeInstance.resolvedDefinitionOrNull is CollectionType
+        private val elementType = if (isMany) property.typeInstance.typeArguments.firstOrNull()?.type else property.typeInstance
+        private val elementDef = elementType?.resolvedDefinitionOrNull
+        override val typeName: String = when (elementDef) {
+            is EnumType -> elementDef.qualifiedName.value
+            null -> elementType?.typeName?.value ?: "Any"
+            else -> elementDef.name.value
+        }
+        override val kind: XmiFeatureKind = when {
+            elementDef is PrimitiveType || elementDef is EnumType -> XmiFeatureKind.DATA
+            property.isComposite -> XmiFeatureKind.COMPOSITE
+            else -> XmiFeatureKind.REFERENCE
+        }
+        override val isDerived: Boolean get() = property.isDerived
+
+        override fun convert(text: String): Any? = when (elementDef) {
+            is EnumType -> UMLTypesMutation.enumValue(typeName, text.trim())
+            else -> when (typeName) {
+                // UML Integer and UnlimitedNatural are both Integer ('*' is -1)
+                "Integer" -> XmiDataConversion.convertKotlin("Long", text)
+                else -> XmiDataConversion.convertPrimitive(typeName, text)
+            }
+        }
+
+        override fun get(obj: Any): Any? = (property.accessor ?: error("'$name' has no accessor")).invoke(obj)
+
+        override fun set(obj: Any, value: Any?) {
+            (property.mutator ?: error("'$name' is derived")).invoke(obj, value)
+        }
+
+        override fun toString(): String = "$name: $typeName${if (isMany) "[*]" else ""} ($kind${if (isDerived) ", derived" else ""})"
     }
 }

@@ -1,6 +1,5 @@
 plugins {
     id("project-conventions")
-    id("code-generator")
 }
 
 kotlin {
@@ -8,31 +7,13 @@ kotlin {
         commonMain {
             dependencies {
                 api(project(":uml-2_5_1-ram"))
+                api(project(":uml-2_5_1-agl-types"))
                 api(libs.nak.kotlinx.collections)
                 api(libs.nak.kotlinx.utils)
                 implementation(libs.xmlutil.core)
             }
         }
     }
-}
-
-// what the XMI reader needs to create UML objects and set their properties by name
-tasks.named<generator.GenerateTask>("generate") {
-    modelName = "UML"
-    sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/UML_2-5-1_ASM_ptc-18-01-01.xmi"))
-    generateDir.set(layout.projectDirectory.dir("../../../_templates/xmi"))
-    parameters = mapOf(
-        "TARGET_PACKAGE" to "net.akehurst.omg.uml.v2_5_1",
-        "COPYRIGHT" to file(layout.projectDirectory.dir("../../../_templates/text/COPYRIGHT.txt")).readText(),
-        "EXCLUDE_PACKAGE" to emptyList<String>()
-    )
-    referencedTypeMapping = mapOf(
-        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#String" to "String",
-        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Integer" to "Long",
-        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Boolean" to "Boolean",
-        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Real" to "Double",
-        "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#UnlimitedNatural" to "Long",
-    )
 }
 
 // the large model test needs more than the default test heap

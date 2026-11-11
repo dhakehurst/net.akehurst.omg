@@ -343,28 +343,40 @@ internal class XmiDocumentParser(
             for (p in profileStack) p.addStereotype(name, obj)
         }
 
+        // values of many valued features, set once the element is read (a mutator sets the whole collection)
+        val values = LinkedHashMap<XmiMetaFeature, MutableList<Any>>()
         for (a in attrs) {
             when {
                 a.nsUri.isNotEmpty() && ns.isXmi(a.nsUri) -> {} // id, uuid, type, version, label ...
                 a.nsUri.isNotEmpty() -> if (!ns.isIgnored(a.nsUri)) countUnknownNamespace(a.nsUri)
                 a.localName == "href" -> issues.warning(XmiIssueKind.OTHER, "href on a contained element is not supported; '${a.value}' ignored", document.uri, ln)
-                else -> setFromAttribute(obj, mc, a.localName, a.value, ln)
+                else -> setFromAttribute(obj, mc, a.localName, a.value, ln, values)
             }
         }
 
-        readContent { readFeatureElement(obj, mc) }
+        readContent { readFeatureElement(obj, mc, values) }
+
+        for ((f, vs) in values) {
+            try {
+                f.set(obj, vs)
+            } catch (e: XmiReadException) {
+                throw e
+            } catch (e: Exception) {
+                issues.error(XmiIssueKind.INVALID_VALUE, "Could not set '${mc.name}.${f.name}': ${e.message}", document.uri, ln)
+            }
+        }
 
         if (isProfile) profileStack.removeAt(profileStack.size - 1)
         return obj
     }
 
-    private fun setFromAttribute(obj: Any, mc: XmiMetaclass, name: String, value: String, ln: Int?) {
+    private fun setFromAttribute(obj: Any, mc: XmiMetaclass, name: String, value: String, ln: Int?, values: MutableMap<XmiMetaFeature, MutableList<Any>>) {
         val f = mc.feature(name)
         when {
             null == f -> issues.warning(XmiIssueKind.UNKNOWN_FEATURE, "'${mc.name}' has no feature '$name'; attribute ignored", document.uri, ln)
             f.isDerived -> {} // computed, nothing to set
             else -> when (f.kind) {
-                XmiFeatureKind.DATA -> setData(obj, mc, f, value, ln)
+                XmiFeatureKind.DATA -> setData(obj, mc, f, value, ln, values)
                 XmiFeatureKind.REFERENCE -> value.split(' ', '\t', '\n', '\r').filter { it.isNotEmpty() }.forEach {
                     pending.add(XmiPendingReference(document, obj, f, it, false, ln))
                 }
@@ -377,21 +389,31 @@ internal class XmiDocumentParser(
         }
     }
 
-    private fun setData(obj: Any, mc: XmiMetaclass, f: XmiMetaFeature, text: String, ln: Int?) {
+    private fun setData(obj: Any, mc: XmiMetaclass, f: XmiMetaFeature, text: String, ln: Int?, values: MutableMap<XmiMetaFeature, MutableList<Any>>) {
         val v = f.convert(text)
         if (null == v) {
             issues.warning(XmiIssueKind.INVALID_VALUE, "Value '$text' is not valid for '${mc.name}.${f.name}' of type '${f.typeName}'", document.uri, ln)
             return
         }
+        setValue(obj, mc, f, v, text, ln, values)
+    }
+
+    private fun setValue(obj: Any, mc: XmiMetaclass, f: XmiMetaFeature, v: Any, text: String, ln: Int?, values: MutableMap<XmiMetaFeature, MutableList<Any>>) {
+        if (f.isMany) {
+            values.getOrPut(f) { mutableListOf() }.add(v)
+            return
+        }
         try {
-            f.addValue(obj, v)
+            f.set(obj, v)
+        } catch (e: XmiReadException) {
+            throw e
         } catch (e: Exception) {
             issues.error(XmiIssueKind.INVALID_VALUE, "Could not set '${mc.name}.${f.name}' to '$text': ${e.message}", document.uri, ln)
         }
     }
 
     /** positioned on the start of a child element of an object: reads it as the value of a feature */
-    private fun readFeatureElement(obj: Any, mc: XmiMetaclass) {
+    private fun readFeatureElement(obj: Any, mc: XmiMetaclass, values: MutableMap<XmiMetaFeature, MutableList<Any>>) {
         val elNs = reader.namespaceURI
         val elName = reader.localName
         val ln = line
@@ -442,18 +464,12 @@ internal class XmiDocumentParser(
             else -> when (f.kind) {
                 XmiFeatureKind.DATA -> {
                     val text = readContent { skipElement() } ?: ""
-                    setData(obj, mc, f, text, ln)
+                    setData(obj, mc, f, text, ln, values)
                 }
 
                 XmiFeatureKind.COMPOSITE -> {
                     val child = readObject(f.typeName, f)
-                    if (null != child) {
-                        try {
-                            f.addValue(obj, child)
-                        } catch (e: Exception) {
-                            issues.error(XmiIssueKind.INVALID_VALUE, "Could not add '${metamodel.metaclassOf(child)?.name}' to '${mc.name}.${f.name}': ${e.message}", document.uri, ln)
-                        }
-                    }
+                    if (null != child) setValue(obj, mc, f, child, elName, ln, values)
                 }
 
                 XmiFeatureKind.REFERENCE -> {

@@ -67,11 +67,15 @@ interface XmiMetaFeature {
     /** converts the text of a DATA value to the type of this feature, or returns null if it is not valid */
     fun convert(text: String): Any?
 
-    /** sets a single value (DATA or COMPOSITE), or adds it for a many valued feature */
-    fun addValue(obj: Any, value: Any)
+    /** the current value: the object (or null) for a single valued feature, a collection for a many valued one */
+    fun get(obj: Any): Any?
 
-    /** sets a single reference, or adds it for a many valued feature; [resolved] is null for an [XmiProxy] */
-    fun addReference(obj: Any, identity: Any, resolved: Any?)
+    /**
+     * Sets the value: an object (or null) for a single valued feature, a collection for a many valued one.
+     * For a REFERENCE feature each value is a [net.akehurst.kotlinx.utils.Reference]; for an unresolved one its
+     * reference is an [XmiProxy] and its resolved object is null.
+     */
+    fun set(obj: Any, value: Any?)
 }
 
 /**
