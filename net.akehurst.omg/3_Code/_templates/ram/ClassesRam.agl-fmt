@@ -251,8 +251,8 @@ format PropertyGetterSglCmp {
                             else -> 'ERROR'
                         }
                         it.isCollection -> when {
-                            it.isReference -> "new?.let { this.${it.validName}Reference.mutable.add(ReferenceImmutable(new._identity, new)) }"
-                            it.isComposite -> "new?.let{ this.${it.validName}.mutable.add(new) }"
+                            it.isReference -> "new?.let { this.${it.validName}Reference.addIfStored(ReferenceImmutable(new._identity, new)) }"
+                            it.isComposite -> "new?.let{ this.${it.validName}.addIfStored(new) }"
                             else -> 'ERROR'
                         }
                         else -> 'ERROR'
@@ -276,8 +276,8 @@ format PropertyGetterSglCmp {
                             else -> 'ERROR'
                         }
                         it.isCollection -> when {
-                            it.isReference -> "old?.let{ this.${it.validName}Reference.mutable.remove(ReferenceImmutable(old._identity, old)) }"
-                            it.isComposite -> "old?.let{ this.${it.validName}.mutable.remove(old) }"
+                            it.isReference -> "old?.let{ this.${it.validName}Reference.removeIfStored(ReferenceImmutable(old._identity, old)) }"
+                            it.isComposite -> "old?.let{ this.${it.validName}.removeIfStored(old) }"
                             else -> 'ERROR'
                         }
                         else -> 'ERROR'
@@ -339,8 +339,8 @@ format PropertyGetterSglRef {
                         }
                         it.isCollection -> when {
                             // old and new are fixed snapshots: replace the old one, so the superset gets the new key and resolved object
-                            it.isReference -> "this.${it.validName}Reference.mutable.remove(old); if (null != new.reference) this.${it.validName}Reference.mutable.add(new)"
-                            it.isComposite -> "new.resolved?.let{ this.${it.validName}.mutable.add(it) }"
+                            it.isReference -> "this.${it.validName}Reference.removeIfStored(old); if (null != new.reference) this.${it.validName}Reference.addIfStored(new)"
+                            it.isComposite -> "new.resolved?.let{ this.${it.validName}.addIfStored(it) }"
                             else -> 'ERROR'
                         }
                         else -> 'ERROR'
@@ -364,8 +364,8 @@ format PropertyGetterSglRef {
                             else -> 'ERROR'
                          }
                          it.isCollection -> when {
-                            it.isReference -> "old?.let{ this.${it.validName}Reference.mutable.remove(old) }"
-                            it.isComposite -> "old?.let{ this.${it.validName}.mutable.remove(old.resolved) }"
+                            it.isReference -> "old?.let{ this.${it.validName}Reference.removeIfStored(old) }"
+                            it.isComposite -> "old?.let{ this.${it.validName}.removeIfStored(old.resolved) }"
                             else -> 'ERROR'
                          }
                          else -> 'ERROR'
@@ -469,8 +469,8 @@ format PropertyGetterColCmp {
                            else -> 'ERROR'
                         }
                         it.isCollection -> when {
-                           it.isReference -> "this.${it.validName}Reference.mutable.add(ReferenceImmutable(item._identity, item))"
-                           it.isComposite -> "this.${it.validName}.mutable.add(item)"
+                           it.isReference -> "this.${it.validName}Reference.addIfStored(ReferenceImmutable(item._identity, item))"
+                           it.isComposite -> "this.${it.validName}.addIfStored(item)"
                            else -> 'ERROR'
                         }
                         else -> 'ERROR'
@@ -494,9 +494,9 @@ format PropertyGetterColCmp {
                            else -> 'ERROR'
                         }
                         it.isCollection -> when {
-                           it.isReference -> "(item as? ${it.type.isPrimitive ? it.type.validName : it.type.validName + '_NN'})?.let { this.${it.validName}Reference.mutable.remove(ReferenceImmutable(it._identity, it)) }"
+                           it.isReference -> "(item as? ${it.type.isPrimitive ? it.type.validName : it.type.validName + '_NN'})?.let { this.${it.validName}Reference.removeIfStored(ReferenceImmutable(it._identity, it)) }"
                            // the subsetting property may have a narrower type than the item
-                           it.isComposite -> "(item as? ${it.type.isPrimitive ? it.type.validName : it.type.validName + '_NN'})?.let { this.${it.validName}.mutable.remove(it) }"
+                           it.isComposite -> "(item as? ${it.type.isPrimitive ? it.type.validName : it.type.validName + '_NN'})?.let { this.${it.validName}.removeIfStored(it) }"
                            else -> 'ERROR'
                         }
                         else -> 'ERROR'
@@ -599,8 +599,8 @@ format PropertyGetterColRef {
                            else -> 'ERROR'
                         }
                         it.isCollection -> when {
-                           it.isReference -> "this.${it.validName}Reference.mutable.add(item)"
-                           it.isComposite -> "item.resolved?.let { this.${it.validName}.mutable.add(it) }"
+                           it.isReference -> "this.${it.validName}Reference.addIfStored(item)"
+                           it.isComposite -> "item.resolved?.let { this.${it.validName}.addIfStored(it) }"
                            else -> 'ERROR'
                         }
                         else -> 'ERROR'
@@ -624,8 +624,8 @@ format PropertyGetterColRef {
                            else -> 'ERROR'
                         }
                         it.isCollection -> when {
-                           it.isReference -> "this.${it.validName}Reference.mutable.remove(item)"
-                           it.isComposite -> "this.${it.validName}.mutable.remove(item.resolved)"
+                           it.isReference -> "this.${it.validName}Reference.removeIfStored(item)"
+                           it.isComposite -> "this.${it.validName}.removeIfStored(item.resolved)"
                            else -> 'ERROR'
                         }
                         else -> 'ERROR'
@@ -803,6 +803,8 @@ format RamPackageFile {
         import ${TARGET_PACKAGE}.api.${parentPackage.qualifiedName}.*
         import ${TARGET_PACKAGE}.api.${parentPackage.qualifiedName}.${parentPackage.validName}_PackageFactory
         import ${TARGET_PACKAGE}.ram.SubsetExt.setIfInstance
+        import ${TARGET_PACKAGE}.ram.SubsetExt.addIfStored
+        import ${TARGET_PACKAGE}.ram.SubsetExt.removeIfStored
 
         internal data class ${validName}Ram(override val _factory: ${parentPackage.validName}_PackageFactory, override val _identity:Any) : ${validName}_NN {
             $[allNormalisedAttribute sep $EOL via PropertyGetter]

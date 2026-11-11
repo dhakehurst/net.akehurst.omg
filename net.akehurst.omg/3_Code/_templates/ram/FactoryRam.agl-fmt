@@ -98,6 +98,8 @@ format ModelFactoryFile {
         // *** Generated code do NOT manually edit. ***
         package ${TARGET_PACKAGE}.ram
 
+        import net.akehurst.kotlinx.collections.MutableOrderedSet
+        import net.akehurst.kotlinx.collections.OrderedSet
         import net.akehurst.kotlinx.utils.HierarchicalFactory
         import net.akehurst.kotlinx.utils.HierarchicalReferenceStore
         import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreByHashMap
@@ -127,7 +129,7 @@ format ModelFactoryFile {
         }
 
         /**
-         * Sets a single valued superset when one of its subsets changes.
+         * Sets a superset when one of its subsets changes.
          * A subclass may narrow the type of the superset by redefinition, so a value is set only if it has
          * the type of the superset (T); in a valid model a value of another type cannot be in that subset.
          */
@@ -137,6 +139,26 @@ format ModelFactoryFile {
             }
             inline fun <reified T : Any> Value<T?>.setIfInstance(value: Any?) {
                 if (null == value || value is T) this.mutable.set(value as T?)
+            }
+
+            /*
+             * Adds to (or removes from) a collection superset (or subset) when a related property changes.
+             * A subclass may redefine that collection by another property, and then the collection is computed
+             * from the redefining property and cannot be changed; it is left as it is.
+             * (An ordered set is checked by its own interface, because on JS a read-only collection
+             * cannot be told from a mutable one.)
+             */
+            @Suppress(\"UNCHECKED_CAST\")
+            fun <E> Collection<E>.addIfStored(item: E): Boolean = when (this) {
+                is OrderedSet<*> -> if (this is MutableOrderedSet<*>) (this as MutableOrderedSet<E>).add(item) else false
+                is MutableCollection<*> -> (this as MutableCollection<E>).add(item)
+                else -> false
+            }
+            @Suppress(\"UNCHECKED_CAST\")
+            fun <E> Collection<E>.removeIfStored(item: E): Boolean = when (this) {
+                is OrderedSet<*> -> if (this is MutableOrderedSet<*>) (this as MutableOrderedSet<E>).remove(item) else false
+                is MutableCollection<*> -> (this as MutableCollection<E>).remove(item)
+                else -> false
             }
         }
         ${packageList via PackageFactoryFile}
