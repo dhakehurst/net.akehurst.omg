@@ -145,8 +145,8 @@ format ApiPackageAsStringFile {
         val sb = StringBuilder()
         sb.appendLine(\"\${indent}\$self\")
         val indentInc = indent.inc
-        $[allReferenceAttribute sep $EOL via AppendPropertyReference]
-        $[allCompositeAttribute sep $EOL via AppendPropertyComposite]
+        $[allNotDerivedReferenceAttribute sep $EOL via AppendPropertyReference]
+        $[allNotDerivedCompositeAttribute sep $EOL via AppendPropertyComposite]
         return sb.toString()
       }
     "

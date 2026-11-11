@@ -44,6 +44,8 @@ format PropertyAccessors {
     MofProperty -> {
         ovr := isOverride ? 'override ' : ''
         mutatableAccessor := when {
+            // derived (incl. derived union): computed, so no stored holder; a single value has a read-only Derived holder
+            isComputed -> isSingle ? "${ovr}val ${validName}Derived: Derived<${validTypeName}>" : ''
             isSingle -> when {
               isComposite -> "${ovr}val ${validName}Value: Value<${validTypeNameNotNullable}?>"
               isReference -> "${ovr}val ${validName}Reference: Reference<Any,$validTypeNameNotNullable>"
@@ -64,6 +66,20 @@ format PropertyAccessors {
     }
 }
 
+format OperationDecl {
+    // a default method: the body is translated from the OCL, so it is the same for every implementation
+    MofOperation -> {
+        ovr := isOverride ? 'override ' : ''
+        "
+          /**
+           * xmi:id=\"$xmiId\"
+           * ${bodyDoc}
+           */
+          ${ovr}fun ${validName}(${parameterDecl}): ${returnTypeName} = ${bodyKotlin}
+        "
+    }
+}
+
 format ApiPackageFile {
     #output: 'MofPackage -> "api/$qualifiedPath/${name}_Types.kt"'
 
@@ -77,10 +93,15 @@ format ApiPackageFile {
             package ${TARGET_PACKAGE}.api.${qualifiedName}
 
             import net.akehurst.kotlinx.collections.OrderedSet
+            import net.akehurst.kotlinx.collections.toOrderedSet
+            import net.akehurst.kotlinx.collections.transitiveClosure
+            import net.akehurst.kotlinx.utils.Derived
             import net.akehurst.kotlinx.utils.HierarchicalFactory
             import net.akehurst.kotlinx.utils.Reference
             import net.akehurst.kotlinx.utils.Value
             $[allImport sep $EOL via PackageImport]
+            // operation bodies may use any package of the model
+            $[model.packageList.filter({it -> false == it.isEmpty}).filter({it -> false == EXCLUDE_PACKAGE.contains(it.qualifiedName)}) sep $EOL via PackageImport]
 
             $[enums sep $EOL]
             $[interfaces sep $EOL]
@@ -93,7 +114,7 @@ format ApiPackageFile {
          * xmi:id=\"$xmiId\"
          * $comment
          */
-        enum class ${validName} { }
+        enum class ${validName} { $[literals.map({it -> it.validName}) sep ', '] }
     "
     MofInterface -> {
         supTypes :=  superTypes.isEmpty ? '' : " : $[superTypes.map({it -> it.validName}) sep ',']"
@@ -109,6 +130,7 @@ format ApiPackageFile {
           interface ${validName}$supTypes {
              $id
              $[ownedAttribute sep $EOL via PropertyAccessors]
+             $[operations.filter({it -> it.isGenerated}) sep $EOL via OperationDecl]
           }
         "
     }
@@ -137,6 +159,7 @@ format ApiPackageFile {
           interface ${validName}$supTypes {
              $id
              $[ownedAttribute sep $EOL via PropertyAccessors]
+             $[operations.filter({it -> it.isGenerated}) sep $EOL via OperationDecl]
           }
         "
     }

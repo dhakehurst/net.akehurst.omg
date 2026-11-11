@@ -23,7 +23,8 @@ tasks.named<generator.GenerateTask>("generate") {
     generateDir.set(layout.projectDirectory.dir("../../../_templates/agl-types"))
     parameters = mapOf(
         "TARGET_PACKAGE" to "net.akehurst.omg.uml.v2_5_1",
-        "COPYRIGHT" to file(layout.projectDirectory.dir("../../../_templates/text/COPYRIGHT.txt")).readText()
+        "COPYRIGHT" to file(layout.projectDirectory.dir("../../../_templates/text/COPYRIGHT.txt")).readText(),
+        "EXCLUDE_PACKAGE" to emptyList<String>()
     )
     referencedTypeMapping = mapOf(
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#String" to "String",

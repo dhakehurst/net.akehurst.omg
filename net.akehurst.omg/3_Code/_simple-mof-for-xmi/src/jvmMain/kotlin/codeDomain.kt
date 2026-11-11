@@ -22,35 +22,35 @@ object Code {
     val domain = typesDomain("Code", true) {
         namespace("net.akehurst.omg.code") {
             interface_("TypeDefinition", implementation = TypeDefinition::class) {
-                propertyOf(setOf(CMP,VAL),"name", "String", execution = TypeDefinition::name)
+                propertyOfWithBinding(setOf(CMP,VAL),"name", "String", accessor = TypeDefinition::name)
             }
             data("TypeReference", implementation = TypeReference::class) {
                 constructor_ {
-                    parameter(setOf(CMP, VAL),"name", "String", propertyExecution = TypeReference::name)
-                    parameter(setOf(CMP, VAL),"argument", "List", propertyExecution = TypeReference::argument) { typeArgument("TypeReference")}
+                    parameter(setOf(CMP, VAL),"name", "String", accessor = TypeReference::name)
+                    parameter(setOf(CMP, VAL),"argument", "List", accessor = TypeReference::argument) { typeArgument("TypeReference")}
                 }
             }
             data("Enumeration", implementation = Enumeration::class) {
                 supertype("TypeDefinition")
                 constructor_ {
-                    parameter(setOf(CMP, VAL),"name", "String", propertyExecution = Enumeration::name)
+                    parameter(setOf(CMP, VAL),"name", "String", accessor = Enumeration::name)
                 }
-                propertyOf(setOf(CMP,VAL),"literals", "List", execution = Enumeration::literals) {
+                propertyOfWithBinding(setOf(CMP,VAL),"literals", "List", accessor = Enumeration::literals) {
                     typeArgument("String")
                 }
             }
             data("Extends", implementation = Extends::class) {
                 constructor_ {
-                    parameter(setOf(CMP, VAL),"name", "String", propertyExecution = Extends::name)
+                    parameter(setOf(CMP, VAL),"name", "String", accessor = Extends::name)
                 }
             }
             data("Interface", implementation = Interface::class) {
                 supertype("TypeDefinition")
                 constructor_ {
-                    parameter(setOf(CMP, VAL),"name", "String", propertyExecution = Interface::name)
+                    parameter(setOf(CMP, VAL),"name", "String", accessor = Interface::name)
                 }
-                propertyOf(setOf(CMP, VAR),"extends","List",execution = Interface::extends) { typeArgument("Extends") }
-                propertyOf(setOf(CMP, VAR),"property","Map",execution = Interface::property) {
+                propertyOfWithBinding(setOf(CMP, VAR),"extends","List",accessor = Interface::extends) { typeArgument("Extends") }
+                propertyOfWithBinding(setOf(CMP, VAR),"property","Map",accessor = Interface::property) {
                     typeArgument("String")
                     typeArgument("Property")
                 }
@@ -58,18 +58,18 @@ object Code {
             data("ConcreteClass", implementation = ConcreteClass::class) {
                 supertype("TypeDefinition")
                 constructor_ {
-                    parameter(setOf(CMP, VAL),"name", "String", propertyExecution = ConcreteClass::name)
+                    parameter(setOf(CMP, VAL),"name", "String", accessor = ConcreteClass::name)
                 }
-                propertyOf(setOf(CMP, VAR),"property","Map",execution = ConcreteClass::property) {
+                propertyOfWithBinding(setOf(CMP, VAR),"property","Map",accessor = ConcreteClass::property) {
                     typeArgument("String")
                     typeArgument("Property")
                 }
-                propertyOf(setOf(CMP, VAR),"property","Property",execution = ConcreteClass::identityProperty)
+                propertyOfWithBinding(setOf(CMP, VAR),"property","Property",accessor = ConcreteClass::identityProperty)
             }
 
             interface_("Property", implementation = Property::class) {
-                propertyOf(setOf(CMP, VAL),"name","String", execution = Property::name)
-                propertyOf(setOf(CMP, VAL),"type","TypeReference", execution = Property::type)
+                propertyOfWithBinding(setOf(CMP, VAL),"name","String", accessor = Property::name)
+                propertyOfWithBinding(setOf(CMP, VAL),"type","TypeReference", accessor = Property::type)
             }
             data("PropertyStored", implementation = PropertyStored::class) {
                 supertype("Property")

@@ -51,6 +51,10 @@ format PackageFactoryFile {
 
                 import net.akehurst.kotlinx.utils.HierarchicalReferenceStore
                 import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreByHashMap
+        import net.akehurst.kotlinx.utils.Reference
+        import net.akehurst.kotlinx.utils.ReferenceExt.mutable
+        import net.akehurst.kotlinx.utils.Value
+        import net.akehurst.kotlinx.utils.ValueExt.mutable
                 import ${TARGET_PACKAGE}.api.${qualifiedName}.${validName}_PackageFactory
                 import ${TARGET_PACKAGE}.api.${model.validName}_ModelFactory
                 ${prntFacImp}
@@ -97,6 +101,10 @@ format ModelFactoryFile {
         import net.akehurst.kotlinx.utils.HierarchicalFactory
         import net.akehurst.kotlinx.utils.HierarchicalReferenceStore
         import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreByHashMap
+        import net.akehurst.kotlinx.utils.Reference
+        import net.akehurst.kotlinx.utils.ReferenceExt.mutable
+        import net.akehurst.kotlinx.utils.Value
+        import net.akehurst.kotlinx.utils.ValueExt.mutable
         import ${TARGET_PACKAGE}.api.*
         $[genSubPackages sep $EOL via SubPackageImportApi]
         $[genSubPackages sep $EOL via SubPackageImportRam]
@@ -116,6 +124,20 @@ format ModelFactoryFile {
             $[genSubPackages sep $EOL via SubPackage]
 
             override fun toString(): String = \"${validName}_ModelFactory '\${identity}'\"
+        }
+
+        /**
+         * Sets a single valued superset when one of its subsets changes.
+         * A subclass may narrow the type of the superset by redefinition, so a value is set only if it has
+         * the type of the superset (T); in a valid model a value of another type cannot be in that subset.
+         */
+        internal object SubsetExt {
+            inline fun <reified T : Any> Reference<Any, T>.setIfInstance(reference: Any?, resolved: Any?) {
+                if (null == resolved || resolved is T) this.mutable.set(reference, resolved as T?)
+            }
+            inline fun <reified T : Any> Value<T?>.setIfInstance(value: Any?) {
+                if (null == value || value is T) this.mutable.set(value as T?)
+            }
         }
         ${packageList via PackageFactoryFile}
     "

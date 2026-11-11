@@ -16,9 +16,15 @@
 
 package net.akehurst.omg.kerml.v1_0.api
 
+import net.akehurst.omg.kerml.v1_0.api.KerML_ModelAsString
+import net.akehurst.omg.kerml.v1_0.api.KerML_ModelBuilder
 import net.akehurst.omg.kerml.v1_0.ram.KerML_ModelFactoryRam
+import net.akehurst.omg.kerml.v1_0.api.KerML.Kernel.Packages.Package
 import kotlin.test.*
 
+// Models are built only from settable (non derived) properties.
+// In KerML ownership is held by relationships, e.g. Package -ownedRelationship-> OwningMembership -ownedRelatedElement-> Package,
+// and the name is set as declaredName; owner, ownedElement, ownedMember and name are derived from those.
 class test_KerML_ModelBuilder {
 
     @Test
@@ -41,13 +47,13 @@ class test_KerML_ModelBuilder {
     fun named() {
         val factory = KerML_ModelFactoryRam("TestFactoryRam")
         val model = KerML_ModelBuilder.Package(factory, "RootPackage") {
-            name("Root Package")
+            declaredName("Root Package")
         }
         val actual = KerML_ModelAsString.Package_asString(model)
         println(actual)
         val expected = """
             Package 'RootPackage'
-              name 'Root Package'
+              declaredName 'Root Package'
 
         """.trimIndent()
 
@@ -58,10 +64,14 @@ class test_KerML_ModelBuilder {
     fun named_subpackage() {
         val factory = KerML_ModelFactoryRam("TestFactoryRam")
         val model = KerML_ModelBuilder.Package(factory, "RootPackage") {
-            name("Root Package")
-            ownedElementOrderedSet {
-                Package("SubPackage") {
-                    name("Sub Package")
+            declaredName("Root Package")
+            ownedRelationshipOrderedSet {
+                OwningMembership("SubPackageMembership") {
+                    ownedRelatedElementOrderedSet {
+                        Package("SubPackage") {
+                            declaredName("Sub Package")
+                        }
+                    }
                 }
             }
         }
@@ -69,16 +79,24 @@ class test_KerML_ModelBuilder {
         println(actual)
         val expected = """
             Package 'RootPackage'
-              ownedElementOrderedSet = [
-                Package 'SubPackage'
-                  name 'Sub Package'
-                  
+              ownedRelationshipOrderedSet = [
+                OwningMembership 'SubPackageMembership'
+                  owningRelatedElement Package 'RootPackage'
+                  ownedRelatedElementOrderedSet = [
+                    Package 'SubPackage'
+                      owningRelationship OwningMembership 'SubPackageMembership'
+                      declaredName 'Sub Package'
+                  ]
               ]
-              name 'Root Package'
+              declaredName 'Root Package'
 
         """.trimIndent()
 
         assertEquals(expected, actual)
-    }
 
+        // derived from the relationships
+        val sub = model.ownedElementOrderedSet.single() as Package
+        assertEquals("Sub Package", sub.declaredName)
+        assertSame(model, sub.owner)
+    }
 }
