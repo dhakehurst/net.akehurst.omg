@@ -265,6 +265,11 @@ No OCL at all: `ExtensionEnd::lower`, `CallAction::inputParameters` and `outputP
 
 Valid OCL that the generator doesn't translate yet: `oclType()` in `Classifier::maySpecializeType`, `NamedElement::isDistinguishableFrom`, `ParameterableElement::isCompatibleWith` and `ValueSpecification::isCompatibleWith`; `isUnique` in `BehavioralFeature::isDistinguishableFrom`; and the comparison with the primitive type `String` in `Parameter::default`.
 
+## SysML 1.7 (ptc/24-01-02): problems in the XMI
+
+- The profile imports the UML StandardProfile with `href="https://www.omg.org/spec/UML/20161101/StandardProfile.xmi#StandardProfile"` (2 places). In the StandardProfile XMI (ptc/18-01-03) the profile's xmi:id is `_0`, so that reference doesn't resolve. The references to its stereotypes (`#Trace`, `#Refine`) do resolve.
+- It refers to the StandardProfile by `https`, but the StandardProfile's own URI is `http://www.omg.org/spec/UML/20161101/StandardProfile`. The XMI reader maps the `https` form to the `http` one by default.
+
 ## Where the spec and the pilot disagree
 
 The pilot was used to fill gaps, but where the spec says something different, the spec was followed:

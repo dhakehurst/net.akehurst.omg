@@ -115,9 +115,14 @@ object XmiStandardResources {
     fun isUmlPrimitiveTypes(uri: String): Boolean =
         uri.endsWith("/PrimitiveTypes.xmi") && (uri.contains("omg.org/spec/UML/") || uri.contains("omg.org/spec/PrimitiveTypes/"))
 
+    /** URIs of the UML StandardProfile, e.g. http(s)://www.omg.org/spec/UML/20161101/StandardProfile.xmi */
+    fun isUmlStandardProfile(uri: String): Boolean =
+        uri.endsWith("/StandardProfile.xmi") && uri.contains("omg.org/spec/UML/")
+
     val resolver = XmiResourceResolver { req ->
         when {
             isUmlPrimitiveTypes(req.uri) -> UML_PRIMITIVE_TYPES
+            isUmlStandardProfile(req.uri) -> UML_STANDARD_PROFILE
             else -> null
         }
     }
