@@ -102,16 +102,24 @@ untyped and its tags are the strings as written.
 
 ## Diagram demo
 
-`uml-2_5_1-demo-diagrams` shows a class, package, object, component, composite structure, deployment, profile and
-activity diagram. Each one is made from an example UML model in XMI (`DemoDiagrams`):
+`uml-2_5_1-demo-diagrams` shows a class, package, object, component, composite structure, deployment, profile,
+activity and sequence diagram, plus a containment tree and an attribute table. Each one is made from an example UML
+model in XMI (`DemoDiagrams`):
 
 1. the XMI is read with `UmlXmiReader`;
-2. the agl-m2m transform `UmlDiagramRules` maps the UML package to a generic `Diagram` (`UmlToDiagram`);
-3. the diagram is drawn with `UmlShapeRegistry` and laid out by `layout-graph` from
-   [net.akehurst.kotlin.compose](https://github.com/dhakehurst/net.akehurst.kotlin.compose).
+2. an agl-m2m transform maps the UML element to a generic model (`UmlToDiagram`):
+   - `UmlDiagramRules`: a package to a `Diagram`;
+   - `UmlSequenceRules`: an interaction to a `Ladder`;
+   - `UmlTreeTableRules.containmentTree`: a package to a `Tree` of everything it owns;
+   - `UmlTreeTableRules.attributeTable`: a package to a `Table` of the attributes of its classifiers;
+3. the result is shown from [net.akehurst.kotlin.compose](https://github.com/dhakehurst/net.akehurst.kotlin.compose):
+   a diagram with `UmlShapeRegistry` and the `layout-graph` graph layout, a ladder with `UmlLadderShapeRegistry` and
+   the ladder layout, a tree with the `components` `TreeView`, and a table with its `TableView`.
+
+A tree or table can show anything a transform selects; containment and attributes are only examples.
 
 The desktop entry point is `main()` in `src/jvmMain/kotlin/main.kt`. The module has no Gradle run task, so start it
-from the IDE. The JVM test `render_DemoDiagrams` writes each diagram as a PNG to `<java.io.tmpdir>/demo-diagrams`.
+from the IDE. The JVM test `render_DemoDiagrams` writes each view as a PNG to `<java.io.tmpdir>/demo-diagrams`.
 
 ## Tests
 

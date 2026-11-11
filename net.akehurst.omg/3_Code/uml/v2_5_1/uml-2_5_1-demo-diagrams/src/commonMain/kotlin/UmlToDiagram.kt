@@ -32,15 +32,17 @@ import net.akehurst.language.types.builder.typesDomain
 import net.akehurst.omg.diagram.Diagram
 import net.akehurst.omg.diagram.DiagramTypesDomain
 import net.akehurst.omg.diagram.Ladder
+import net.akehurst.omg.diagram.Table
+import net.akehurst.omg.diagram.Tree
 import net.akehurst.omg.uml.v2_5_1.agl.types.UMLTypesDomain
 import net.akehurst.omg.uml.v2_5_1.api.UML_ModelFactory
 
 /**
- * Runs an agl-m2m transform from UML model elements (domain 'uml') to the generic diagram models, Diagram or Ladder (domain 'dgm').
+ * Runs an agl-m2m transform from UML model elements (domain 'uml') to the generic diagram models, Diagram, Ladder, Tree or Table (domain 'dgm').
  */
 class UmlToDiagram(factory: UML_ModelFactory) {
 
-    class Result(val diagrams: List<Diagram>, val ladders: List<Ladder>, val issues: IssueHolder)
+    class Result(val diagrams: List<Diagram>, val ladders: List<Ladder>, val trees: List<Tree>, val tables: List<Table>, val issues: IssueHolder)
 
     val umlTypes: TypesDomain = UMLTypesDomain(factory).types
 
@@ -76,7 +78,13 @@ class UmlToDiagram(factory: UML_ModelFactory) {
             // relationships often have no name, so give each edge an id from its ends
             d.edge.forEachIndexed { i, e -> if (e.id.isBlank()) e.id = "${e.shape}[$i]:${e.sourceId}->${e.targetId}" }
         }
-        return Result(diagrams, res.targets.mapNotNull { it.self as? Ladder }, issues)
+        return Result(
+            diagrams,
+            res.targets.mapNotNull { it.self as? Ladder },
+            res.targets.mapNotNull { it.self as? Tree },
+            res.targets.mapNotNull { it.self as? Table },
+            issues
+        )
     }
 
     /**

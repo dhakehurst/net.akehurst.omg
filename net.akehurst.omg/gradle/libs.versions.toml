@@ -25,6 +25,7 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 nak-kotlinx-collections = { module = "net.akehurst.kotlinx:kotlinx-collections", version.ref = "nak-kotlinx" }
 nak-kotlinx-utils = { module = "net.akehurst.kotlinx:kotlinx-utils", version.ref = "nak-kotlinx" }
 nak-compose-layout-graph = { module = "net.akehurst.kotlin.compose:layout-graph", version.ref = "nak-compose" }
+nak-compose-components = { module = "net.akehurst.kotlin.compose:components", version.ref = "nak-compose" }
 nal-agl-processor = { module = "net.akehurst.language:agl-processor", version.ref = "nal-agl" }
 material-icons-core = { module="org.jetbrains.compose.material:material-icons-core", version.ref="material-icons"}
 material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "material-icons" }

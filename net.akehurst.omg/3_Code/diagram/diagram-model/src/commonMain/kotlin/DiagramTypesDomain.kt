@@ -102,6 +102,29 @@ object DiagramTypesDomain {
                 propertyOfWithBinding<LadderBar, Any?>(setOf(CMP, VAR, STR), "startId", "String", accessor = { s: LadderBar -> s.startId }, mutator = { s: LadderBar, v: Any? -> s.startId = (v as? String) ?: "" })
                 propertyOfWithBinding<LadderBar, Any?>(setOf(CMP, VAR, STR), "finishId", "String", accessor = { s: LadderBar -> s.finishId }, mutator = { s: LadderBar, v: Any? -> s.finishId = (v as? String) ?: "" })
             }
+            data("Tree", implementation = Tree::class) {
+                constructor_ { execution { Tree() } }
+                propertyOfWithBinding<Tree, Any?>(setOf(CMP, VAR, STR), "name", "String", accessor = { s: Tree -> s.name }, mutator = { s: Tree, v: Any? -> s.name = (v as? String) ?: "" })
+                propertyOfWithBinding<Tree, Any?>(setOf(CMP, VAR, STR), "kind", "String", accessor = { s: Tree -> s.kind }, mutator = { s: Tree, v: Any? -> s.kind = (v as? String) ?: "" })
+                propertyOfWithBinding<Tree, Any?>(setOf(CMP, VAR, STR), "item", "List", accessor = { s: Tree -> s.item }, mutator = { s: Tree, v: Any? -> s.item = (v as? Collection<*>)?.filterIsInstance<TreeItem>() ?: emptyList() }) { typeArgument("TreeItem") }
+            }
+            data("TreeItem", implementation = TreeItem::class) {
+                supertypes("DiagramElement")
+                constructor_ { execution { TreeItem() } }
+                propertyOfWithBinding<TreeItem, Any?>(setOf(CMP, VAR, STR), "child", "List", accessor = { s: TreeItem -> s.child }, mutator = { s: TreeItem, v: Any? -> s.child = (v as? Collection<*>)?.filterIsInstance<TreeItem>() ?: emptyList() }) { typeArgument("TreeItem") }
+            }
+            data("Table", implementation = Table::class) {
+                constructor_ { execution { Table() } }
+                propertyOfWithBinding<Table, Any?>(setOf(CMP, VAR, STR), "name", "String", accessor = { s: Table -> s.name }, mutator = { s: Table, v: Any? -> s.name = (v as? String) ?: "" })
+                propertyOfWithBinding<Table, Any?>(setOf(CMP, VAR, STR), "kind", "String", accessor = { s: Table -> s.kind }, mutator = { s: Table, v: Any? -> s.kind = (v as? String) ?: "" })
+                propertyOfWithBinding<Table, Any?>(setOf(CMP, VAR, STR), "column", "List", accessor = { s: Table -> s.column }, mutator = { s: Table, v: Any? -> s.column = (v as? Collection<*>)?.filterIsInstance<String>() ?: emptyList() }) { typeArgument("String") }
+                propertyOfWithBinding<Table, Any?>(setOf(CMP, VAR, STR), "row", "List", accessor = { s: Table -> s.row }, mutator = { s: Table, v: Any? -> s.row = (v as? Collection<*>)?.filterIsInstance<TableRow>() ?: emptyList() }) { typeArgument("TableRow") }
+            }
+            data("TableRow", implementation = TableRow::class) {
+                supertypes("DiagramElement")
+                constructor_ { execution { TableRow() } }
+                propertyOfWithBinding<TableRow, Any?>(setOf(CMP, VAR, STR), "cell", "List", accessor = { s: TableRow -> s.cell }, mutator = { s: TableRow, v: Any? -> s.cell = (v as? Collection<*>)?.map { c -> c as? String ?: if (c == null || c == Unit) "" else c.toString() } ?: emptyList() }) { typeArgument("String") }
+            }
         }
     }
 }

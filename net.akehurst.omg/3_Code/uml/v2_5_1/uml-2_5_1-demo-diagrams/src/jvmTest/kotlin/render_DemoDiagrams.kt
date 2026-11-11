@@ -4,12 +4,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.use
+import net.akehurst.kotlin.compose.components.tree.TreeView
 import net.akehurst.kotlin.compose.layout.graph.CompoundGraphLayoutView
 import net.akehurst.kotlin.compose.layout.graph.GraphLayoutViewState
+import net.akehurst.kotlin.compose.layout.ladder.LadderLayoutView
+import net.akehurst.omg.diagram.TableModelView
 import org.jetbrains.skia.EncodedImageFormat
 import java.io.File
 import kotlin.test.Test
-import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /** Renders each demo diagram to a PNG (in build/demo-diagrams), to look at the result without a window. */
 class render_DemoDiagrams {
@@ -19,10 +22,13 @@ class render_DemoDiagrams {
         val out = File(System.getProperty("java.io.tmpdir"), "demo-diagrams").also { it.mkdirs() }
         DemoDiagrams.examples.forEach { ex ->
             val shown = DemoDiagramView.make(ex)
-            assertNotNull(shown.state, "${ex.title}: ${shown.problems}")
+            assertTrue(shown.isMade, "${ex.title}: ${shown.problems}")
             ImageComposeScene(1600, 1500, Density(1.25f)) {
                 MaterialTheme {
-                    CompoundGraphLayoutView(state = shown.state!!, layoutKey = 0, viewState = GraphLayoutViewState(), updateView = { _, _ -> })
+                    shown.graph?.let { CompoundGraphLayoutView(state = it, layoutKey = 0, viewState = GraphLayoutViewState(), updateView = { _, _ -> }) }
+                    shown.ladder?.let { LadderLayoutView(state = it, viewState = GraphLayoutViewState(), updateView = { _, _ -> }) }
+                    shown.tree?.let { TreeView(stateHolder = it) }
+                    shown.table?.let { TableModelView(table = it) }
                 }
             }.use { scene ->
                 // a few frames, so that measuring, layout and the drawing of the laid out graph all happen

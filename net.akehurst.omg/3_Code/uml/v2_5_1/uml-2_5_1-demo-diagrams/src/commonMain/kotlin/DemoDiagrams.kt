@@ -27,7 +27,10 @@ import net.akehurst.omg.uml.v2_5_1.xmi.UmlXmiReader
 object DemoDiagrams {
 
     /** an example model; [elementId] is the xmi:id of the element the diagram shows (a Package, or an Interaction) */
-    class Example(val title: String, val elementId: String, val xmi: String)
+    class Example(val title: String, val elementId: String, val xmi: String, val view: View = View.GRAPH)
+
+    /** how an example is shown: as a node/edge graph, a ladder (sequence diagram), a tree or a table */
+    enum class View { GRAPH, LADDER, TREE, TABLE }
 
     private const val HEAD = """<?xml version="1.0" encoding="UTF-8"?>
 <xmi:XMI xmlns:xmi="http://www.omg.org/spec/XMI/20131001" xmlns:uml="http://www.omg.org/spec/UML/20161101">"""
@@ -282,11 +285,8 @@ $TAIL""")
 $TAIL""")
 
 
-    /**
-     * A sequence diagram, drawn as a ladder. Not in [examples] yet: it needs the ladder layout
-     * (net.akehurst.kotlin.compose layout-ladder), which is being written.
-     */
-    val sequenceDiagram = Example("Sequence", "checkout", """$HEAD
+    /** A sequence diagram, drawn as a ladder. */
+    val sequenceDiagram = Example("Sequence", "checkout", view = View.LADDER, xmi = """$HEAD
   <uml:Model xmi:id="m" name="Demo">
     <packagedElement xmi:type="uml:Package" xmi:id="shopping" name="Shopping">
       <packagedElement xmi:type="uml:Class" xmi:id="Customer" name="Customer"/>
@@ -347,9 +347,16 @@ $TAIL""")
   </uml:Model>
 $TAIL""")
 
+    /** the class diagram's model, shown as its containment tree ([UmlTreeTableRules.containmentTree]) */
+    val containmentTree = Example("Containment tree", classDiagram.elementId, classDiagram.xmi, View.TREE)
+
+    /** the class diagram's model, shown as a table of attributes ([UmlTreeTableRules.attributeTable]) */
+    val attributeTable = Example("Attribute table", classDiagram.elementId, classDiagram.xmi, View.TABLE)
+
     val examples = listOf(
         classDiagram, packageDiagram, objectDiagram, componentDiagram,
-        compositeStructureDiagram, deploymentDiagram, profileDiagram, activityDiagram
+        compositeStructureDiagram, deploymentDiagram, profileDiagram, activityDiagram, sequenceDiagram,
+        containmentTree, attributeTable
     )
 
     /** a new XMI reader (each example is read by its own reader, as the examples reuse ids) */

@@ -42,17 +42,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import net.akehurst.kotlin.compose.components.tree.TreeView
+import net.akehurst.kotlin.compose.components.tree.TreeViewNode
+import net.akehurst.kotlin.compose.components.tree.TreeViewStateHolder
 import net.akehurst.kotlin.compose.layout.graph.CompoundGraphLayoutView
 import net.akehurst.kotlin.compose.layout.graph.GraphLayoutCompoundGraphState
 import net.akehurst.kotlin.compose.layout.graph.GraphLayoutViewState
 import net.akehurst.kotlin.compose.layout.graph.collapsibleChildGraphs
 import net.akehurst.kotlin.compose.layout.graph.toggleCollapsed
+import net.akehurst.kotlin.compose.layout.ladder.LadderLayoutState
+import net.akehurst.kotlin.compose.layout.ladder.LadderLayoutView
+import net.akehurst.omg.diagram.Table
+import net.akehurst.omg.diagram.TableModelView
 import net.akehurst.omg.diagram.toCompoundGraphState
+import net.akehurst.omg.diagram.toTreeViewNodes
+import net.akehurst.omg.diagram.toLadderLayoutState
+import net.akehurst.omg.uml.gui.compose.UmlLadderShapeRegistry
 import net.akehurst.omg.uml.gui.compose.UmlShapeRegistry
 
 /**
- * Shows one diagram per UML diagram type. Each diagram is made from an example UML model (XMI)
- * by the agl-m2m transform [UmlDiagramRules], drawn with the shapes of [UmlShapeRegistry].
+ * Shows one diagram per UML diagram type, plus a tree and a table. Each is made from an example UML model (XMI)
+ * by an agl-m2m transform: [UmlDiagramRules], [UmlSequenceRules] for the sequence diagram, or [UmlTreeTableRules] for the tree and the table.
+ * Diagrams are drawn with the shapes of [UmlShapeRegistry], the tree with the components TreeView and the table with its TableView.
  */
 @Composable
 fun DemoApp() {
@@ -73,14 +84,14 @@ fun DemoApp() {
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("UML diagram", style = MaterialTheme.typography.titleMedium)
+            Text("UML view", style = MaterialTheme.typography.titleMedium)
             examples.forEach { ex ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = selected == ex, onClick = { selected = ex })
                     Text(ex.title)
                 }
             }
-            val state = shown.state
+            val state = shown.graph
             val containers = if (null != state && collapseVersion >= 0) state.collapsibleChildGraphs().sortedBy { it.id } else emptyList()
             if (containers.isNotEmpty()) {
                 Text("Containers", style = MaterialTheme.typography.titleMedium)
@@ -113,38 +124,97 @@ fun DemoApp() {
 private fun DiagramCanvas(title: String, shown: DemoDiagramView, collapseVersion: Int) {
     var viewState by remember(shown) { mutableStateOf(GraphLayoutViewState()) }
     Column(modifier = Modifier.fillMaxSize()) {
-        Text("$title diagram", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 4.dp))
-        val state = shown.state
-        if (null == state) {
-            Text("The diagram could not be made:", style = MaterialTheme.typography.bodyMedium)
-            shown.problems.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
-        } else {
-            CompoundGraphLayoutView(
-                state = state,
+        Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 4.dp))
+        val graph = shown.graph
+        val ladder = shown.ladder
+        when {
+            null != graph -> CompoundGraphLayoutView(
+                state = graph,
                 layoutKey = collapseVersion,
                 viewState = viewState,
                 updateView = { offset: Offset, zoom: Float -> viewState = GraphLayoutViewState(zoom = zoom, offset = offset) },
                 modifier = Modifier.weight(1f).fillMaxSize()
             )
+
+            null != ladder -> LadderLayoutView(
+                state = ladder,
+                viewState = viewState,
+                updateView = { offset: Offset, zoom: Float -> viewState = GraphLayoutViewState(zoom = zoom, offset = offset) },
+                modifier = Modifier.weight(1f).fillMaxSize()
+            )
+
+            null != shown.tree -> TreeView(stateHolder = shown.tree, modifier = Modifier.weight(1f).fillMaxSize())
+
+            null != shown.table -> TableModelView(table = shown.table, modifier = Modifier.weight(1f))
+
+            else -> {
+                Text("The diagram could not be made:", style = MaterialTheme.typography.bodyMedium)
+                shown.problems.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
+            }
         }
     }
 }
 
-/** The layout-graph state for one example, or the problems that stopped it being made. */
-class DemoDiagramView(val state: GraphLayoutCompoundGraphState?, val problems: List<String>) {
+/** The view state for one example (a layout-graph, ladder, tree or table), or the problems that stopped it being made. */
+class DemoDiagramView(
+    val graph: GraphLayoutCompoundGraphState? = null,
+    val ladder: LadderLayoutState? = null,
+    val tree: TreeViewStateHolder? = null,
+    val table: Table? = null,
+    val problems: List<String> = emptyList(),
+) {
+    val isMade: Boolean get() = null != graph || null != ladder || null != tree || null != table
+
     companion object {
         private val umlToDiagram by lazy { UmlToDiagram(DemoDiagrams.reader().factory) }
 
         fun make(example: DemoDiagrams.Example): DemoDiagramView = try {
             val read = DemoDiagrams.read(example)
-            val res = umlToDiagram.transform(UmlDiagramRules.transform, listOf(read.element))
-            val d = res.diagrams.firstOrNull()
-            when (d) {
-                null -> DemoDiagramView(null, read.issues + res.issues.errors.map { it.toString() })
-                else -> DemoDiagramView(d.toCompoundGraphState(UmlShapeRegistry), emptyList())
+            when (example.view) {
+                DemoDiagrams.View.LADDER -> {
+                    val res = umlToDiagram.transform(UmlSequenceRules.transform, listOf(read.element))
+                    when (val l = res.ladders.firstOrNull()) {
+                        null -> DemoDiagramView(problems = read.issues + res.issues.errors.map { it.toString() })
+                        else -> DemoDiagramView(ladder = l.toLadderLayoutState(UmlLadderShapeRegistry))
+                    }
+                }
+
+                DemoDiagrams.View.TREE -> {
+                    val res = umlToDiagram.transform(UmlTreeTableRules.containmentTree, listOf(read.element))
+                    when (val t = res.trees.firstOrNull()) {
+                        null -> DemoDiagramView(problems = read.issues + res.issues.errors.map { it.toString() })
+                        else -> DemoDiagramView(tree = TreeViewStateHolder().also { h ->
+                            val nodes = t.toTreeViewNodes()
+                            nodes.forEach { expand(it) }
+                            h.updateItems(nodes)
+                        })
+                    }
+                }
+
+                DemoDiagrams.View.TABLE -> {
+                    val res = umlToDiagram.transform(UmlTreeTableRules.attributeTable, listOf(read.element))
+                    when (val t = res.tables.firstOrNull()) {
+                        null -> DemoDiagramView(problems = read.issues + res.issues.errors.map { it.toString() })
+                        else -> DemoDiagramView(table = t)
+                    }
+                }
+
+                else -> {
+                    val res = umlToDiagram.transform(UmlDiagramRules.transform, listOf(read.element))
+                    when (val d = res.diagrams.firstOrNull()) {
+                        null -> DemoDiagramView(problems = read.issues + res.issues.errors.map { it.toString() })
+                        else -> DemoDiagramView(graph = d.toCompoundGraphState(UmlShapeRegistry))
+                    }
+                }
             }
         } catch (t: Throwable) {
-            DemoDiagramView(null, listOf(t.toString()))
+            DemoDiagramView(problems = listOf(t.toString()))
+        }
+
+        /** the demo tree starts fully open */
+        private fun expand(node: TreeViewNode) {
+            node.expanded = node.hasChildren
+            node.children.value.forEach { expand(it) }
         }
     }
 }
