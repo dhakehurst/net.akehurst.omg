@@ -13,6 +13,7 @@ kotlin {
                 implementation(compose.material3)
                 implementation(libs.material.icons.core)
                 api(libs.nak.compose.layout.graph)
+                api(project(":diagram-model"))
             }
         }
         jvmMain {

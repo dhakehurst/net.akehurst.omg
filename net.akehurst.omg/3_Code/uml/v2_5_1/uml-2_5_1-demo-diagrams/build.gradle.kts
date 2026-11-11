@@ -15,6 +15,8 @@ kotlin {
 
                 implementation(libs.nak.compose.layout.graph)
                 implementation(project(":uml-2_5_1-agl-types"))
+                implementation(project(":uml-2_5_1-xmi"))
+                implementation(project(":diagram-model"))
                 implementation(project(":uml-2_5_1-gui-compose"))
             }
         }

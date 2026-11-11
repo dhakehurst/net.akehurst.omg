@@ -1,3 +1,20 @@
+/**
+ * Copyright (C) 2026 Dr. David H. Akehurst (http://dr.david.h.akehurst.net)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
 package net.akehurst.omg.uml.v2_5_1.demo
 
 import androidx.compose.foundation.background
@@ -30,25 +47,25 @@ import net.akehurst.kotlin.compose.layout.graph.GraphLayoutCompoundGraphState
 import net.akehurst.kotlin.compose.layout.graph.GraphLayoutViewState
 import net.akehurst.kotlin.compose.layout.graph.collapsibleChildGraphs
 import net.akehurst.kotlin.compose.layout.graph.toggleCollapsed
+import net.akehurst.omg.diagram.toCompoundGraphState
+import net.akehurst.omg.uml.gui.compose.UmlShapeRegistry
 
+/**
+ * Shows one diagram per UML diagram type. Each diagram is made from an example UML model (XMI)
+ * by the agl-m2m transform [UmlDiagramRules], drawn with the shapes of [UmlShapeRegistry].
+ */
 @Composable
 fun DemoApp() {
-    val scenarios = DemoScenarios.all
-    var selectedScenarioId by remember { mutableStateOf(scenarios.first().id) }
-    var overlay by remember { mutableStateOf(DebugOverlaySettings()) }
-    val selectedScenario = scenarios.first { it.id == selectedScenarioId }
-
-    // Compound state lives here so the sidebar can toggle collapse on it.
-    val compoundState = remember(selectedScenarioId) { selectedScenario.toCompoundGraphState() }
-
-    // Incrementing this triggers layout recomputation inside CompoundGraphLayoutView.
-    // It is reset to 0 whenever the scenario changes (because of the remember key).
-    var collapseVersion by remember(selectedScenarioId) { mutableStateOf(0) }
+    val examples = DemoDiagrams.examples
+    var selected by remember { mutableStateOf(examples.first()) }
+    val shown = remember(selected) { DemoDiagramView.make(selected) }
+    // incremented to make the view lay out again after a container is collapsed or expanded
+    var collapseVersion by remember(selected) { mutableStateOf(0) }
 
     Row(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F6F6))) {
         Column(
             modifier = Modifier
-                .width(320.dp)
+                .width(260.dp)
                 .fillMaxSize()
                 .background(Color.White)
                 .border(width = 1.dp, color = Color(0xFFD8D8D8))
@@ -56,41 +73,24 @@ fun DemoApp() {
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Scenario", style = MaterialTheme.typography.titleMedium)
-            scenarios.forEach { scenario ->
+            Text("UML diagram", style = MaterialTheme.typography.titleMedium)
+            examples.forEach { ex ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = selectedScenarioId == scenario.id,
-                        onClick = { selectedScenarioId = scenario.id }
-                    )
-                    Text(scenario.title)
+                    RadioButton(selected = selected == ex, onClick = { selected = ex })
+                    Text(ex.title)
                 }
             }
-
-            Text("Debug overlay", style = MaterialTheme.typography.titleMedium)
-            DebugToggle("Rendered bounds + endpoints", overlay.showBounds) { overlay = overlay.copy(showBounds = it) }
-            DebugToggle("Ports", overlay.showPorts) { overlay = overlay.copy(showPorts = it) }
-            DebugToggle("Edge IDs", overlay.showEdgeIds) { overlay = overlay.copy(showEdgeIds = it) }
-            DebugToggle("Content origins", overlay.showContentOrigins) { overlay = overlay.copy(showContentOrigins = it) }
-
-            // Collapse/expand toggles — re-read collapseVersion so the sidebar recomposes
-            // after each toggle and reflects the updated isCollapsed value.
-            val collapsibleGraphs = if (collapseVersion >= 0) {
-                compoundState.collapsibleChildGraphs().sortedBy { it.id }
-            } else emptyList()
-
-            if (collapsibleGraphs.isNotEmpty()) {
+            val state = shown.state
+            val containers = if (null != state && collapseVersion >= 0) state.collapsibleChildGraphs().sortedBy { it.id } else emptyList()
+            if (containers.isNotEmpty()) {
                 Text("Containers", style = MaterialTheme.typography.titleMedium)
-                collapsibleGraphs.forEach { childGraph ->
+                containers.forEach { g ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = childGraph.isCollapsed,
-                            onCheckedChange = {
-                                compoundState.toggleCollapsed(childGraph.id)
-                                collapseVersion++
-                            }
-                        )
-                        Text(childGraph.id, style = MaterialTheme.typography.bodySmall)
+                        Checkbox(checked = g.isCollapsed, onCheckedChange = {
+                            state!!.toggleCollapsed(g.id)
+                            collapseVersion++
+                        })
+                        Text(g.id, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -104,57 +104,47 @@ fun DemoApp() {
                 .border(width = 1.dp, color = Color(0xFFD8D8D8))
                 .padding(8.dp)
         ) {
-            LiveLayoutCanvas(
-                title = selectedScenario.title,
-                scenarioId = selectedScenario.id,
-                compoundState = compoundState,
-                collapseVersion = collapseVersion,
-                overlay = overlay
-            )
+            DiagramCanvas(selected.title, shown, collapseVersion)
         }
     }
 }
 
 @Composable
-private fun DebugToggle(label: String, value: Boolean, update: (Boolean) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Checkbox(checked = value, onCheckedChange = update)
-        Text(label)
+private fun DiagramCanvas(title: String, shown: DemoDiagramView, collapseVersion: Int) {
+    var viewState by remember(shown) { mutableStateOf(GraphLayoutViewState()) }
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text("$title diagram", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 4.dp))
+        val state = shown.state
+        if (null == state) {
+            Text("The diagram could not be made:", style = MaterialTheme.typography.bodyMedium)
+            shown.problems.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
+        } else {
+            CompoundGraphLayoutView(
+                state = state,
+                layoutKey = collapseVersion,
+                viewState = viewState,
+                updateView = { offset: Offset, zoom: Float -> viewState = GraphLayoutViewState(zoom = zoom, offset = offset) },
+                modifier = Modifier.weight(1f).fillMaxSize()
+            )
+        }
     }
 }
 
-@Composable
-private fun LiveLayoutCanvas(
-    title: String,
-    scenarioId: String,
-    compoundState: GraphLayoutCompoundGraphState,
-    collapseVersion: Int,
-    overlay: DebugOverlaySettings
-) {
-    var viewState by remember(scenarioId) { mutableStateOf(GraphLayoutViewState()) }
-    compoundState.showContentOrigins.value = overlay.showContentOrigins
-    compoundState.showDebugOverlay.value = overlay.showBounds
+/** The layout-graph state for one example, or the problems that stopped it being made. */
+class DemoDiagramView(val state: GraphLayoutCompoundGraphState?, val problems: List<String>) {
+    companion object {
+        private val umlToDiagram by lazy { UmlToDiagram(DemoDiagrams.reader().factory) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        Text(
-            text = "id=$scenarioId  mode=compound_layout",
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-
-        CompoundGraphLayoutView(
-            state = compoundState,
-            layoutKey = collapseVersion,
-            viewState = viewState,
-            updateView = { offset: Offset, zoom: Float ->
-                viewState = GraphLayoutViewState(zoom = zoom, offset = offset)
-            },
-            modifier = Modifier.weight(1f).fillMaxSize()
-        )
+        fun make(example: DemoDiagrams.Example): DemoDiagramView = try {
+            val read = DemoDiagrams.read(example)
+            val res = umlToDiagram.transform(UmlDiagramRules.transform, listOf(read.pkg))
+            val d = res.diagrams.firstOrNull()
+            when (d) {
+                null -> DemoDiagramView(null, read.issues + res.issues.errors.map { it.toString() })
+                else -> DemoDiagramView(d.toCompoundGraphState(UmlShapeRegistry), emptyList())
+            }
+        } catch (t: Throwable) {
+            DemoDiagramView(null, listOf(t.toString()))
+        }
     }
 }
