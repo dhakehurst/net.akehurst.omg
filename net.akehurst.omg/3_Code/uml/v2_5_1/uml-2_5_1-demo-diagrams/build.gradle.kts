@@ -13,7 +13,9 @@ kotlin {
                 implementation(compose.material3)
                 implementation(libs.material.icons.core)
 
+                implementation(libs.nak.compose.layout.graph)
                 implementation(project(":uml-2_5_1-agl-types"))
+                implementation(project(":uml-2_5_1-gui-compose"))
             }
         }
         jvmMain {

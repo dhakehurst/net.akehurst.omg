@@ -12,6 +12,7 @@ kotlin {
                 implementation(compose.foundation)
                 implementation(compose.material3)
                 implementation(libs.material.icons.core)
+                api(libs.nak.compose.layout.graph)
             }
         }
         jvmMain {

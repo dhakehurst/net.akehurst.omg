@@ -25,11 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import net.akehurst.kotlin.components.layout.graph.CompoundGraphLayoutView
-import net.akehurst.kotlin.components.layout.graph.GraphLayoutCompoundGraphState
-import net.akehurst.kotlin.components.layout.graph.GraphLayoutViewState
-import net.akehurst.kotlin.components.layout.graph.collapsibleChildGraphs
-import net.akehurst.kotlin.components.layout.graph.toggleCollapsed
+import net.akehurst.kotlin.compose.layout.graph.CompoundGraphLayoutView
+import net.akehurst.kotlin.compose.layout.graph.GraphLayoutCompoundGraphState
+import net.akehurst.kotlin.compose.layout.graph.GraphLayoutViewState
+import net.akehurst.kotlin.compose.layout.graph.collapsibleChildGraphs
+import net.akehurst.kotlin.compose.layout.graph.toggleCollapsed
 
 @Composable
 fun DemoApp() {

@@ -6,7 +6,7 @@ dokka = "2.2.0"
 buildconfig = "6.1.2"
 kotlinx-serialization = "1.9.0"
 vanniktech = "0.37.0"
-compose = "1.9.3"
+compose = "1.12.2"
 
 material-icons = "1.7.3"
 korlibs = "6.0.1"
@@ -14,6 +14,7 @@ kotlinx-coroutines = "1.10.1"
 
 nak-kotlinx = "2.4.0-SNAPSHOT"
 nal-agl = "4.2.4.0-SNAPSHOT"
+nak-compose = "2.4.0-SNAPSHOT"
 
 [libraries]
 korlibs-korio = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }
@@ -21,6 +22,7 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 
 nak-kotlinx-collections = { module = "net.akehurst.kotlinx:kotlinx-collections", version.ref = "nak-kotlinx" }
 nak-kotlinx-utils = { module = "net.akehurst.kotlinx:kotlinx-utils", version.ref = "nak-kotlinx" }
+nak-compose-layout-graph = { module = "net.akehurst.kotlin.compose:layout-graph", version.ref = "nak-compose" }
 nal-agl-processor = { module = "net.akehurst.language:agl-processor", version.ref = "nal-agl" }
 material-icons-core = { module="org.jetbrains.compose.material:material-icons-core", version.ref="material-icons"}
 material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "material-icons" }
