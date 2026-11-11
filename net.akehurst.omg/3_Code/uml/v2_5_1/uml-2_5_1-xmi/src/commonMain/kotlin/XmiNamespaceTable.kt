@@ -62,6 +62,8 @@ data class XmiNamespaceTable(
             umlPatterns = listOf(Regex("^https?://www\\.omg\\.org/spec/UML/[0-9.]+/?$")),
             // mofext:Tag elements hold metamodel tags (e.g. org.omg.xmi.nsPrefix), not model content
             ignoredPatterns = listOf(Regex("^https?://www\\.omg\\.org/spec/MOF/[0-9.]+/?$")),
+            // the UML 2.5.1 StandardProfile has an http URI; some files (e.g. the SysML 1.7 profile) refer to it by https
+            profileAliases = mapOf("https://www.omg.org/spec/UML/20161101/StandardProfile" to "http://www.omg.org/spec/UML/20161101/StandardProfile"),
         )
     }
 

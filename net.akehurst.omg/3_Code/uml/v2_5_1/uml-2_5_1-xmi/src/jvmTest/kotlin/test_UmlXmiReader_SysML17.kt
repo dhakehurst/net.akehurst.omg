@@ -51,6 +51,10 @@ class test_UmlXmiReader_SysML17 {
         assertTrue(st.generalisationClosure(requirement).any { it.name == "AbstractRequirement" })
         val satisfy = assertNotNull(st.stereotype(SYSML17, "Satisfy"))
         assertTrue(st.generalisationClosure(satisfy).any { it.name == "Trace" })
+        // the StandardProfile is built in, and SysML's Trace specialises its Trace
+        assertEquals(emptyList(), r.issues.filter { it.kind == XmiIssueKind.MISSING_RESOURCE })
+        val stdTrace = assertNotNull(st.stereotype("http://www.omg.org/spec/UML/20161101/StandardProfile", "Trace"))
+        assertTrue(stdTrace in st.generalisationClosure(satisfy))
         val names = r.document.elementsById.values.filterIsInstance<Stereotype>().map { it.name }.toSet()
         assertTrue(names.containsAll(listOf("Block", "InterfaceBlock", "ValueType", "Requirement", "Verify", "DeriveReqt", "TestCase", "FlowProperty", "ProxyPort")), "$names")
     }
