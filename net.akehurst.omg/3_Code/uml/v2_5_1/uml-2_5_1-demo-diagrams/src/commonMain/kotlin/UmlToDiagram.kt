@@ -20,7 +20,6 @@ package net.akehurst.omg.uml.v2_5_1.demo
 import net.akehurst.language.agl.Agl
 import net.akehurst.language.agl.syntaxAnalyser.LocationMapDefault
 import net.akehurst.language.api.processor.M2mTransformString
-import net.akehurst.language.base.api.Import
 import net.akehurst.language.expressions.processor.ObjectGraphAccessorMutatorByReflection
 import net.akehurst.language.issues.api.LanguageProcessorPhase
 import net.akehurst.language.issues.ram.IssueHolder
@@ -43,7 +42,7 @@ class UmlToDiagram(factory: UML_ModelFactory) {
 
     class Result(val diagrams: List<Diagram>, val ladders: List<Ladder>, val issues: IssueHolder)
 
-    val umlTypes: TypesDomain = UMLTypesDomain(factory).types.also { importAllNamespaces(it) }
+    val umlTypes: TypesDomain = UMLTypesDomain(factory).types
 
     /**
      * The 'dgm' side also needs the UML types, because the target templates contain type tests of UML elements
@@ -97,18 +96,5 @@ class UmlToDiagram(factory: UML_ModelFactory) {
     companion object {
         val UML = DomainReference("uml")
         val DGM = DomainReference("dgm")
-
-        /**
-         * The generated UML types refer to types in other UML namespaces by qualified name,
-         * which agl resolves only through imports. Until the template adds them, import every namespace into every other.
-         */
-        private fun importAllNamespaces(td: TypesDomain) {
-            val umlNamespaces = td.namespace.filter { it.qualifiedName.value.startsWith("UML") }
-            val names = umlNamespaces.map { it.qualifiedName.value }
-            umlNamespaces.forEach { ns ->
-                names.filter { it != ns.qualifiedName.value && ns.import.none { i -> i.value == it } }.forEach { ns.addImport(Import(it)) }
-            }
-            td.resolveImports()
-        }
     }
 }
