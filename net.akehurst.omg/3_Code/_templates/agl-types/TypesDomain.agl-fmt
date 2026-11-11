@@ -22,6 +22,79 @@ format PackageImport {
     MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.*"
 }
 
+// the name of the AGL type of a property's (element) type
+format AglTypeName {
+    MofProperty -> when {
+        type is MofEnum -> "${type.parentPackage.qualifiedName}.${type.name}"
+        type.isPrimitive -> when {
+            'String' == type.validName -> 'String'
+            'Long' == type.validName -> 'Integer'
+            'Double' == type.validName -> 'Real'
+            'Boolean' == type.validName -> 'Boolean'
+            else -> 'Any'
+        }
+        $nothing == type.parentPackage -> 'Any'
+        else -> "${type.parentPackage.qualifiedName}.${type.name}"
+    }
+}
+
+format PropertyChr {
+    MofProperty -> when {
+        isComputed -> 'setOf(DER)'
+        isComposite -> 'setOf(CMP, VAR, STR)'
+        else -> 'setOf(REF, VAR, STR)'
+    }
+}
+
+// the mutator sets the value; for a collection it sets the whole content (see ${model.name}TypesMutation)
+format PropertyMutator {
+    MofProperty -> {
+        owner := parentType.validName
+        tn := type.validName
+        when {
+            isComputed -> 'null'
+            isSingle -> when {
+                isComposite -> "{ s: $owner, v: Any? -> s.${validName}Value.mutable.set(v as ${tn}?) }"
+                else -> "{ s: $owner, v: Any? -> ${model.name}TypesMutation.setReference(s.${validName}Reference, v) { it as ${tn}? } }"
+            }
+            isComposite -> "{ s: $owner, v: Any? -> ${model.name}TypesMutation.setCollection(s.${validName}, v) }"
+            else -> "{ s: $owner, v: Any? -> ${model.name}TypesMutation.setReferences(s.${validName}Reference, v) { it as ${tn}? } }"
+        }
+    }
+}
+
+format Property {
+    MofProperty -> {
+        owner := parentType.validName
+        nullable := isOptional ? 'true' : 'false'
+        tName := "${$self via AglTypeName}"
+        when {
+            isSingle -> "
+                propertyOfWithBinding<$owner, Any?>(${$self via PropertyChr}, \"$nameInXmi\", \"$tName\", $nullable,
+                    accessor = { s: $owner -> s.$validName }, mutator = ${$self via PropertyMutator})
+            "
+            else -> "
+                propertyOfWithBinding<$owner, Any?>(${$self via PropertyChr}, \"$nameInXmi\", \"$colTypeName\", false,
+                    accessor = { s: $owner -> s.$validName }, mutator = ${$self via PropertyMutator}) { typeArgument(\"$tName\") }
+            "
+        }
+    }
+}
+
+format Supertype {
+    MofType -> "supertype(\"${parentPackage.qualifiedName}.${name}\")"
+}
+
+format IdentityCase {
+    MofClass -> "is ${validName} -> obj._identity"
+}
+
+format EnumFromLiteral {
+    MofEnum -> "
+        \"${parentPackage.qualifiedName}.${name}\" -> when (literal) { $[literals.map({it -> "\"${it.name}\" -> ${validName}.${it.validName}"}) sep '; '] ; else -> null }
+    "
+}
+
 format ApiPackageFile {
     #output: 'MofModel -> "agl/${name}TypesDomain.kt"'
 
@@ -31,14 +104,78 @@ format ApiPackageFile {
         // *** Generated code do NOT manually edit. ***
         package ${TARGET_PACKAGE}.agl.types
 
+        import net.akehurst.kotlinx.collections.CollectionExt.mutable
+        import net.akehurst.kotlinx.utils.Reference
+        import net.akehurst.kotlinx.utils.ReferenceExt.mutable
+        import net.akehurst.kotlinx.utils.ReferenceImmutable
+        import net.akehurst.kotlinx.utils.ValueExt.mutable
         import ${TARGET_PACKAGE}.api.${name}_ModelFactory
         import ${TARGET_PACKAGE}.ram.${validName}_ModelFactoryRam
         $[packageList.filter({it -> false == it.isEmpty}) sep $EOL via PackageImport]
         import net.akehurst.language.types.builder.typesDomain
 
+        /**
+         * The types of ${name} for AGL: each metaclass (abstract ones as interfaces) with its supertypes and properties.
+         * Properties are named as in the metamodel (XMI), e.g. 'packagedElement', not as in Kotlin ('packagedElementSet').
+         * Each stored property has an accessor and a mutator; the mutator sets the value (see [${name}TypesMutation]).
+         */
         class ${name}TypesDomain(factory: ${name}_ModelFactory = ${validName}_ModelFactoryRam(\"${name}\")) {
             val types = typesDomain(\"${name}\", true) {
                 $[packageList.filter({it -> false == it.isEmpty}) sep $EOL]
+            }
+        }
+
+        /**
+         * How the mutators of [${name}TypesDomain] set values.
+         * A collection is set as a whole, by difference: values not in the new content are removed, new ones are
+         * added (at the end), values in both are left as they are, so nothing cascades to subsets for them.
+         * A reference may be given as an object or as a [Reference], e.g. one whose identity is an unresolved proxy.
+         */
+        object ${name}TypesMutation {
+            fun setCollection(target: Collection<*>, value: Any?) {
+                val t = (target as Collection<Any?>).mutable
+                val new = when (value) {
+                    null -> emptyList()
+                    is Collection<*> -> value
+                    else -> listOf(value)
+                }
+                val keep = new.toSet()
+                t.filter { it !in keep }.forEach { t.remove(it) }
+                val existing = t.toSet()
+                new.forEach { if (it !in existing) t.add(it) }
+            }
+
+            fun <T : Any> setReference(target: Reference<Any, T>, value: Any?, cast: (Any?) -> T?) {
+                when (value) {
+                    null -> target.mutable.clear()
+                    is Reference<*, *> -> target.mutable.set(value.reference as Any?, cast(value.resolved))
+                    else -> target.mutable.set(identityOf(value), cast(value))
+                }
+            }
+
+            fun <T : Any> setReferences(target: Collection<Reference<Any, T>>, value: Any?, cast: (Any?) -> T?) {
+                val new = when (value) {
+                    null -> emptyList()
+                    is Collection<*> -> value
+                    else -> listOf(value)
+                }.map { v ->
+                    when (v) {
+                        is Reference<*, *> -> ReferenceImmutable<Any, T>(v.reference as Any?, cast(v.resolved))
+                        else -> ReferenceImmutable<Any, T>(identityOf(v), cast(v))
+                    }
+                }
+                setCollection(target, new)
+            }
+
+            private fun identityOf(obj: Any?): Any? = when (obj) {
+                $[classList.filter({it -> 0 == it.superTypes.size}) sep $EOL via IdentityCase]
+                else -> obj
+            }
+
+            /** the Kotlin enum value for a literal name as written in the metamodel (e.g. 'in' for ParameterDirectionKind.in_) */
+            fun enumValue(enumQualifiedName: String, literal: String): Any? = when (enumQualifiedName) {
+                $[enumList sep $EOL via EnumFromLiteral]
+                else -> null
             }
         }
     "
@@ -46,20 +183,30 @@ format ApiPackageFile {
     MofPackage -> "
       namespace(\"$qualifiedName\") {
           $[enums sep $EOL]
-          $[classes.filter({it -> false == it.isAbstract}) sep $EOL]
+          $[classes sep $EOL]
       }
     "
 
     MofEnum -> "
-      enum(\"$name\", listOf(/*TODO*/), implementation = ${validName}::class)
+      enum(\"$name\", listOf($[literals.map({it -> "\"${it.name}\""}) sep ', ']), implementation = ${validName}::class)
     "
 
-    MofClass -> "
-      data(\"$name\", implementation = ${validName}::class) {
-        constructor_ {
-          parameter(setOf(REF, VAL), \"_identity\", \"Any\", false, accessor = ${validName}::_identity)
-          execution { args -> factory.${parentPackage.qualifiedName}.${validName}_construct(args[0] ?: error(\"${name} needs an identity\")) }
-        }
-      }
-    "
+    MofClass -> when {
+        isAbstract -> "
+          interface_(\"$name\", implementation = ${validName}::class) {
+            $[superTypes sep $EOL via Supertype]
+            $[ownedAttribute sep $EOL via Property]
+          }
+        "
+        else -> "
+          data(\"$name\", implementation = ${validName}::class) {
+            $[superTypes sep $EOL via Supertype]
+            constructor_ {
+              parameter(setOf(REF, VAL), \"_identity\", \"Any\", false, accessor = ${validName}::_identity)
+              execution { args -> factory.${parentPackage.qualifiedName}.${validName}_construct(args[0] ?: error(\"${name} needs an identity\")) }
+            }
+            $[ownedAttribute sep $EOL via Property]
+          }
+        "
+    }
 }
