@@ -33,3 +33,5 @@ tasks.named<generator.GenerateTask>("generate") {
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#UnlimitedNatural" to "Long",
     )
 }
+// test_UML_Ram_Footprint builds 100k objects
+tasks.named<Test>("jvmTest") { maxHeapSize = "3g" }
