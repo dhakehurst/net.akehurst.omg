@@ -81,6 +81,10 @@ format Property {
     }
 }
 
+format NamespaceName {
+    MofPackage -> "\"${qualifiedName}\","
+}
+
 format Supertype {
     MofType -> "supertype(\"${parentPackage.qualifiedName}.${name}\")"
 }
@@ -113,6 +117,7 @@ format ApiPackageFile {
         import ${TARGET_PACKAGE}.ram.${validName}_ModelFactoryRam
         $[packageList.filter({it -> false == it.isEmpty}) sep $EOL via PackageImport]
         import net.akehurst.language.types.builder.typesDomain
+        import net.akehurst.language.types.asm.StdLibDefault
 
         /**
          * The types of ${name} for AGL: each metaclass (abstract ones as interfaces) with its supertypes and properties.
@@ -120,6 +125,10 @@ format ApiPackageFile {
          * Each stored property has an accessor and a mutator; the mutator sets the value (see [${name}TypesMutation]).
          */
         class ${name}TypesDomain(factory: ${name}_ModelFactory = ${validName}_ModelFactoryRam(\"${name}\")) {
+            // each namespace imports all the others, so that qualified names of types in other namespaces resolve
+            private val imports = listOf(StdLibDefault.qualifiedName.value) + listOf(
+                $[packageList.filter({it -> false == it.isEmpty}) sep $EOL via NamespaceName]
+            )
             val types = typesDomain(\"${name}\", true) {
                 $[packageList.filter({it -> false == it.isEmpty}) sep $EOL]
             }
@@ -181,7 +190,7 @@ format ApiPackageFile {
     "
 
     MofPackage -> "
-      namespace(\"$qualifiedName\") {
+      namespace(\"$qualifiedName\", imports - \"$qualifiedName\") {
           $[enums sep $EOL]
           $[classes sep $EOL]
       }
