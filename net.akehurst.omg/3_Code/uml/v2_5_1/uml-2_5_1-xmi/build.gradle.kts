@@ -34,3 +34,8 @@ tasks.named<generator.GenerateTask>("generate") {
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#UnlimitedNatural" to "Long",
     )
 }
+
+// the large model test needs more than the default test heap
+tasks.named<Test>("jvmTest") {
+    maxHeapSize = "3g"
+}
