@@ -302,12 +302,14 @@ format PropertyGetterSglCmp {
         opt := isOptional ? '' : " ?: error(\"Property ${validName} is not optional, therefore it must be set before is is accessed.\")"
         typeName := type.isPrimitive ? type.validName : type.validName+'_NN'
         nullable := isOptional ? '?' : ''
-        accessor := "override val ${validName}: ${typeName}${nullable} get() = ${validName}Value.get()$opt"
+        // the holder is created on first use; reading the value does not create it
+        accessor := "override val ${validName}: ${typeName}${nullable} get() = _${validName}Value?.get()$opt"
         mutable := "
-            override val ${validName}Value: Value<${typeName}?> = ManagedValue(
+            private var _${validName}Value: Value<${typeName}?>? = null
+            override val ${validName}Value: Value<${typeName}?> get() = _${validName}Value ?: ManagedValue<${typeName}?>(
                 null, \"${parentType.validName}.${validName}\", _k_${validName},
                 $onChanged
-            )
+            ).also { _${validName}Value = it }
         "
         "
             $mutable
@@ -390,12 +392,14 @@ format PropertyGetterSglRef {
         opt := isOptional ? '': " ?: error(\"Property ${validName} is not optional, therefore it must be set before is is accessed.\")"
         typeName := type.isPrimitive ? type.validName : type.validName+'_NN'
         nullable := isOptional ? '?' : ''
-        accessor := "override val ${validName}: ${typeName}${nullable} get() = ${validName}Reference.resolved$opt"
+        // the holder is created on first use; reading the value does not create it
+        accessor := "override val ${validName}: ${typeName}${nullable} get() = _${validName}Reference?.resolved$opt"
         mutable := "
-            override val ${validName}Reference: Reference<Any, ${typeName}> = ManagedReference(
+            private var _${validName}Reference: Reference<Any, ${typeName}>? = null
+            override val ${validName}Reference: Reference<Any, ${typeName}> get() = _${validName}Reference ?: ManagedReference<Any, ${typeName}>(
                 null, \"${parentType.validName}.${validName}\", _k_${validName},
                 $onChanged
-            )
+            ).also { _${validName}Reference = it }
         "
         "
             $mutable
@@ -527,15 +531,19 @@ format PropertyGetterColCmp {
             "
             else -> ''
         }
+        typeName := type.isPrimitive ? type.validName : type.validName+'_NN'
+        // the holder is created on first use
         impl := "
-            = Managed${colTypeName}(
+            get() = _${validName} ?: Managed${colTypeName}<${typeName}>(
                 \"${parentType.validName}.${validName}\", _k_${validName},
                 $onAdded
                 $onRemoved
-            )
+            ).also { _${validName} = it }
         "
-        typeName := type.isPrimitive ? type.validName : type.validName+'_NN'
-        "override val ${validName}: $colTypeName<${typeName}> $impl"
+        "
+            private var _${validName}: $colTypeName<${typeName}>? = null
+            override val ${validName}: $colTypeName<${typeName}> $impl
+        "
      }
 }
 
@@ -657,15 +665,19 @@ format PropertyGetterColRef {
             else -> ''
         }
         typeName := type.isPrimitive ? type.validName : type.validName+'_NN'
+        // the holder is created on first use; reading the resolved values does not create it
         impl := "
-            = ManagedReference${colTypeName}(
+            get() = _${validName}Reference ?: ManagedReference${colTypeName}<${typeName}>(
                 \"${parentType.validName}.${validName}\", _k_${validName},
                  $onAdded
                  $onRemoved
-            )
+            ).also { _${validName}Reference = it }
         "
-        mutable := "override val ${validName}Reference: ${colTypeName}<Reference<Any, ${typeName}>> $impl"
-        accessor := "override val ${validName}: $validTypeName get() = ${validName}Reference.map{it.resolved ?: error(\"In property '${validName}' of object '\${_identity}:${parentType.validName}', reference '\$it' is not resolved.\") }.to${colTypeName}()"
+        mutable := "
+            private var _${validName}Reference: ${colTypeName}<Reference<Any, ${typeName}>>? = null
+            override val ${validName}Reference: ${colTypeName}<Reference<Any, ${typeName}>> $impl
+        "
+        accessor := "override val ${validName}: $validTypeName get() = (_${validName}Reference ?: emptyList()).map{it.resolved ?: error(\"In property '${validName}' of object '\${_identity}:${parentType.validName}', reference '\$it' is not resolved.\") }.to${colTypeName}()"
         "
             $mutable
             $accessor
@@ -689,11 +701,11 @@ format PropertyGetterDerived {
             isSingle -> {
                 nullable := isOptional ? '?' : ''
                 "
-                    override val ${validName}Derived: Derived<${typeName}${nullable}> = ManagedDerived($dname, _k_${validName}) { $derive as ${typeName}${nullable} }
+                    override val ${validName}Derived: Derived<${typeName}${nullable}> get() = ManagedDerived($dname, _k_${validName}) { $derive as ${typeName}${nullable} }
                     override val ${validName}: ${typeName}${nullable} get() = ${validName}Derived.get()
                 "
             }
-            else -> "override val ${validName}: ${colTypeName}<${typeName}> = Derived${colTypeName}($dname, _k_${validName}) { $derive as ${colTypeName}<${typeName}> }"
+            else -> "override val ${validName}: ${colTypeName}<${typeName}> get() = Derived${colTypeName}($dname, _k_${validName}) { $derive as ${colTypeName}<${typeName}> }"
         }
     }
 }
@@ -711,13 +723,13 @@ format PropertyUnion {
                 nullable := union.isOptional ? '?' : ''
                 "
                   // Derived union ${union.parentType.validName}.${union.validName} of [$[subs sep ', ']]
-                  override val ${union.validName}Derived: Derived<${typeName}${nullable}> = ManagedDerived($dname, _k_${union.validName}) { ${allv}.firstOrNull() as ${typeName}${nullable} }
+                  override val ${union.validName}Derived: Derived<${typeName}${nullable}> get() = ManagedDerived($dname, _k_${union.validName}) { ${allv}.firstOrNull() as ${typeName}${nullable} }
                   override val ${union.validName}: ${typeName}${nullable} get() = ${union.validName}Derived.get()
                 "
             }
             else -> "
                   // Derived union ${union.parentType.validName}.${union.validName} of [$[subs sep ', ']]
-                  override val ${union.validName}: ${union.colTypeName}<${typeName}> = Derived${union.colTypeName}($dname, _k_${union.validName}) { ${allv}.map { it as ${typeName} }.to${union.colTypeName}() }
+                  override val ${union.validName}: ${union.colTypeName}<${typeName}> get() = Derived${union.colTypeName}($dname, _k_${union.validName}) { ${allv}.map { it as ${typeName} }.to${union.colTypeName}() }
             "
         }
     }
