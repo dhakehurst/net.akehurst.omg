@@ -17,17 +17,17 @@
 
 package net.akehurst.omg.uml.v2_5_1.demo
 
-import net.akehurst.omg.uml.v2_5_1.api.UML.Packages.Package
 import net.akehurst.omg.uml.v2_5_1.xmi.UmlXmiReader
 
 /**
  * Example UML models, one per diagram type, written as UML 2.5.1 XMI and read with the XMI reader.
- * Each example names the package that the diagram shows. Element names are unique within a diagram,
+ * Each example names the element (package or interaction) that the diagram shows. Element names are unique within a diagram,
  * because the mapping uses them as node ids.
  */
 object DemoDiagrams {
 
-    class Example(val title: String, val packageId: String, val xmi: String)
+    /** an example model; [elementId] is the xmi:id of the element the diagram shows (a Package, or an Interaction) */
+    class Example(val title: String, val elementId: String, val xmi: String)
 
     private const val HEAD = """<?xml version="1.0" encoding="UTF-8"?>
 <xmi:XMI xmlns:xmi="http://www.omg.org/spec/XMI/20131001" xmlns:uml="http://www.omg.org/spec/UML/20161101">"""
@@ -281,6 +281,72 @@ $TAIL""")
   </uml:Model>
 $TAIL""")
 
+
+    /**
+     * A sequence diagram, drawn as a ladder. Not in [examples] yet: it needs the ladder layout
+     * (net.akehurst.kotlin.compose layout-ladder), which is being written.
+     */
+    val sequenceDiagram = Example("Sequence", "checkout", """$HEAD
+  <uml:Model xmi:id="m" name="Demo">
+    <packagedElement xmi:type="uml:Package" xmi:id="shopping" name="Shopping">
+      <packagedElement xmi:type="uml:Class" xmi:id="Customer" name="Customer"/>
+      <packagedElement xmi:type="uml:Class" xmi:id="Shop" name="Shop"/>
+      <packagedElement xmi:type="uml:Class" xmi:id="PaymentService" name="PaymentService"/>
+      <packagedElement xmi:type="uml:Collaboration" xmi:id="roles" name="Roles">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="roles.customer" name="customer" type="Customer"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="roles.shop" name="shop" type="Shop"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="roles.payment" name="payment" type="PaymentService"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Interaction" xmi:id="checkout" name="Checkout">
+        <lifeline xmi:type="uml:Lifeline" xmi:id="customer" name="customer" represents="roles.customer"/>
+        <lifeline xmi:type="uml:Lifeline" xmi:id="shop" name="shop" represents="roles.shop"/>
+        <lifeline xmi:type="uml:Lifeline" xmi:id="payment" name="payment" represents="roles.payment"/>
+        <fragment xmi:type="uml:CombinedFragment" xmi:id="loop1" name="loop1" interactionOperator="loop" covered="customer shop">
+          <operand xmi:type="uml:InteractionOperand" xmi:id="loop1.o1" name="loop1.o1">
+            <guard xmi:type="uml:InteractionConstraint" xmi:id="loop1.o1.g">
+              <specification xmi:type="uml:LiteralString" xmi:id="loop1.o1.g.s" value="more items"/>
+            </guard>
+            <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="addItem.s" name="addItem.s" covered="customer" message="addItem"/>
+            <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="addItem.r" name="addItem.r" covered="shop" message="addItem"/>
+          </operand>
+        </fragment>
+        <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="placeOrder.s" name="placeOrder.s" covered="customer" message="placeOrder"/>
+        <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="placeOrder.r" name="placeOrder.r" covered="shop" message="placeOrder"/>
+        <fragment xmi:type="uml:BehaviorExecutionSpecification" xmi:id="shopBusy" name="shopBusy" covered="shop" start="placeOrder.r" finish="confirm.s"/>
+        <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="checkStock.s" name="checkStock.s" covered="shop" message="checkStock"/>
+        <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="checkStock.r" name="checkStock.r" covered="shop" message="checkStock"/>
+        <fragment xmi:type="uml:CombinedFragment" xmi:id="alt1" name="alt1" interactionOperator="alt" covered="customer shop payment">
+          <operand xmi:type="uml:InteractionOperand" xmi:id="alt1.o1" name="alt1.o1">
+            <guard xmi:type="uml:InteractionConstraint" xmi:id="alt1.o1.g">
+              <specification xmi:type="uml:LiteralString" xmi:id="alt1.o1.g.s" value="in stock"/>
+            </guard>
+            <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="pay.s" name="pay.s" covered="shop" message="pay"/>
+            <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="pay.r" name="pay.r" covered="payment" message="pay"/>
+            <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="paid.s" name="paid.s" covered="payment" message="paid"/>
+            <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="paid.r" name="paid.r" covered="shop" message="paid"/>
+          </operand>
+          <operand xmi:type="uml:InteractionOperand" xmi:id="alt1.o2" name="alt1.o2">
+            <guard xmi:type="uml:InteractionConstraint" xmi:id="alt1.o2.g">
+              <specification xmi:type="uml:LiteralString" xmi:id="alt1.o2.g.s" value="else"/>
+            </guard>
+            <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="outOfStock.s" name="outOfStock.s" covered="shop" message="outOfStock"/>
+            <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="outOfStock.r" name="outOfStock.r" covered="customer" message="outOfStock"/>
+          </operand>
+        </fragment>
+        <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="confirm.s" name="confirm.s" covered="shop" message="confirm"/>
+        <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="confirm.r" name="confirm.r" covered="customer" message="confirm"/>
+        <message xmi:type="uml:Message" xmi:id="addItem" name="addItem" messageSort="synchCall" sendEvent="addItem.s" receiveEvent="addItem.r"/>
+        <message xmi:type="uml:Message" xmi:id="placeOrder" name="placeOrder" messageSort="synchCall" sendEvent="placeOrder.s" receiveEvent="placeOrder.r"/>
+        <message xmi:type="uml:Message" xmi:id="checkStock" name="checkStock" messageSort="synchCall" sendEvent="checkStock.s" receiveEvent="checkStock.r"/>
+        <message xmi:type="uml:Message" xmi:id="pay" name="pay" messageSort="asynchSignal" sendEvent="pay.s" receiveEvent="pay.r"/>
+        <message xmi:type="uml:Message" xmi:id="paid" name="paid" messageSort="asynchSignal" sendEvent="paid.s" receiveEvent="paid.r"/>
+        <message xmi:type="uml:Message" xmi:id="outOfStock" name="outOfStock" messageSort="reply" sendEvent="outOfStock.s" receiveEvent="outOfStock.r"/>
+        <message xmi:type="uml:Message" xmi:id="confirm" name="confirm" messageSort="reply" sendEvent="confirm.s" receiveEvent="confirm.r"/>
+      </packagedElement>
+    </packagedElement>
+  </uml:Model>
+$TAIL""")
+
     val examples = listOf(
         classDiagram, packageDiagram, objectDiagram, componentDiagram,
         compositeStructureDiagram, deploymentDiagram, profileDiagram, activityDiagram
@@ -289,13 +355,13 @@ $TAIL""")
     /** a new XMI reader (each example is read by its own reader, as the examples reuse ids) */
     fun reader() = UmlXmiReader()
 
-    /** reads the example's XMI and returns the package the diagram shows */
+    /** reads the example's XMI and returns the element the diagram shows */
     fun read(example: Example): Read {
         val reader = reader()
-        val res = reader.read("${example.packageId}.xmi", example.xmi)
-        val pkg = res.elementById(example.packageId) as? Package ?: error("No package '${example.packageId}' in example '${example.title}'")
-        return Read(pkg, reader, res.issues.map { it.toString() })
+        val res = reader.read("${example.elementId}.xmi", example.xmi)
+        val element = res.elementById(example.elementId) ?: error("No element '${example.elementId}' in example '${example.title}'")
+        return Read(element, reader, res.issues.map { it.toString() })
     }
 
-    class Read(val pkg: Package, val reader: UmlXmiReader, val issues: List<String>)
+    class Read(val element: Any, val reader: UmlXmiReader, val issues: List<String>)
 }

@@ -137,7 +137,7 @@ class DemoDiagramView(val state: GraphLayoutCompoundGraphState?, val problems: L
 
         fun make(example: DemoDiagrams.Example): DemoDiagramView = try {
             val read = DemoDiagrams.read(example)
-            val res = umlToDiagram.transform(UmlDiagramRules.transform, listOf(read.pkg))
+            val res = umlToDiagram.transform(UmlDiagramRules.transform, listOf(read.element))
             val d = res.diagrams.firstOrNull()
             when (d) {
                 null -> DemoDiagramView(null, read.issues + res.issues.errors.map { it.toString() })

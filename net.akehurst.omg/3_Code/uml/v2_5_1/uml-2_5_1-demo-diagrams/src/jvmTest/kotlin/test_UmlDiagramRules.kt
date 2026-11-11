@@ -16,7 +16,7 @@ class test_UmlDiagramRules {
     private fun run(example: DemoDiagrams.Example): Diagram {
         val read = DemoDiagrams.read(example)
         println("--- ${example.title}: XMI issues ${read.issues}")
-        val res = UmlToDiagram(read.reader.factory).transform(UmlDiagramRules.transform, listOf(read.pkg))
+        val res = UmlToDiagram(read.reader.factory).transform(UmlDiagramRules.transform, listOf(read.element))
         println("m2m issues: ${res.issues}")
         res.diagrams.forEach { println(it.dump()) }
         assertEquals(1, res.diagrams.size)

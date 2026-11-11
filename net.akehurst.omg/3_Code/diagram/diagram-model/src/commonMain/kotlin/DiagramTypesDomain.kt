@@ -70,6 +70,38 @@ object DiagramTypesDomain {
                 propertyOfWithBinding<EdgeEnd, Any?>(setOf(CMP, VAR, STR), "decoration", "String", accessor = { s: EdgeEnd -> s.decoration }, mutator = { s: EdgeEnd, v: Any? -> s.decoration = (v as? String) ?: "" })
                 propertyOfWithBinding<EdgeEnd, Any?>(setOf(CMP, VAR, STR), "label", "List", accessor = { s: EdgeEnd -> s.label }, mutator = { s: EdgeEnd, v: Any? -> s.label = (v as? Collection<*>)?.filterIsInstance<String>() ?: emptyList() }) { typeArgument("String") }
             }
+            data("Ladder", implementation = Ladder::class) {
+                constructor_ { execution { Ladder() } }
+                propertyOfWithBinding<Ladder, Any?>(setOf(CMP, VAR, STR), "name", "String", accessor = { s: Ladder -> s.name }, mutator = { s: Ladder, v: Any? -> s.name = (v as? String) ?: "" })
+                propertyOfWithBinding<Ladder, Any?>(setOf(CMP, VAR, STR), "kind", "String", accessor = { s: Ladder -> s.kind }, mutator = { s: Ladder, v: Any? -> s.kind = (v as? String) ?: "" })
+                propertyOfWithBinding<Ladder, Any?>(setOf(CMP, VAR, STR), "rail", "List", accessor = { s: Ladder -> s.rail }, mutator = { s: Ladder, v: Any? -> s.rail = (v as? Collection<*>)?.filterIsInstance<Rail>() ?: emptyList() }) { typeArgument("Rail") }
+                propertyOfWithBinding<Ladder, Any?>(setOf(CMP, VAR, STR), "step", "List", accessor = { s: Ladder -> s.step }, mutator = { s: Ladder, v: Any? -> s.step = (v as? Collection<*>)?.filterIsInstance<Step>() ?: emptyList() }) { typeArgument("Step") }
+                propertyOfWithBinding<Ladder, Any?>(setOf(CMP, VAR, STR), "bar", "List", accessor = { s: Ladder -> s.bar }, mutator = { s: Ladder, v: Any? -> s.bar = (v as? Collection<*>)?.filterIsInstance<LadderBar>() ?: emptyList() }) { typeArgument("LadderBar") }
+            }
+            data("Rail", implementation = Rail::class) {
+                supertypes("DiagramElement")
+                constructor_ { execution { Rail() } }
+            }
+            data("Step", implementation = Step::class) {
+                supertypes("DiagramElement")
+                constructor_ { execution { Step() } }
+                propertyOfWithBinding<Step, Any?>(setOf(CMP, VAR, STR), "sourceId", "String", accessor = { s: Step -> s.sourceId }, mutator = { s: Step, v: Any? -> s.sourceId = (v as? String) ?: "" })
+                propertyOfWithBinding<Step, Any?>(setOf(CMP, VAR, STR), "targetId", "String", accessor = { s: Step -> s.targetId }, mutator = { s: Step, v: Any? -> s.targetId = (v as? String) ?: "" })
+                propertyOfWithBinding<Step, Any?>(setOf(CMP, VAR, STR), "covered", "List", accessor = { s: Step -> s.covered }, mutator = { s: Step, v: Any? -> s.covered = (v as? Collection<*>)?.filterIsInstance<String>() ?: emptyList() }) { typeArgument("String") }
+                propertyOfWithBinding<Step, Any?>(setOf(CMP, VAR, STR), "operand", "List", accessor = { s: Step -> s.operand }, mutator = { s: Step, v: Any? -> s.operand = (v as? Collection<*>)?.filterIsInstance<Operand>() ?: emptyList() }) { typeArgument("Operand") }
+            }
+            data("Operand", implementation = Operand::class) {
+                constructor_ { execution { Operand() } }
+                propertyOfWithBinding<Operand, Any?>(setOf(CMP, VAR, STR), "guard", "String", accessor = { s: Operand -> s.guard }, mutator = { s: Operand, v: Any? -> s.guard = (v as? String) ?: "" })
+                propertyOfWithBinding<Operand, Any?>(setOf(CMP, VAR, STR), "step", "List", accessor = { s: Operand -> s.step }, mutator = { s: Operand, v: Any? -> s.step = (v as? Collection<*>)?.filterIsInstance<Step>() ?: emptyList() }) { typeArgument("Step") }
+            }
+            data("LadderBar", implementation = LadderBar::class) {
+                supertypes("DiagramElement")
+                constructor_ { execution { LadderBar() } }
+                propertyOfWithBinding<LadderBar, Any?>(setOf(CMP, VAR, STR), "railId", "String", accessor = { s: LadderBar -> s.railId }, mutator = { s: LadderBar, v: Any? -> s.railId = (v as? String) ?: "" })
+                propertyOfWithBinding<LadderBar, Any?>(setOf(CMP, VAR, STR), "startId", "String", accessor = { s: LadderBar -> s.startId }, mutator = { s: LadderBar, v: Any? -> s.startId = (v as? String) ?: "" })
+                propertyOfWithBinding<LadderBar, Any?>(setOf(CMP, VAR, STR), "finishId", "String", accessor = { s: LadderBar -> s.finishId }, mutator = { s: LadderBar, v: Any? -> s.finishId = (v as? String) ?: "" })
+            }
         }
     }
 }
