@@ -20,6 +20,7 @@ Package `<TARGET_PACKAGE>.api`.
 | `Builder.agl-fmt` | `<Package>_PackageBuilder.kt` per package and `<Model>_ModelBuilder`, a DSL for building models (stored properties only) |
 | `Resolver.agl-fmt` | `<Package>_PackageResolver` per package and `<Model>_ModelResolver`, which resolve references |
 | `AsString.agl-fmt` | `<Package>_PackageAsString` per package and `<Model>_ModelAsString`, which print a model as text |
+| `Reflective.agl-fmt` | `<Model>_ModelReflective` (interface) and `<Model>_ModelReflectiveDefault`, a by-name API that builds models from metaclass and feature names as in the XMI, plus an internal `<Package>_PackageReflective` per package with the `when` tables. Written only against the api and `<Model>_ModelFactory`, so it works with any implementation |
 
 ## ram
 

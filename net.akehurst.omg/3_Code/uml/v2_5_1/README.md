@@ -16,7 +16,7 @@ All modules have the group `net.akehurst.omg`. The Kotlin package is `net.akehur
 
 | Module | Contents |
 |---|---|
-| `uml-2_5_1-api` | Generated: one interface per metaclass (package `api.UML.<Package>`, e.g. `api.UML.StructuredClassifiers.Class`), `UML_ModelFactory`, `UML_ModelBuilder`, `UML_ModelResolver`, `UML_ModelAsString`, and the derivations of derived properties |
+| `uml-2_5_1-api` | Generated: one interface per metaclass (package `api.UML.<Package>`, e.g. `api.UML.StructuredClassifiers.Class`), `UML_ModelFactory`, `UML_ModelBuilder`, `UML_ModelResolver`, `UML_ModelAsString`, `UML_ModelReflective` (by-name API), and the derivations of derived properties |
 | `uml-2_5_1-ram` | Generated: in-memory classes that implement the api, created by `UML_ModelFactoryRam` |
 | `uml-2_5_1-agl-types` | Generated: `UMLTypesDomain`, the AGL types of UML, bound to the ram classes, so that AGL expressions and agl-m2m transforms can read, create and set UML objects |
 | `uml-2_5_1-xmi` | Reads UML 2.5.1 models (not metamodels) from XMI into the ram classes, with stereotype applications |
@@ -54,6 +54,42 @@ from its subsets, and opposite ends are updated. Collections are changed through
 ```kotlin
 association.ownedEndOrderedSet.mutable.remove(p)   // also removed from navigableOwnedEnd
 ```
+
+## Building a model by name
+
+`UML_ModelReflective` builds a model from the names of metaclasses and features, as in the OMG XMI, for readers that
+don't know the types at compile time (e.g. an XMI or JSON reader). It uses only the api and a `UML_ModelFactory`,
+so it works with the ram classes or any other implementation, on JVM, JS and Wasm.
+
+```kotlin
+val factory = UML_ModelFactoryRam("myModel")
+val r: UML_ModelReflective = UML_ModelReflectiveDefault(factory)
+
+val model = r.construct("Model", "m")!!            // null for an unknown or abstract metaclass
+val cls = r.construct("Class", "c1")!!
+r.setValue(cls, "name", "Spacecraft")              // inherited features work too
+r.addContained(model, "packagedElement", cls)
+val p = r.construct("Property", "p1")!!
+r.addContained(cls, "ownedAttribute", p)
+r.setReference(p, "type", "dt_kg")                 // by identity, resolved later
+r.setValue(p, "visibility", "private")             // an enumeration literal by name
+
+UML_ModelResolver("myModel", factory).UML.Packages.Model_resolve(model as Model)
+```
+
+| Operation | For |
+|---|---|
+| `construct(metaclass, identity)` | a new object of a concrete metaclass |
+| `setValue(obj, feature, value)` / `addValue` | VALUE features (primitive types, enumerations). Enumeration literals by name; Boolean, Integer, Real, UnlimitedNatural also as a String (`"*"` is -1). `setValue` on a many-valued feature sets the whole content |
+| `addContained(obj, feature, child)` | CONTAINED (composite) features, single or many |
+| `setReference(obj, feature, id)` / `addReference` | REFERENCE features, by identity. `setReference` is for single-valued ones; `addReference` adds to a many-valued one (or sets a single one) |
+| `featureKind(metaclass, feature)` | a `ReflectiveFeature`: kind (VALUE, CONTAINED, REFERENCE), many or single, type name, derived, read-only |
+| `metaclassOf(obj)`, `superclasses(metaclass)` | the metaclass name of an object; all superclasses, most specific first |
+
+Nothing throws: an unknown name, a value of the wrong type, or a derived or read-only feature gives `null` or `false`,
+so a reader can collect warnings. Setting a feature updates subsets, supersets and opposites as the typed api does.
+A redefined feature can also be set by the name of the feature it redefines. An identity that never resolves stays as
+an unresolved reference in the property's `...Reference`.
 
 ## Reading XMI
 

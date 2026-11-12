@@ -1,0 +1,554 @@
+/**
+ * Copyright (C) 2026 Dr. David H. Akehurst (http://dr.david.h.akehurst.net)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// The reflective (by-name) API: build model objects from metaclass and feature names, as in the OMG XMI.
+// Written only against the api interfaces and the model factory, so it works with any implementation (e.g. -ram).
+// Generated as 'when' tables over names, one object per package, no Kotlin reflection.
+
+namespace net.akehurst.omg.mof.gen.template
+
+import net.akehurst.omg.mof.gen.simple
+
+format PackageImport {
+    MofPackage -> "import ${TARGET_PACKAGE}.api.${qualifiedName}.*"
+}
+
+// --- model level ---
+
+format ChainConstruct {
+    MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.construct(factory, metaclass, identity) ?:"
+}
+format ChainSuperclasses {
+    MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.superclasses(metaclass) ?:"
+}
+format ChainFeature {
+    MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.featureKind(metaclass, feature) ?:"
+}
+format ChainSetValue {
+    MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.setValue(mc, obj, feature, value) ?:"
+}
+format ChainAddValue {
+    MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.addValue(mc, obj, feature, value) ?:"
+}
+format ChainAddContained {
+    MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.addContained(mc, obj, feature, child) ?:"
+}
+format ChainSetReference {
+    MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.setReference(mc, obj, feature, identity) ?:"
+}
+format ChainAddReference {
+    MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.addReference(mc, obj, feature, identity) ?:"
+}
+
+format MetaclassOfCase {
+    MofClass -> "is ${validName} -> \"${name}\""
+}
+
+format EnumFromValue {
+    MofEnum -> "
+        /** a value of ${name}: the enum value itself, or the name of a literal as in the metamodel */
+        fun ${validName}_fromValue(v: Any?): Any? = when (v) {
+            null -> null
+            is ${validName} -> v
+            is String -> when (v.trim()) {
+                $[literals.map({it -> "\"${it.name}\" -> ${validName}.${it.validName}"}) sep $EOL]
+                else -> NO
+            }
+            else -> NO
+        }
+    "
+}
+
+// --- package level ---
+
+// the name of the converter function for the value of a VALUE feature
+format ValueConverter {
+    MofProperty -> when {
+        type is MofEnum -> "S.${type.validName}_fromValue"
+        isUnlimitedNatural -> 'S.unlimited'
+        'String' == type.validName -> 'S.string'
+        'Boolean' == type.validName -> 'S.boolean'
+        'Long' == type.validName -> 'S.long'
+        'Double' == type.validName -> 'S.double'
+        else -> 'S.any'
+    }
+}
+
+format FeatureKindName {
+    MofProperty -> when {
+        type.isPrimitive -> 'ReflectiveFeatureKind.VALUE'
+        isComposite -> 'ReflectiveFeatureKind.CONTAINED'
+        else -> 'ReflectiveFeatureKind.REFERENCE'
+    }
+}
+
+// one constant per property, in the package of the class that owns it
+format FeatureConstant {
+    MofProperty -> {
+        vMany := isSingle ? 'false' : 'true'
+        vDer := isComputed ? 'true' : 'false'
+        vRo := isReadOnly ? 'true' : 'false'
+        vOrd := isOrdered ? 'true' : 'false'
+        vUnq := isUnique ? 'true' : 'false'
+        "val ${parentType.validName}_${validName} = ReflectiveFeature(\"${name}\", \"${parentType.name}\", ${$self via FeatureKindName}, $vMany, \"${typeNameInXmi}\", $vDer, $vRo, $vOrd, $vUnq)"
+    }
+}
+
+format FeatureConstants {
+    MofClass -> "
+        // ${name}
+        $[ownedAttribute sep $EOL via FeatureConstant]
+    "
+}
+
+format FeatureCase {
+    MofReflectiveFeature -> "\"${name}\" -> ${TARGET_PACKAGE}.api.${property.parentType.parentPackage.qualifiedName}.${property.parentType.parentPackage.name}_PackageReflective.${property.parentType.validName}_${property.validName}"
+}
+
+format SetValueCase {
+    MofReflectiveFeature -> {
+        p := property
+        conv := "${p via ValueConverter}"
+        when {
+            p.isSingle -> "\"${name}\" -> S.setSingle(obj.${p.validName}Value, ${conv}(value))"
+            else -> "\"${name}\" -> S.setMany(obj.${p.validName}, value) { ${conv}(it) }"
+        }
+    }
+}
+
+format AddValueCase {
+    MofReflectiveFeature -> {
+        p := property
+        conv := "${p via ValueConverter}"
+        "\"${name}\" -> S.addMany(obj.${p.validName}, value) { ${conv}(it) }"
+    }
+}
+
+format AddContainedCase {
+    MofReflectiveFeature -> {
+        p := property
+        when {
+            p.isSingle -> "\"${name}\" -> if (child is ${p.type.validName}) { obj.${p.validName}Value.mutable.set(child); true } else false"
+            else -> "\"${name}\" -> if (child is ${p.type.validName}) { obj.${p.validName}.mutable.add(child); true } else false"
+        }
+    }
+}
+
+format SetReferenceCase {
+    MofReflectiveFeature -> "\"${name}\" -> { obj.${property.validName}Reference.mutable.set(identity, null); true }"
+}
+
+format AddReferenceCase {
+    MofReflectiveFeature -> {
+        p := property
+        "\"${name}\" -> { obj.${p.validName}Reference.mutable.add(ResolvableReferenceDefault<Any, ${p.type.validName}>(identity)); true }"
+    }
+}
+
+format ConstructCase {
+    MofClass -> "\"${name}\" -> factory.${parentPackage.qualifiedName}.${validName}_construct(identity)"
+}
+
+format SuperclassesCase {
+    MofClass -> "\"${name}\" -> listOf($[allSuperTypesMostSpecificFirst.map({it -> "\"${it.name}\""}) sep ', '])"
+}
+
+format FeatureOfCase {
+    MofClass -> "\"${name}\" -> ${validName}_featureKind(feature)"
+}
+
+format FeatureOfFun {
+    MofClass -> "
+        private fun ${validName}_featureKind(feature: String): ReflectiveFeature? = when (feature) {
+            $[reflectiveFeatures sep $EOL via FeatureCase]
+            else -> null
+        }
+    "
+}
+
+format SetValueOfCase {
+    MofClass -> "\"${name}\" -> ${validName}_setValue(obj as ${validName}, feature, value)"
+}
+format AddValueOfCase {
+    MofClass -> "\"${name}\" -> ${validName}_addValue(obj as ${validName}, feature, value)"
+}
+format AddContainedOfCase {
+    MofClass -> "\"${name}\" -> ${validName}_addContained(obj as ${validName}, feature, child)"
+}
+format SetReferenceOfCase {
+    MofClass -> "\"${name}\" -> ${validName}_setReference(obj as ${validName}, feature, identity)"
+}
+format AddReferenceOfCase {
+    MofClass -> "\"${name}\" -> ${validName}_addReference(obj as ${validName}, feature, identity)"
+}
+
+format ConcreteClassFuns {
+    MofClass -> {
+        settable := reflectiveFeatures.filter({it -> false == it.property.isComputed}).filter({it -> false == it.property.isReadOnly})
+        values := settable.filter({it -> it.property.type.isPrimitive})
+        contained := settable.filter({it -> false == it.property.type.isPrimitive}).filter({it -> it.property.isComposite})
+        refs := settable.filter({it -> it.property.isReference})
+        singleRefs := refs.filter({it -> it.property.isSingle})
+        manyRefs := refs.filter({it -> false == it.property.isSingle})
+        manyValues := values.filter({it -> false == it.property.isSingle})
+        "
+        private fun ${validName}_setValue(obj: ${validName}, feature: String, value: Any?): Boolean = when (feature) {
+            $[values sep $EOL via SetValueCase]
+            else -> false
+        }
+
+        private fun ${validName}_addValue(obj: ${validName}, feature: String, value: Any?): Boolean = when (feature) {
+            $[manyValues sep $EOL via AddValueCase]
+            else -> ${validName}_setValue(obj, feature, value)
+        }
+
+        private fun ${validName}_addContained(obj: ${validName}, feature: String, child: Any): Boolean = when (feature) {
+            $[contained sep $EOL via AddContainedCase]
+            else -> false
+        }
+
+        private fun ${validName}_setReference(obj: ${validName}, feature: String, identity: Any): Boolean = when (feature) {
+            $[singleRefs sep $EOL via SetReferenceCase]
+            else -> false
+        }
+
+        private fun ${validName}_addReference(obj: ${validName}, feature: String, identity: Any): Boolean = when (feature) {
+            $[manyRefs sep $EOL via AddReferenceCase]
+            else -> ${validName}_setReference(obj, feature, identity)
+        }
+        "
+    }
+}
+
+format PackageReflectiveFile {
+    #output: 'MofPackage -> "api/$qualifiedPath/${name}_PackageReflective.kt"'
+
+    MofPackage -> {
+        concrete := classes.filter({it -> false == it.isAbstract})
+        "
+        $COPYRIGHT
+
+        // *** Generated code do NOT manually edit. ***
+        @file:Suppress(\"UNUSED_PARAMETER\", \"UNUSED_ANONYMOUS_PARAMETER\", \"REDUNDANT_ELSE_IN_WHEN\")
+        package ${TARGET_PACKAGE}.api.${qualifiedName}
+
+        import net.akehurst.kotlinx.collections.CollectionExt.mutable
+        import net.akehurst.kotlinx.utils.ReferenceExt.mutable
+        import net.akehurst.kotlinx.utils.ResolvableReferenceDefault
+        import net.akehurst.kotlinx.utils.ValueExt.mutable
+        import ${TARGET_PACKAGE}.api.${model.name}_ModelFactory
+        import ${TARGET_PACKAGE}.api.ReflectiveFeature
+        import ${TARGET_PACKAGE}.api.ReflectiveFeatureKind
+        import ${TARGET_PACKAGE}.api.${model.name}_ReflectiveSupport as S
+        $[model.packageList.filter({it -> false == it.isEmpty}).filter({it -> false == EXCLUDE_PACKAGE.contains(it.qualifiedName)}) sep $EOL via PackageImport]
+
+        /** the reflective API for the metaclasses of package ${qualifiedName}, see [${TARGET_PACKAGE}.api.${model.name}_ModelReflective] */
+        internal object ${name}_PackageReflective {
+
+            $[classes sep $EOL via FeatureConstants]
+
+            fun construct(factory: ${model.name}_ModelFactory, metaclass: String, identity: Any): Any? = when (metaclass) {
+                $[concrete sep $EOL via ConstructCase]
+                else -> null
+            }
+
+            fun superclasses(metaclass: String): List<String>? = when (metaclass) {
+                $[classes sep $EOL via SuperclassesCase]
+                else -> null
+            }
+
+            fun featureKind(metaclass: String, feature: String): ReflectiveFeature? = when (metaclass) {
+                $[classes sep $EOL via FeatureOfCase]
+                else -> null
+            }
+
+            // each returns null if the metaclass is not in this package
+            fun setValue(metaclass: String, obj: Any, feature: String, value: Any?): Boolean? = when (metaclass) {
+                $[concrete sep $EOL via SetValueOfCase]
+                else -> null
+            }
+
+            fun addValue(metaclass: String, obj: Any, feature: String, value: Any?): Boolean? = when (metaclass) {
+                $[concrete sep $EOL via AddValueOfCase]
+                else -> null
+            }
+
+            fun addContained(metaclass: String, obj: Any, feature: String, child: Any): Boolean? = when (metaclass) {
+                $[concrete sep $EOL via AddContainedOfCase]
+                else -> null
+            }
+
+            fun setReference(metaclass: String, obj: Any, feature: String, identity: Any): Boolean? = when (metaclass) {
+                $[concrete sep $EOL via SetReferenceOfCase]
+                else -> null
+            }
+
+            fun addReference(metaclass: String, obj: Any, feature: String, identity: Any): Boolean? = when (metaclass) {
+                $[concrete sep $EOL via AddReferenceOfCase]
+                else -> null
+            }
+
+            $[classes sep $EOL via FeatureOfFun]
+
+            $[concrete sep $EOL via ConcreteClassFuns]
+        }
+        "
+    }
+}
+
+// --- model level file (the last format set formats the model) ---
+
+format ModelReflectiveFile {
+    #output: 'MofModel -> "api/${name}_ModelReflective.kt"'
+
+    MofModel -> {
+        pkgs := packageList.filter({it -> false == it.isEmpty}).filter({it -> false == EXCLUDE_PACKAGE.contains(it.qualifiedName)})
+        "
+        $COPYRIGHT
+
+        // *** Generated code do NOT manually edit. ***
+        package ${TARGET_PACKAGE}.api
+
+        import net.akehurst.kotlinx.collections.CollectionExt.mutable
+        import net.akehurst.kotlinx.utils.Value
+        import net.akehurst.kotlinx.utils.ValueExt.mutable
+        $[pkgs sep $EOL via PackageImport]
+
+        /** what a feature holds */
+        enum class ReflectiveFeatureKind {
+            /** a value of a primitive type or an enumeration */
+            VALUE,
+            /** a contained (composite) model object */
+            CONTAINED,
+            /** a reference to a model object, set by its identity */
+            REFERENCE
+        }
+
+        /**
+         * A feature of a metaclass, as the reflective API sees it.
+         * @param name the feature's name in the metamodel
+         * @param owner the metaclass that declares the feature
+         * @param typeName the name of the feature's type in the metamodel (a metaclass, an enumeration, or a primitive type such as 'String' or 'UnlimitedNatural')
+         * @param isDerived derived (or a derived union): computed, so it can't be set
+         */
+        data class ReflectiveFeature(
+            val name: String,
+            val owner: String,
+            val kind: ReflectiveFeatureKind,
+            val isMany: Boolean,
+            val typeName: String,
+            val isDerived: Boolean,
+            val isReadOnly: Boolean,
+            val isOrdered: Boolean,
+            val isUnique: Boolean,
+        ) {
+            /** a derived or read-only feature can't be set */
+            val isSettable: Boolean get() = isDerived.not() && isReadOnly.not()
+        }
+
+        /**
+         * The reflective (by-name) API of ${name}: builds model objects from the names of metaclasses and features,
+         * as in the OMG XMI, without knowing the types at compile time. Inherited features are found too.
+         * A redefined feature may also be given by the name of the feature it redefines.
+         *
+         * Nothing here throws: an unknown name, a feature of the wrong kind, a value of the wrong type,
+         * or a derived or read-only feature gives null or false, so a reader can collect warnings.
+         * References are set by identity; resolve them afterwards with [${name}_ModelResolver].
+         * An identity that never resolves stays as an unresolved reference.
+         */
+        interface ${name}_ModelReflective {
+            /** a new object of the concrete [metaclass] with [identity]; null for an unknown or abstract metaclass */
+            fun construct(metaclass: String, identity: Any): Any?
+
+            /**
+             * sets a VALUE feature (primitive type or enumeration). An enumeration literal may be given by its name,
+             * a Boolean, Integer, Real or UnlimitedNatural as a String ('*' is -1 for UnlimitedNatural), null unsets it.
+             * For a many-valued feature the whole content is set: give a collection (or one value).
+             */
+            fun setValue(obj: Any, feature: String, value: Any?): Boolean
+
+            /** adds [value] to a many-valued VALUE feature (sets a single-valued one), values as for [setValue] */
+            fun addValue(obj: Any, feature: String, value: Any?): Boolean
+
+            /** adds [child] to a CONTAINED feature (sets a single-valued one) */
+            fun addContained(obj: Any, feature: String, child: Any): Boolean
+
+            /** sets a single-valued REFERENCE feature to the object with [identity] (resolved later) */
+            fun setReference(obj: Any, feature: String, identity: Any): Boolean
+
+            /** adds a reference to the object with [identity] to a many-valued REFERENCE feature (sets a single-valued one) */
+            fun addReference(obj: Any, feature: String, identity: Any): Boolean
+
+            /** the feature of [metaclass] named [feature] (inherited ones included); null if unknown */
+            fun featureKind(metaclass: String, feature: String): ReflectiveFeature?
+
+            /** the name of the metaclass of [obj]; null if [obj] is not a ${name} model object */
+            fun metaclassOf(obj: Any): String?
+
+            /** all superclasses of [metaclass] (transitively), most specific first; empty if unknown */
+            fun superclasses(metaclass: String): List<String>
+        }
+
+        /** [${name}_ModelReflective] over the api interfaces, constructing objects with [factory] */
+        class ${name}_ModelReflectiveDefault(
+            val factory: ${name}_ModelFactory
+        ) : ${name}_ModelReflective {
+
+            override fun construct(metaclass: String, identity: Any): Any? = try {
+                $[pkgs sep $EOL via ChainConstruct] null
+            } catch (e: Throwable) {
+                null
+            }
+
+            override fun setValue(obj: Any, feature: String, value: Any?): Boolean = withMetaclass(obj) { mc ->
+                $[pkgs sep $EOL via ChainSetValue] null
+            }
+
+            override fun addValue(obj: Any, feature: String, value: Any?): Boolean = withMetaclass(obj) { mc ->
+                $[pkgs sep $EOL via ChainAddValue] null
+            }
+
+            override fun addContained(obj: Any, feature: String, child: Any): Boolean = withMetaclass(obj) { mc ->
+                $[pkgs sep $EOL via ChainAddContained] null
+            }
+
+            override fun setReference(obj: Any, feature: String, identity: Any): Boolean = withMetaclass(obj) { mc ->
+                $[pkgs sep $EOL via ChainSetReference] null
+            }
+
+            override fun addReference(obj: Any, feature: String, identity: Any): Boolean = withMetaclass(obj) { mc ->
+                $[pkgs sep $EOL via ChainAddReference] null
+            }
+
+            override fun featureKind(metaclass: String, feature: String): ReflectiveFeature? =
+                $[pkgs sep $EOL via ChainFeature] null
+
+            override fun metaclassOf(obj: Any): String? = when (obj) {
+                // most specific first
+                $[reflectiveConcreteClassList sep $EOL via MetaclassOfCase]
+                else -> null
+            }
+
+            override fun superclasses(metaclass: String): List<String> =
+                $[pkgs sep $EOL via ChainSuperclasses] emptyList()
+
+            private inline fun withMetaclass(obj: Any, action: (String) -> Boolean?): Boolean = try {
+                metaclassOf(obj)?.let { action(it) } ?: false
+            } catch (e: Throwable) {
+                false
+            }
+        }
+
+        /** used by the generated package objects of [${name}_ModelReflectiveDefault] */
+        internal object ${name}_ReflectiveSupport {
+            /** marks a value that can't be converted */
+            val NO = Any()
+
+            fun string(v: Any?): Any? = when (v) {
+                null -> null
+                is String -> v
+                else -> NO
+            }
+
+            fun boolean(v: Any?): Any? = when (v) {
+                null -> null
+                is Boolean -> v
+                is String -> when (v.trim()) {
+                    \"true\" -> true
+                    \"false\" -> false
+                    else -> NO
+                }
+                else -> NO
+            }
+
+            fun long(v: Any?): Any? = when (v) {
+                null -> null
+                is Long -> v
+                is Int -> v.toLong()
+                is Short -> v.toLong()
+                is Byte -> v.toLong()
+                is String -> v.trim().toLongOrNull() ?: NO
+                else -> NO
+            }
+
+            /** UnlimitedNatural: as [long], and '*' is -1 */
+            fun unlimited(v: Any?): Any? = when {
+                v is String && v.trim() == \"*\" -> -1L
+                else -> long(v)
+            }
+
+            fun double(v: Any?): Any? = when (v) {
+                null -> null
+                is Double -> v
+                is Float -> v.toDouble()
+                is Long -> v.toDouble()
+                is Int -> v.toDouble()
+                is Short -> v.toDouble()
+                is Byte -> v.toDouble()
+                is String -> v.trim().toDoubleOrNull() ?: NO
+                else -> NO
+            }
+
+            /** any value, for a primitive type that is not mapped to a Kotlin type */
+            fun any(v: Any?): Any? = v
+
+            $[reflectiveEnumList sep $EOL via EnumFromValue]
+
+            @Suppress(\"UNCHECKED_CAST\")
+            fun <T> setSingle(holder: Value<T?>, v: Any?): Boolean = when {
+                v === NO -> false
+                else -> {
+                    holder.mutable.set(v as T?)
+                    true
+                }
+            }
+
+            /** sets the whole content: [values] is a collection or one value, null clears it */
+            @Suppress(\"UNCHECKED_CAST\")
+            fun <T> setMany(target: Collection<T>, values: Any?, convert: (Any?) -> Any?): Boolean {
+                val new = when (values) {
+                    null -> emptyList()
+                    is Collection<*> -> values.map(convert)
+                    else -> listOf(convert(values))
+                }
+                return when {
+                    new.any { it === NO || it == null } -> false
+                    else -> {
+                        val t = target.mutable
+                        t.clear()
+                        new.forEach { t.add(it as T) }
+                        true
+                    }
+                }
+            }
+
+            @Suppress(\"UNCHECKED_CAST\")
+            fun <T> addMany(target: Collection<T>, value: Any?, convert: (Any?) -> Any?): Boolean {
+                val v = convert(value)
+                return when {
+                    v === NO || v == null -> false
+                    else -> {
+                        target.mutable.add(v as T)
+                        true
+                    }
+                }
+            }
+        }
+
+        ${pkgs via PackageReflectiveFile}
+    "
+    }
+}

@@ -103,6 +103,22 @@ class MofModel(
         return type is MofEnum || primitives.contains(type.name)
     }
 
+    // --- for the reflective (by-name) API ---
+    private val excludedPackages: List<String> get() = (generateParameters["EXCLUDE_PACKAGE"] as? List<String>) ?: emptyList()
+
+    /** classes of the packages that are generated, abstract ones included, most specific first (a class comes before all its supertypes) */
+    val reflectiveClassList: List<MofClass>
+        get() = classList
+            .filter { c -> c.parentPackage?.let { excludedPackages.contains(it.qualifiedName) } != true }
+            .sortedWith(compareByDescending<MofClass> { it.allSuperTypes.size }.thenBy { it.name })
+
+    /** the concrete classes of [reflectiveClassList], most specific first */
+    val reflectiveConcreteClassList: List<MofClass> get() = reflectiveClassList.filter { it.isAbstract.not() }
+
+    /** enumerations of the packages that are generated */
+    val reflectiveEnumList: List<MofEnum>
+        get() = enumList.filter { e -> e.parentPackage?.let { excludedPackages.contains(it.qualifiedName) } != true }
+
     fun addPackage(file: String, parent: MofPackage?, obj: MofPackage) {
         packageList.add(obj)
         refHandler.setRef(file, obj.xmiId, obj)
@@ -649,6 +665,24 @@ open class MofClass(
                 model.classList.filter { !it.isAbstract && it.allSuperTypes.contains(this) }).toSet()
     }
 
+    /**
+     * For the reflective (by-name) API: the features of this class (inherited ones included, derived ones too), by their names in the metamodel.
+     * The properties are the ones the builder uses (after redefinition). A redefined property's name, if it differs,
+     * is also given, for the redefining property.
+     */
+    val reflectiveFeatures: List<MofReflectiveFeature> by lazy {
+        val normalized = allNormalisedAttributeFlat.toList()
+        val byName = linkedMapOf<String, MofProperty>()
+        normalized.forEach { p -> byName.putIfAbsent(p.name, p) }
+        normalized.forEach { p -> p.allRedefinedProperty.forEach { r -> byName.putIfAbsent(r.name, p) } }
+        byName.map { (n, p) -> MofReflectiveFeature(n, p) }
+    }
+
+    /** all supertypes, most specific first (a class comes before all its supertypes) */
+    val allSuperTypesMostSpecificFirst: List<MofType> by lazy {
+        allSuperTypes.sortedWith(compareByDescending<MofType> { it.allSuperTypes.size }.thenBy { it.name })
+    }
+
     fun addAttribute(file: String, attr: MofProperty) {
         model.refHandler.setRef(file, attr.xmiId, attr)
         this.ownedAttribute.add(attr)
@@ -772,6 +806,19 @@ class MofProperty(
             else -> "$colTypeName<${type.validName}>"
         }
     }
+
+    /** the name of the type as in the metamodel, e.g. 'UnlimitedNatural' for a primitive type that is mapped to Long */
+    val typeNameInXmi: String
+        get() = when (val t = type) {
+            is ExternalReferenceClass -> when {
+                t.xmiId == "UNKOWN" -> "Any"
+                else -> t.xmiId.substringAfterLast('#').substringAfterLast('/')
+            }
+            else -> t.name
+        }
+
+    /** the type is UnlimitedNatural, whose value '*' is -1 */
+    val isUnlimitedNatural: Boolean get() = "UnlimitedNatural" == typeNameInXmi
 
     val isOptional: Boolean get() = 0 == lowerBound && isSingle // possibly empty collections are not treated as optional, just maybe empty
     val isSingle: Boolean get() = 1 == upperBound
@@ -1107,6 +1154,12 @@ data class MofAssociation(
 data class MofUnionImpl(
     val union: MofProperty,
     val subsetters: List<MofProperty>
+)
+
+/** a feature of a class for the reflective API: the name it is found by, and the property that is set */
+data class MofReflectiveFeature(
+    val name: String,
+    val property: MofProperty
 )
 
 data class MofEnumLiteral(

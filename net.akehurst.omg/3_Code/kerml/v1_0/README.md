@@ -9,7 +9,7 @@ All modules have the group `net.akehurst.omg`. The Kotlin package is `net.akehur
 
 | Module | Contents |
 |---|---|
-| `kerml-1_0-api` | Generated: one interface per metaclass (package `api.KerML.<Package>`, e.g. `api.KerML.Kernel.Packages.Package`), `KerML_ModelFactory`, `KerML_ModelBuilder`, `KerML_ModelResolver`, `KerML_ModelAsString`, and the derivations of derived properties |
+| `kerml-1_0-api` | Generated: one interface per metaclass (package `api.KerML.<Package>`, e.g. `api.KerML.Kernel.Packages.Package`), `KerML_ModelFactory`, `KerML_ModelBuilder`, `KerML_ModelResolver`, `KerML_ModelAsString`, `KerML_ModelReflective` (by-name API, see the [UML README](../../uml/v2_5_1/README.md#building-a-model-by-name)), and the derivations of derived properties |
 | `kerml-1_0-ram` | Generated: in-memory classes that implement the api, created by `KerML_ModelFactoryRam` |
 
 The builder and `asString` have root functions for `Package` and `LibraryPackage`.

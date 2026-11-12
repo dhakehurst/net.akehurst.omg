@@ -13,7 +13,7 @@ All modules have the group `net.akehurst.omg`. The Kotlin package is `net.akehur
 
 | Module | Contents |
 |---|---|
-| `sysml-2_0-api` | Generated: one interface per metaclass, in `api.KerML.<Package>` and `api.SysML.<Package>` (e.g. `api.SysML.Systems.Parts.PartDefinition`), `SysML_ModelFactory`, `SysML_ModelBuilder`, `SysML_ModelResolver`, `SysML_ModelAsString`, and the derivations of derived properties |
+| `sysml-2_0-api` | Generated: one interface per metaclass, in `api.KerML.<Package>` and `api.SysML.<Package>` (e.g. `api.SysML.Systems.Parts.PartDefinition`), `SysML_ModelFactory`, `SysML_ModelBuilder`, `SysML_ModelResolver`, `SysML_ModelAsString`, `SysML_ModelReflective` (by-name API, see the [UML README](../../uml/v2_5_1/README.md#building-a-model-by-name)), and the derivations of derived properties |
 | `sysml-2_0-ram` | Generated: in-memory classes that implement the api, created by `SysML_ModelFactoryRam` |
 
 The builder and `asString` have root functions for `Package` and `LibraryPackage`.
