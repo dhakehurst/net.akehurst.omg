@@ -115,7 +115,7 @@ format ApiPackageFile {
         import net.akehurst.kotlinx.utils.ValueExt.mutable
         import ${TARGET_PACKAGE}.api.${name}_ModelFactory
         import ${TARGET_PACKAGE}.ram.${validName}_ModelFactoryRam
-        $[packageList.filter({it -> false == it.isEmpty}) sep $EOL via PackageImport]
+        $[packageList.filter({it -> false == it.isEmpty}).filter({it -> false == EXCLUDE_PACKAGE.contains(it.qualifiedName)}) sep $EOL via PackageImport]
         import net.akehurst.language.types.builder.typesDomain
         import net.akehurst.language.types.asm.StdLibDefault
 
@@ -127,10 +127,10 @@ format ApiPackageFile {
         class ${name}TypesDomain(factory: ${name}_ModelFactory = ${validName}_ModelFactoryRam(\"${name}\")) {
             // each namespace imports all the others, so that qualified names of types in other namespaces resolve
             private val imports = listOf(StdLibDefault.qualifiedName.value) + listOf(
-                $[packageList.filter({it -> false == it.isEmpty}) sep $EOL via NamespaceName]
+                $[packageList.filter({it -> false == it.isEmpty}).filter({it -> false == EXCLUDE_PACKAGE.contains(it.qualifiedName)}) sep $EOL via NamespaceName]
             )
             val types = typesDomain(\"${name}\", true) {
-                $[packageList.filter({it -> false == it.isEmpty}) sep $EOL]
+                $[packageList.filter({it -> false == it.isEmpty}).filter({it -> false == EXCLUDE_PACKAGE.contains(it.qualifiedName)}) sep $EOL]
             }
         }
 
@@ -177,13 +177,13 @@ format ApiPackageFile {
             }
 
             private fun identityOf(obj: Any?): Any? = when (obj) {
-                $[classList.filter({it -> 0 == it.superTypes.size}) sep $EOL via IdentityCase]
+                $[classList.filter({it -> 0 == it.superTypes.size}).filter({it -> false == EXCLUDE_PACKAGE.contains(it.parentPackage.qualifiedName)}) sep $EOL via IdentityCase]
                 else -> obj
             }
 
             /** the Kotlin enum value for a literal name as written in the metamodel (e.g. 'in' for ParameterDirectionKind.in_) */
             fun enumValue(enumQualifiedName: String, literal: String): Any? = when (enumQualifiedName) {
-                $[enumList sep $EOL via EnumFromLiteral]
+                $[enumList.filter({it -> false == EXCLUDE_PACKAGE.contains(it.parentPackage.qualifiedName)}) sep $EOL via EnumFromLiteral]
                 else -> null
             }
         }
