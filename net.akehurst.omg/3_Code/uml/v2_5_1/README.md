@@ -85,6 +85,7 @@ UML_ModelResolver("myModel", factory).UML.Packages.Model_resolve(model as Model)
 | `setReference(obj, feature, id, resolved?)` / `addReference` | REFERENCE features, by identity, and optionally the object itself if the reader has found it. `setReference` is for single-valued ones; `addReference` adds to a many-valued one (or sets a single one) |
 | `featureKind(metaclass, feature)` | a `ReflectiveFeature`: kind (VALUE, CONTAINED, REFERENCE), many or single, type name, derived, read-only |
 | `metaclassOf(obj)`, `superclasses(metaclass)`, `isAbstract(metaclass)` | the metaclass name of an object; all superclasses, most specific first; whether a metaclass is abstract (null if unknown) |
+| `enumLiteral(enumeration, literal)` | the enum value of a literal by name, e.g. `enumLiteral("VisibilityKind", "private")`; null if there is none |
 
 Nothing throws: an unknown name, a value of the wrong type, or a derived or read-only feature gives `null` or `false`,
 so a reader can collect warnings. Setting a feature updates subsets, supersets and opposites as the typed api does.

@@ -34,6 +34,9 @@ format ChainConstruct {
 format ChainSuperclasses {
     MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.superclasses(metaclass) ?:"
 }
+format EnumLiteralOfCase {
+    MofEnum -> "\"${name}\" -> ${model.name}_ReflectiveSupport.${validName}_fromValue(literal).takeIf { it !== ${model.name}_ReflectiveSupport.NO }"
+}
 format ChainIsAbstract {
     MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.isAbstract(metaclass) ?:"
 }
@@ -425,6 +428,9 @@ format ModelReflectiveFile {
 
             /** whether [metaclass] is abstract; null if it is not a metaclass of ${name} */
             fun isAbstract(metaclass: String): Boolean?
+
+            /** the value of the literal named [literal] (as in the metamodel) of the enumeration [enumeration]; null if there is none */
+            fun enumLiteral(enumeration: String, literal: String): Any?
         }
 
         /** [${name}_ModelReflective] over the api interfaces, constructing objects with [factory] */
@@ -469,6 +475,11 @@ format ModelReflectiveFile {
 
             override fun superclasses(metaclass: String): List<String> =
                 $[pkgs sep $EOL via ChainSuperclasses] emptyList()
+
+            override fun enumLiteral(enumeration: String, literal: String): Any? = when (enumeration) {
+                $[reflectiveEnumList sep $EOL via EnumLiteralOfCase]
+                else -> null
+            }
 
             override fun isAbstract(metaclass: String): Boolean? =
                 $[pkgs sep $EOL via ChainIsAbstract] null

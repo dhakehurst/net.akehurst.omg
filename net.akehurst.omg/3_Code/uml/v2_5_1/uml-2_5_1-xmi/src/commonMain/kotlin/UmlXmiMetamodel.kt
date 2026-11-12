@@ -80,9 +80,8 @@ class UmlXmiMetamodel(
         private val isPrimitive = XmiDataConversion.isPrimitive(typeName)
 
         override fun convert(text: String): Any? = when {
-            // an enumeration literal by name, checked when it is set
-            isPrimitive.not() -> text.trim()
-            else -> XmiDataConversion.convertPrimitive(typeName, text)
+            isPrimitive -> XmiDataConversion.convertPrimitive(typeName, text)
+            else -> reflective.enumLiteral(typeName, text.trim())
         }
 
         override fun set(obj: Any, value: Any?) {

@@ -95,6 +95,24 @@ class test_UmlXmiReader_Testsat {
     }
 
     @Test
+    fun enumeration_literals() {
+        val xmi = """
+            <xmi:XMI xmlns:xmi="http://www.omg.org/spec/XMI/20131001" xmlns:uml="http://www.omg.org/spec/UML/20161101">
+              <uml:Model xmi:id="_m" name="M">
+                <packagedElement xmi:type="uml:Class" xmi:id="_c" name="C" visibility="private"/>
+                <packagedElement xmi:type="uml:Class" xmi:id="_d" name="D" visibility="nowhere"/>
+              </uml:Model>
+            </xmi:XMI>
+        """.trimIndent()
+        val r = readUmlXmi(xmi)
+        assertEquals("private", (r.elementById("_c") as Class).visibility?.name)
+        assertNull((r.elementById("_d") as Class).visibility)
+        // an unknown literal is a warning, not an error
+        assertTrue(r.errors.isEmpty(), r.errors.toString())
+        assertTrue(r.warnings.any { it.kind == XmiIssueKind.INVALID_VALUE && it.message.contains("'nowhere'") }, r.warnings.toString())
+    }
+
+    @Test
     fun extensions_and_tool_namespaces_are_tolerated() {
         val r = read()
         assertTrue(r.warnings.any { it.kind == XmiIssueKind.EXTENSION && it.message.contains("3 xmi:Extension") })
