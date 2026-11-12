@@ -32,7 +32,7 @@ interface XmiMetaclass {
     val name: String
     val isAbstract: Boolean
 
-    /** names of the direct superclasses */
+    /** names of all superclasses, most specific first */
     val superclassNames: List<String>
 
     /** creates an instance with the given identity; not called for an abstract metaclass */
@@ -67,11 +67,10 @@ interface XmiMetaFeature {
     /** converts the text of a DATA value to the type of this feature, or returns null if it is not valid */
     fun convert(text: String): Any?
 
-    /** the current value: the object (or null) for a single valued feature, a collection for a many valued one */
-    fun get(obj: Any): Any?
-
     /**
      * Sets the value: an object (or null) for a single valued feature, a collection for a many valued one.
+     * For a many valued DATA feature the collection is the whole content; for a COMPOSITE or REFERENCE one its
+     * values are added. Throws if a value is not valid for the feature.
      * For a REFERENCE feature each value is a [net.akehurst.kotlinx.utils.Reference]; for an unresolved one its
      * reference is an [XmiProxy] and its resolved object is null.
      */

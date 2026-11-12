@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package net.akehurst.omg.uml.v2_5_1.xmi
+package net.akehurst.omg.uml.v2_5_1.agl.types
 
 import net.akehurst.language.types.api.DataType
 import net.akehurst.language.types.api.InterfaceType
-import net.akehurst.omg.uml.v2_5_1.agl.types.UMLTypesDomain
 import kotlin.test.Test
 import kotlin.test.assertTrue
 

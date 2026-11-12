@@ -343,7 +343,7 @@ internal class XmiDocumentParser(
             for (p in profileStack) p.addStereotype(name, obj)
         }
 
-        // values of many valued features, set once the element is read (a mutator sets the whole collection)
+        // values of many valued features, set once the element is read (a many valued DATA feature is set as a whole)
         val values = LinkedHashMap<XmiMetaFeature, MutableList<Any>>()
         for (a in attrs) {
             when {

@@ -186,7 +186,7 @@ class XmiResourceSet(
             resolvedValues.add(resolveReference(p.document, p.text, p.isHref, p.line))
             i++
         }
-        // group by owner and feature, keeping the order written, because a mutator sets the whole value
+        // group by owner and feature, keeping the order written
         val groups = LinkedHashMap<Pair<Any, XmiMetaFeature>, MutableList<Pair<XmiPendingReference, Any>>>()
         for ((idx, p) in pending.withIndex()) {
             groups.getOrPut(Pair(IdentityKey(p.owner), p.feature)) { mutableListOf() }.add(Pair(p, resolvedValues[idx]))
@@ -206,10 +206,9 @@ class XmiResourceSet(
                                 null
                             } else r
                         }
-                        if (f.isMany) {
-                            val existing = (f.get(owner) as? Collection<*>)?.filterNotNull() ?: emptyList()
-                            f.set(owner, existing + found.filter { it !in existing })
-                        } else if (found.isNotEmpty()) f.set(owner, found.last())
+                        // added to the elements already read inline
+                        if (f.isMany) f.set(owner, found.distinct())
+                        else if (found.isNotEmpty()) f.set(owner, found.last())
                     }
 
                     else -> {

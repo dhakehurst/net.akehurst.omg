@@ -223,6 +223,25 @@ class test_UML_ModelReflective {
         assertTrue(sup.indexOf("Classifier") < sup.indexOf("Namespace"))
         assertEquals(emptyList(), r.superclasses("Element"))
         assertEquals(emptyList(), r.superclasses("NoSuchMetaclass"))
+
+        assertEquals(false, r.isAbstract("Class"))
+        assertEquals(true, r.isAbstract("Classifier"))
+        assertNull(r.isAbstract("NoSuchMetaclass"))
+    }
+
+    @Test
+    fun reference_with_resolved_object() {
+        val r = UML_ModelReflectiveDefault(UML_ModelFactoryRam("test"))
+        val p = r.construct("Property", "p")!! as Property
+        val dt = r.construct("DataType", "dt")!!
+        val comment = r.construct("Comment", "cm")!!
+        assertFalse(r.setReference(p, "type", "cm", comment))   // a Comment is not a Type
+        assertTrue(r.setReference(p, "type", "dt", dt))
+        assertSame<Any?>(dt, p.type)                                   // no resolver needed
+        val cls = r.construct("Class", "c")!! as Class
+        val uc = r.construct("UseCase", "uc")!!
+        assertTrue(r.addReference(cls, "useCase", "uc", uc))
+        assertSame<Any?>(uc, cls.useCaseSet.single())
     }
 
     @Test

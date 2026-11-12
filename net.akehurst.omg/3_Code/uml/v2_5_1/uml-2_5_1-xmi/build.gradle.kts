@@ -7,7 +7,6 @@ kotlin {
         commonMain {
             dependencies {
                 api(project(":uml-2_5_1-ram"))
-                api(project(":uml-2_5_1-agl-types"))
                 api(libs.nak.kotlinx.collections)
                 api(libs.nak.kotlinx.utils)
                 implementation(libs.xmlutil.core)

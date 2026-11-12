@@ -19,7 +19,7 @@ All modules have the group `net.akehurst.omg`. The Kotlin package is `net.akehur
 | `uml-2_5_1-api` | Generated: one interface per metaclass (package `api.UML.<Package>`, e.g. `api.UML.StructuredClassifiers.Class`), `UML_ModelFactory`, `UML_ModelBuilder`, `UML_ModelResolver`, `UML_ModelAsString`, `UML_ModelReflective` (by-name API), and the derivations of derived properties |
 | `uml-2_5_1-ram` | Generated: in-memory classes that implement the api, created by `UML_ModelFactoryRam` |
 | `uml-2_5_1-agl-types` | Generated: `UMLTypesDomain`, the AGL types of UML, bound to the ram classes, so that AGL expressions and agl-m2m transforms can read, create and set UML objects |
-| `uml-2_5_1-xmi` | Reads UML 2.5.1 models (not metamodels) from XMI into the ram classes, with stereotype applications |
+| `uml-2_5_1-xmi` | Reads UML 2.5.1 models (not metamodels) from XMI into the ram classes (through `UML_ModelReflective`), with stereotype applications |
 | `uml-2_5_1-gui-compose` | Compose shapes for UML diagrams (`UmlShapeRegistry`), drawn from the generic [diagram model](../../diagram/diagram-model/README.md) |
 | `uml-2_5_1-demo-diagrams` | Demo: one diagram per UML diagram type, made from example XMI by an agl-m2m transform. Not published |
 
@@ -82,9 +82,9 @@ UML_ModelResolver("myModel", factory).UML.Packages.Model_resolve(model as Model)
 | `construct(metaclass, identity)` | a new object of a concrete metaclass |
 | `setValue(obj, feature, value)` / `addValue` | VALUE features (primitive types, enumerations). Enumeration literals by name; Boolean, Integer, Real, UnlimitedNatural also as a String (`"*"` is -1). `setValue` on a many-valued feature sets the whole content |
 | `addContained(obj, feature, child)` | CONTAINED (composite) features, single or many |
-| `setReference(obj, feature, id)` / `addReference` | REFERENCE features, by identity. `setReference` is for single-valued ones; `addReference` adds to a many-valued one (or sets a single one) |
+| `setReference(obj, feature, id, resolved?)` / `addReference` | REFERENCE features, by identity, and optionally the object itself if the reader has found it. `setReference` is for single-valued ones; `addReference` adds to a many-valued one (or sets a single one) |
 | `featureKind(metaclass, feature)` | a `ReflectiveFeature`: kind (VALUE, CONTAINED, REFERENCE), many or single, type name, derived, read-only |
-| `metaclassOf(obj)`, `superclasses(metaclass)` | the metaclass name of an object; all superclasses, most specific first |
+| `metaclassOf(obj)`, `superclasses(metaclass)`, `isAbstract(metaclass)` | the metaclass name of an object; all superclasses, most specific first; whether a metaclass is abstract (null if unknown) |
 
 Nothing throws: an unknown name, a value of the wrong type, or a derived or read-only feature gives `null` or `false`,
 so a reader can collect warnings. Setting a feature updates subsets, supersets and opposites as the typed api does.

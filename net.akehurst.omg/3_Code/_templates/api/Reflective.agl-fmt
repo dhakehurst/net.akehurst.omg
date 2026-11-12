@@ -34,6 +34,15 @@ format ChainConstruct {
 format ChainSuperclasses {
     MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.superclasses(metaclass) ?:"
 }
+format ChainIsAbstract {
+    MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.isAbstract(metaclass) ?:"
+}
+format IsAbstractCase {
+    MofClass -> {
+        abs := isAbstract ? 'true' : 'false'
+        "\"${name}\" -> $abs"
+    }
+}
 format ChainFeature {
     MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.featureKind(metaclass, feature) ?:"
 }
@@ -47,10 +56,10 @@ format ChainAddContained {
     MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.addContained(mc, obj, feature, child) ?:"
 }
 format ChainSetReference {
-    MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.setReference(mc, obj, feature, identity) ?:"
+    MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.setReference(mc, obj, feature, identity, resolved) ?:"
 }
 format ChainAddReference {
-    MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.addReference(mc, obj, feature, identity) ?:"
+    MofPackage -> "${TARGET_PACKAGE}.api.${qualifiedName}.${name}_PackageReflective.addReference(mc, obj, feature, identity, resolved) ?:"
 }
 
 format MetaclassOfCase {
@@ -148,13 +157,18 @@ format AddContainedCase {
 }
 
 format SetReferenceCase {
-    MofReflectiveFeature -> "\"${name}\" -> { obj.${property.validName}Reference.mutable.set(identity, null); true }"
+    MofReflectiveFeature -> {
+        p := property
+        tn := p.type.validName
+        "\"${name}\" -> if (null == resolved || resolved is ${tn}) { obj.${p.validName}Reference.mutable.set(identity, resolved as ${tn}?); true } else false"
+    }
 }
 
 format AddReferenceCase {
     MofReflectiveFeature -> {
         p := property
-        "\"${name}\" -> { obj.${p.validName}Reference.mutable.add(ResolvableReferenceDefault<Any, ${p.type.validName}>(identity)); true }"
+        tn := p.type.validName
+        "\"${name}\" -> if (null == resolved || resolved is ${tn}) { obj.${p.validName}Reference.mutable.add(ResolvableReferenceDefault<Any, ${tn}>(identity, resolved as ${tn}?)); true } else false"
     }
 }
 
@@ -189,10 +203,10 @@ format AddContainedOfCase {
     MofClass -> "\"${name}\" -> ${validName}_addContained(obj as ${validName}, feature, child)"
 }
 format SetReferenceOfCase {
-    MofClass -> "\"${name}\" -> ${validName}_setReference(obj as ${validName}, feature, identity)"
+    MofClass -> "\"${name}\" -> ${validName}_setReference(obj as ${validName}, feature, identity, resolved)"
 }
 format AddReferenceOfCase {
-    MofClass -> "\"${name}\" -> ${validName}_addReference(obj as ${validName}, feature, identity)"
+    MofClass -> "\"${name}\" -> ${validName}_addReference(obj as ${validName}, feature, identity, resolved)"
 }
 
 format ConcreteClassFuns {
@@ -220,14 +234,14 @@ format ConcreteClassFuns {
             else -> false
         }
 
-        private fun ${validName}_setReference(obj: ${validName}, feature: String, identity: Any): Boolean = when (feature) {
+        private fun ${validName}_setReference(obj: ${validName}, feature: String, identity: Any, resolved: Any?): Boolean = when (feature) {
             $[singleRefs sep $EOL via SetReferenceCase]
             else -> false
         }
 
-        private fun ${validName}_addReference(obj: ${validName}, feature: String, identity: Any): Boolean = when (feature) {
+        private fun ${validName}_addReference(obj: ${validName}, feature: String, identity: Any, resolved: Any?): Boolean = when (feature) {
             $[manyRefs sep $EOL via AddReferenceCase]
-            else -> ${validName}_setReference(obj, feature, identity)
+            else -> ${validName}_setReference(obj, feature, identity, resolved)
         }
         "
     }
@@ -265,6 +279,11 @@ format PackageReflectiveFile {
                 else -> null
             }
 
+            fun isAbstract(metaclass: String): Boolean? = when (metaclass) {
+                $[classes sep $EOL via IsAbstractCase]
+                else -> null
+            }
+
             fun superclasses(metaclass: String): List<String>? = when (metaclass) {
                 $[classes sep $EOL via SuperclassesCase]
                 else -> null
@@ -291,12 +310,12 @@ format PackageReflectiveFile {
                 else -> null
             }
 
-            fun setReference(metaclass: String, obj: Any, feature: String, identity: Any): Boolean? = when (metaclass) {
+            fun setReference(metaclass: String, obj: Any, feature: String, identity: Any, resolved: Any?): Boolean? = when (metaclass) {
                 $[concrete sep $EOL via SetReferenceOfCase]
                 else -> null
             }
 
-            fun addReference(metaclass: String, obj: Any, feature: String, identity: Any): Boolean? = when (metaclass) {
+            fun addReference(metaclass: String, obj: Any, feature: String, identity: Any, resolved: Any?): Boolean? = when (metaclass) {
                 $[concrete sep $EOL via AddReferenceOfCase]
                 else -> null
             }
@@ -386,11 +405,14 @@ format ModelReflectiveFile {
             /** adds [child] to a CONTAINED feature (sets a single-valued one) */
             fun addContained(obj: Any, feature: String, child: Any): Boolean
 
-            /** sets a single-valued REFERENCE feature to the object with [identity] (resolved later) */
-            fun setReference(obj: Any, feature: String, identity: Any): Boolean
+            /**
+             * sets a single-valued REFERENCE feature to the object with [identity]. Give [resolved] if the reader has
+             * found the object itself (it must have the feature's type); otherwise it is resolved later, e.g. by [${name}_ModelResolver].
+             */
+            fun setReference(obj: Any, feature: String, identity: Any, resolved: Any? = null): Boolean
 
-            /** adds a reference to the object with [identity] to a many-valued REFERENCE feature (sets a single-valued one) */
-            fun addReference(obj: Any, feature: String, identity: Any): Boolean
+            /** adds a reference to the object with [identity] to a many-valued REFERENCE feature (sets a single-valued one); [resolved] as for [setReference] */
+            fun addReference(obj: Any, feature: String, identity: Any, resolved: Any? = null): Boolean
 
             /** the feature of [metaclass] named [feature] (inherited ones included); null if unknown */
             fun featureKind(metaclass: String, feature: String): ReflectiveFeature?
@@ -400,6 +422,9 @@ format ModelReflectiveFile {
 
             /** all superclasses of [metaclass] (transitively), most specific first; empty if unknown */
             fun superclasses(metaclass: String): List<String>
+
+            /** whether [metaclass] is abstract; null if it is not a metaclass of ${name} */
+            fun isAbstract(metaclass: String): Boolean?
         }
 
         /** [${name}_ModelReflective] over the api interfaces, constructing objects with [factory] */
@@ -425,11 +450,11 @@ format ModelReflectiveFile {
                 $[pkgs sep $EOL via ChainAddContained] null
             }
 
-            override fun setReference(obj: Any, feature: String, identity: Any): Boolean = withMetaclass(obj) { mc ->
+            override fun setReference(obj: Any, feature: String, identity: Any, resolved: Any?): Boolean = withMetaclass(obj) { mc ->
                 $[pkgs sep $EOL via ChainSetReference] null
             }
 
-            override fun addReference(obj: Any, feature: String, identity: Any): Boolean = withMetaclass(obj) { mc ->
+            override fun addReference(obj: Any, feature: String, identity: Any, resolved: Any?): Boolean = withMetaclass(obj) { mc ->
                 $[pkgs sep $EOL via ChainAddReference] null
             }
 
@@ -444,6 +469,9 @@ format ModelReflectiveFile {
 
             override fun superclasses(metaclass: String): List<String> =
                 $[pkgs sep $EOL via ChainSuperclasses] emptyList()
+
+            override fun isAbstract(metaclass: String): Boolean? =
+                $[pkgs sep $EOL via ChainIsAbstract] null
 
             private inline fun withMetaclass(obj: Any, action: (String) -> Boolean?): Boolean = try {
                 metaclassOf(obj)?.let { action(it) } ?: false
