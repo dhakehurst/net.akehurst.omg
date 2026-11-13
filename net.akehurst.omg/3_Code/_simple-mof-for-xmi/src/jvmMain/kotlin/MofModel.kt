@@ -742,7 +742,7 @@ class MofProperty(
     // --- derived ---
     val name: String
         get() = when {
-            isAssociationOwned -> association!!.name!! + "_" + nameInXmi.ifBlank { type.name.decapitalise }
+            isAssociationOwned -> (association!!.name ?: association!!.xmiId) + "_" + nameInXmi.ifBlank { type.name.decapitalise }
             else -> nameInXmi.ifBlank { type.name.decapitalise }
         }
     val attrName by lazy {
