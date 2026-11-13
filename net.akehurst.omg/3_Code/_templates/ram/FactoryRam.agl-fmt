@@ -98,8 +98,11 @@ format ModelFactoryFile {
         // *** Generated code do NOT manually edit. ***
         package ${TARGET_PACKAGE}.ram
 
-        import net.akehurst.kotlinx.collections.MutableOrderedSet
-        import net.akehurst.kotlinx.collections.OrderedSet
+        import net.akehurst.kotlinx.collections.CollectionExt.mutable
+        import net.akehurst.kotlinx.collections.ManagedCollection
+        import net.akehurst.kotlinx.collections.ManagedList
+        import net.akehurst.kotlinx.collections.ManagedOrderedSet
+        import net.akehurst.kotlinx.collections.ManagedSet
         import net.akehurst.kotlinx.utils.HierarchicalFactory
         import net.akehurst.kotlinx.utils.HierarchicalReferenceStore
         import net.akehurst.kotlinx.utils.HierarchicalReferenceStoreByHashMap
@@ -142,22 +145,18 @@ format ModelFactoryFile {
             }
 
             /*
-             * Adds to (or removes from) a collection superset (or subset) when a related property changes.
+             * Adds to (or removes from) a collection superset (or subset), or an opposite, when a related property changes.
              * A subclass may redefine that collection by another property, and then the collection is computed
              * from the redefining property and cannot be changed; it is left as it is.
-             * (An ordered set is checked by its own interface, because on JS a read-only collection
-             * cannot be told from a mutable one.)
+             * A stored collection is always one of the kotlinx Managed collections; a computed one is not
+             * (it can be a JVM collection that implements MutableCollection but throws on add, e.g. a singleton set).
              */
-            @Suppress(\"UNCHECKED_CAST\")
             fun <E> Collection<E>.addIfStored(item: E): Boolean = when (this) {
-                is OrderedSet<*> -> if (this is MutableOrderedSet<*>) (this as MutableOrderedSet<E>).add(item) else false
-                is MutableCollection<*> -> (this as MutableCollection<E>).add(item)
+                is ManagedCollection<*>, is ManagedList<*>, is ManagedSet<*>, is ManagedOrderedSet<*> -> this.mutable.add(item)
                 else -> false
             }
-            @Suppress(\"UNCHECKED_CAST\")
             fun <E> Collection<E>.removeIfStored(item: E): Boolean = when (this) {
-                is OrderedSet<*> -> if (this is MutableOrderedSet<*>) (this as MutableOrderedSet<E>).remove(item) else false
-                is MutableCollection<*> -> (this as MutableCollection<E>).remove(item)
+                is ManagedCollection<*>, is ManagedList<*>, is ManagedSet<*>, is ManagedOrderedSet<*> -> this.mutable.remove(item)
                 else -> false
             }
         }

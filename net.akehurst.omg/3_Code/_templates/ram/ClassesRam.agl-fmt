@@ -427,12 +427,15 @@ format PropertyGetterColCmp {
                        else -> 'ERROR'
                    }
                    opposite.isCollection -> when {
-                       opposite.isReference -> "item.${opposite.validName}Reference.mutable.add(ReferenceImmutable(this._identity, this))"
-                       opposite.isComposite -> "item.${opposite.validName}.mutable.add(this)"
+                       opposite.isReference -> "item.${opposite.validName}Reference.addIfStored(ReferenceImmutable(this._identity, this))"
+                       opposite.isComposite -> "item.${opposite.validName}.addIfStored(this)"
                        else -> 'ERROR'
                    }
                    else -> 'ERROR'
                 }
+                // a subclass of the opposite's owner may redefine the opposite collection by another property
+                // (e.g. OccurrenceSpecification.covered[1] redefines InteractionFragment.covered[*]); it is then
+                // computed and left as it is (addIfStored), as for subsets
                 "
                     // add to opposite
                     $opp
@@ -449,8 +452,8 @@ format PropertyGetterColCmp {
                        else -> 'ERROR'
                     }
                     opposite.isCollection -> when {
-                        opposite.isReference -> "item.let { it.${opposite.validName}Reference.mutable.remove(ReferenceImmutable(this._identity, this)) }"
-                        opposite.isComposite -> "item.let { it.${opposite.validName}.mutable.remove(this) }"
+                        opposite.isReference -> "item.let { it.${opposite.validName}Reference.removeIfStored(ReferenceImmutable(this._identity, this)) }"
+                        opposite.isComposite -> "item.let { it.${opposite.validName}.removeIfStored(this) }"
                         else -> 'ERROR'
                     }
                     else -> 'ERROR'
@@ -565,12 +568,15 @@ format PropertyGetterColRef {
                        else -> 'ERROR'
                    }
                    opposite.isCollection -> when {
-                       opposite.isReference -> "item.resolved?.let { it.${opposite.validName}Reference.mutable.add(ReferenceImmutable(this._identity, this)) }"
-                       opposite.isComposite -> "item.resolved?.let { it.${opposite.validName}.mutable.add(this) }"
+                       opposite.isReference -> "item.resolved?.let { it.${opposite.validName}Reference.addIfStored(ReferenceImmutable(this._identity, this)) }"
+                       opposite.isComposite -> "item.resolved?.let { it.${opposite.validName}.addIfStored(this) }"
                        else -> 'ERROR'
                    }
                    else -> 'ERROR'
                 }
+                // a subclass of the opposite's owner may redefine the opposite collection by another property
+                // (e.g. OccurrenceSpecification.covered[1] redefines InteractionFragment.covered[*]); it is then
+                // computed and left as it is (addIfStored), as for subsets
                 "
                     // add to opposite
                     $opp
@@ -583,8 +589,8 @@ format PropertyGetterColRef {
                 opp := when {
                     opposite.isSingle -> "item.resolved?.let { if (it.${opposite.validName} == this) it.${opposite.validName}Reference.mutable.clear() }"
                     opposite.isCollection -> when {
-                        opposite.isReference -> "item.resolved?.let { it.${opposite.validName}Reference.mutable.remove(ReferenceImmutable(this._identity, this)) }"
-                        opposite.isComposite -> "item.resolved?.let { it.${opposite.validName}.mutable.remove(this) }"
+                        opposite.isReference -> "item.resolved?.let { it.${opposite.validName}Reference.removeIfStored(ReferenceImmutable(this._identity, this)) }"
+                        opposite.isComposite -> "item.resolved?.let { it.${opposite.validName}.removeIfStored(this) }"
                         else -> 'ERROR'
                     }
                     else -> 'ERROR'
