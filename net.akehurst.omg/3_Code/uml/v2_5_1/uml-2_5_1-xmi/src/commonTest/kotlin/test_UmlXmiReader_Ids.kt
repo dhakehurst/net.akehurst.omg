@@ -20,7 +20,7 @@ import net.akehurst.omg.uml.v2_5_1.api.UML.Packages.Package
 import net.akehurst.omg.uml.v2_5_1.api.UML.StructuredClassifiers.Class
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotSame
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -121,9 +121,9 @@ class test_UmlXmiReader_Ids {
     }
 
     @Test
-    fun equal_elements_give_their_own_ids() {
-        // the ram classes are equal when they have the same identity; the identity of a read element is
-        // its xmi:id, else its xmi:uuid, so these two classes are equal but distinct
+    fun uuid_equal_to_another_id_gives_distinct_elements() {
+        // the identity of a read element is its xmi:id, else its xmi:uuid; B's would be A's, so B's is generated
+        // (the ram classes are equal when their identities are)
         val r = readUmlXmi(
             xmi(
                 """
@@ -135,12 +135,12 @@ class test_UmlXmiReader_Ids {
             )
         )
         assertEquals(emptyList(), r.errors)
-        val a = r.document.elementsById["X"] as Class
-        val b = r.document.elementsByUuid["X"] as Class
-        assertEquals("A", a.name)
-        assertEquals("B", b.name)
-        assertNotSame(a, b)
-        assertEquals<Any>(a, b)
+        val classes = r.model!!.packagedElementSet.map { it as Class }
+        assertEquals(listOf("A", "B"), classes.map { it.name })
+        val (a, b) = classes
+        assertNotEquals<Any>(a, b)
+        assertEquals("X", a._identity)
+        assertSame(b, r.document.elementsByUuid["X"])
 
         assertEquals("X", r.idOf(a))
         assertNull(r.uuidOf(a))
@@ -155,22 +155,58 @@ class test_UmlXmiReader_Ids {
                 """
                   <uml:Model xmi:id="_m" name="Testsat">
                     <packagedElement xmi:type="uml:Class" xmi:id="_dup" name="First"/>
-                    <packagedElement xmi:type="uml:Class" xmi:id="_dup" xmi:uuid="uuid-second" name="Second"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_dup" name="Second"/>
                   </uml:Model>
                 """
             )
         )
         assertTrue(r.errors.any { it.kind == XmiIssueKind.DUPLICATE_ID && it.message.contains("_dup") })
-        // both classes have the identity '_dup', so they are equal; the second is reached by its xmi:uuid
-        val first = r.elementById("_dup") as Class
-        val second = r.document.elementsByUuid["uuid-second"] as Class
-        assertEquals("First", first.name)
-        assertEquals("Second", second.name)
+        // the second is given a generated identity, so it is not equal to the first and is kept in the model
+        val classes = r.model!!.packagedElementSet.map { it as Class }
+        assertEquals(listOf("First", "Second"), classes.map { it.name })
+        val (first, second) = classes
+        assertNotEquals<Any>(first, second)
+        assertSame(first, r.elementById("_dup"))
         assertEquals("_dup", r.idOf(first))
         assertNull(r.idOf(second))
-        assertEquals("uuid-second", r.uuidOf(second))
         // still known as read from the document
         assertSame(r.document, r.reader.resourceSet.documentOf(second))
+    }
+
+    @Test
+    fun same_id_in_two_documents_gives_distinct_elements() {
+        // the UML PrimitiveTypes library (supplied by the reader) has the package xmi:id '_0' too
+        val r = readUmlXmi(
+            xmi(
+                """
+                  <uml:Model xmi:id="_m" name="Testsat">
+                    <packagedElement xmi:type="uml:Package" xmi:id="_0" name="Structure">
+                      <packagedElement xmi:type="uml:Class" xmi:id="_obc" name="OBC">
+                        <ownedAttribute xmi:type="uml:Property" xmi:id="_obc_name" name="name">
+                          <type href="http://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String"/>
+                        </ownedAttribute>
+                      </packagedElement>
+                    </packagedElement>
+                  </uml:Model>
+                """
+            )
+        )
+        assertEquals(emptyList(), r.errors)
+        val structure = r.elementById("_0") as Package
+        assertEquals("Structure", structure.name)
+        val obc = r.elementById("_obc") as Class
+        val string = obc.ownedAttributeOrderedSet.single().type!!
+        val primitiveTypes = string.owner as Package
+        assertEquals("PrimitiveTypes", primitiveTypes.name)
+
+        assertNotEquals<Any>(structure, primitiveTypes)
+        assertEquals("_0", r.idOf(structure))
+        assertEquals("_0", r.idOf(primitiveTypes))
+        assertSame(r.document, r.reader.resourceSet.documentOf(structure))
+        val ptDoc = r.reader.resourceSet.documentOf(primitiveTypes)!!
+        assertTrue(ptDoc !== r.document)
+        assertSame(primitiveTypes, ptDoc.elementById("_0"))
+        assertSame(structure, r.document.elementById("_0"))
     }
 
     @Test

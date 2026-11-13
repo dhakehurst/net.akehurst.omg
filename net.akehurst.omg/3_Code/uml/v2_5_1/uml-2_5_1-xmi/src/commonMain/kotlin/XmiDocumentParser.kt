@@ -60,6 +60,8 @@ internal class XmiDocumentParser(
     private val options: XmiReadOptions,
     private val issues: XmiIssueCollector,
     private val pending: MutableList<XmiPendingReference>,
+    /** identities given to elements in all documents of the resource set, so that each is given only once */
+    private val usedIdentities: MutableSet<Any>,
 ) {
     companion object {
         const val XMLNS_NS = "http://www.w3.org/2000/xmlns/"
@@ -76,6 +78,20 @@ internal class XmiDocumentParser(
     private val profileStack = mutableListOf<XmiProfileInfo>()
 
     private val line: Int? get() = try { reader.getLineNumber() } catch (_: Throwable) { null }
+
+    /**
+     * The identity of an element is its xmi:id (else its xmi:uuid), unless an element of any document of the resource set
+     * already has that identity (a duplicate xmi:id, the same xmi:id in another document, or an xmi:uuid equal to another
+     * element's xmi:id); it is then generated. The ram classes are equal when their identities are, so this keeps
+     * distinct elements unequal (e.g. both are kept in a containing set).
+     */
+    private fun uniqueIdentity(preferred: String?): Any {
+        if (null != preferred && usedIdentities.add(preferred)) return preferred
+        while (true) {
+            val generated = "${document.uri}#_gen${generatedIdCount++}"
+            if (usedIdentities.add(generated)) return generated
+        }
+    }
 
     fun parse() {
         try {
@@ -321,7 +337,7 @@ internal class XmiDocumentParser(
                 "uuid" -> xmiUuid = a.value
             }
         }
-        val identity: Any = xmiId ?: xmiUuid ?: "${document.uri}#_gen${generatedIdCount++}"
+        val identity: Any = uniqueIdentity(xmiId ?: xmiUuid)
         val obj = try {
             mc.construct(identity)
         } catch (e: Exception) {

@@ -142,6 +142,7 @@ class XmiResourceSet(
     private val _documents = linkedMapOf<String, XmiDocument>()
     private val pending = mutableListOf<XmiPendingReference>()
     private val missing = mutableSetOf<String>()
+    private val usedIdentities = HashSet<Any>()
     private val resolver = XmiResourceResolver.firstOf(options.resolver, XmiStandardResources.resolver)
 
     val documents: Collection<XmiDocument> get() = _documents.values
@@ -175,7 +176,7 @@ class XmiResourceSet(
         _documents[uri]?.let { return it }
         val doc = XmiDocument(uri)
         _documents[uri] = doc
-        XmiDocumentParser(doc, content, metamodel, options, issueCollector, pending).parse()
+        XmiDocumentParser(doc, content, metamodel, options, issueCollector, pending, usedIdentities).parse()
         return doc
     }
 

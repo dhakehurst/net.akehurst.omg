@@ -117,6 +117,9 @@ result.issues                // problems found; see XmiIssueKind
 - The xmi:id and xmi:uuid stay properties of the XMI, not of the UML elements: `idOf`/`uuidOf` (on the result, the
   `XmiResourceSet` or an `XmiDocument`) look the element up by identity, and `resourceSet.documentOf(element)` gives the
   document it was read from. Elements created after reading give null.
+- A read element's `_identity` is its xmi:id (else xmi:uuid), unless an element of any document read by the same reader
+  already has it (a duplicate xmi:id, the same xmi:id in another document); it is then generated. So distinct elements
+  are never equal.
 - `xmi:Extension` elements (tool specific data) are skipped, or kept with `keepExtensions = true`.
 - One reader holds one set of documents. Use a new reader for an unrelated model.
 
