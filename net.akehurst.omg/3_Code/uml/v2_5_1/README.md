@@ -105,6 +105,7 @@ val result = reader.read("model.xmi", modelText)
 result.model                 // the uml:Model, if there is one
 result.roots                 // all root objects
 result.elementById("_123")   // by xmi:id
+result.idOf(element)         // the xmi:id an element was read with (also from a profile or library); uuidOf for xmi:uuid
 result.issues                // problems found; see XmiIssueKind
 ```
 
@@ -113,6 +114,9 @@ result.issues                // problems found; see XmiIssueKind
 - Documents referenced by `href` (profiles, libraries, other model parts) are asked for from the `resolver`.
   The UML PrimitiveTypes library is always available. A reference that cannot be resolved is kept as an `XmiProxy`
   in the property's `...Reference`, with its `href`.
+- The xmi:id and xmi:uuid stay properties of the XMI, not of the UML elements: `idOf`/`uuidOf` (on the result, the
+  `XmiResourceSet` or an `XmiDocument`) look the element up by identity, and `resourceSet.documentOf(element)` gives the
+  document it was read from. Elements created after reading give null.
 - `xmi:Extension` elements (tool specific data) are skipped, or kept with `keepExtensions = true`.
 - One reader holds one set of documents. Use a new reader for an unrelated model.
 

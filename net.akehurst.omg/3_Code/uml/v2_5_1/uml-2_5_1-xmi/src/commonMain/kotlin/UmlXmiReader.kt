@@ -83,6 +83,12 @@ class UmlXmiReadResult internal constructor(
     val issueCounts: Map<XmiIssueKind, Int> get() = reader.resourceSet.issueCollector.counts
 
     fun elementById(id: String): Any? = document.elementById(id)
+
+    /** the xmi:id [element] was read with, in this document or in any other read by the reader (e.g. a profile); null for elements not read from XMI */
+    fun idOf(element: Any): String? = reader.resourceSet.idOf(element)
+
+    /** the xmi:uuid [element] was read with, in this document or in any other read by the reader; null for elements not read from XMI */
+    fun uuidOf(element: Any): String? = reader.resourceSet.uuidOf(element)
 }
 
 /** Reads a UML 2.5.1 model from XMI; see [UmlXmiReader] to load profiles first or read several models. */

@@ -59,6 +59,9 @@ class XmiDocument(
     private val _byUuid = HashMap<String, Any>()
     private val _rawIds = HashSet<String>()
 
+    /** the xmi:id and xmi:uuid each element was read with, by element identity (not equals) */
+    private val _idsOf = HashMap<XmiIdentityKey, XmiElementIds>()
+
     /** the top level model elements, e.g. the uml:Model or uml:Profile */
     val roots: List<Any> get() = _roots
 
@@ -78,12 +81,30 @@ class XmiDocument(
 
     fun elementById(id: String): Any? = _byId[id] ?: _byUuid[id]
 
+    /** true if [element] (this very object, not one that is equal to it) was read from this document */
+    fun contains(element: Any): Boolean = _idsOf.containsKey(XmiIdentityKey(element))
+
+    /**
+     * the xmi:id [element] was read with in this document; null if it has none, if its xmi:id was a duplicate
+     * (reported as [XmiIssueKind.DUPLICATE_ID]), or if it was not read from this document.
+     * Found by object identity: an element that is only equal to one read from this document gives null.
+     */
+    fun idOf(element: Any): String? = _idsOf[XmiIdentityKey(element)]?.id
+
+    /** the xmi:uuid [element] was read with in this document; null if it has none or was not read from this document */
+    fun uuidOf(element: Any): String? = _idsOf[XmiIdentityKey(element)]?.uuid
+
     internal fun register(obj: Any, xmiId: String?, xmiUuid: String?, issues: XmiIssueCollector, line: Int?) {
+        var id: String? = null
         if (null != xmiId) {
             if (_byId.containsKey(xmiId) || _rawIds.contains(xmiId)) issues.error(XmiIssueKind.DUPLICATE_ID, "Duplicate xmi:id '$xmiId'", uri, line)
-            else _byId[xmiId] = obj
+            else {
+                _byId[xmiId] = obj
+                id = xmiId
+            }
         }
         if (null != xmiUuid) _byUuid[xmiUuid] = obj
+        _idsOf[XmiIdentityKey(obj)] = XmiElementIds(id, xmiUuid)
     }
 
     internal fun registerRaw(xmiId: String, xmiUuid: String?) {
@@ -91,6 +112,20 @@ class XmiDocument(
     }
 
     override fun toString(): String = "XmiDocument($uri)"
+}
+
+/** the xmi:id and xmi:uuid an element was read with */
+internal class XmiElementIds(val id: String?, val uuid: String?)
+
+/**
+ * A map key that compares by identity (===), so that distinct elements that are equal are kept apart
+ * (the ram classes are data classes, equal when created by the same factory with the same identity).
+ * Kotlin common has no identity hash code, so the element's own hashCode is used; it must not change while
+ * the element is a key, which holds for the ram classes (their hashCode depends only on factory and identity).
+ */
+internal class XmiIdentityKey(val obj: Any) {
+    override fun equals(other: Any?) = other is XmiIdentityKey && other.obj === obj
+    override fun hashCode() = obj.hashCode()
 }
 
 /**
@@ -113,6 +148,15 @@ class XmiResourceSet(
     val issues: List<XmiIssue> get() = issueCollector.issues
 
     fun document(uri: String): XmiDocument? = _documents[uri]
+
+    /** the document [element] (this very object, not one that is equal to it) was read from; null if it was not read in this set */
+    fun documentOf(element: Any): XmiDocument? = _documents.values.firstOrNull { it.contains(element) }
+
+    /** the xmi:id [element] was read with, in whichever document of this set it was read from; see [XmiDocument.idOf] */
+    fun idOf(element: Any): String? = documentOf(element)?.idOf(element)
+
+    /** the xmi:uuid [element] was read with, in whichever document of this set it was read from; see [XmiDocument.uuidOf] */
+    fun uuidOf(element: Any): String? = documentOf(element)?.uuidOf(element)
 
     /** all profiles in all documents read */
     val profiles: List<XmiProfileInfo> get() = _documents.values.flatMap { it.profiles }
@@ -189,11 +233,11 @@ class XmiResourceSet(
         // group by owner and feature, keeping the order written
         val groups = LinkedHashMap<Pair<Any, XmiMetaFeature>, MutableList<Pair<XmiPendingReference, Any>>>()
         for ((idx, p) in pending.withIndex()) {
-            groups.getOrPut(Pair(IdentityKey(p.owner), p.feature)) { mutableListOf() }.add(Pair(p, resolvedValues[idx]))
+            groups.getOrPut(Pair(XmiIdentityKey(p.owner), p.feature)) { mutableListOf() }.add(Pair(p, resolvedValues[idx]))
         }
         pending.clear()
         for ((key, entries) in groups) {
-            val owner = (key.first as IdentityKey).obj
+            val owner = (key.first as XmiIdentityKey).obj
             val f = key.second
             val first = entries.first().first
             try {
@@ -224,12 +268,6 @@ class XmiResourceSet(
                 issueCollector.error(XmiIssueKind.INVALID_VALUE, "Could not set '${f.name}' to ${entries.map { it.first.text }}: ${e.message}", first.document.uri, first.line)
             }
         }
-    }
-
-    /** compares by identity, so objects whose equals is overridden are kept apart */
-    private class IdentityKey(val obj: Any) {
-        override fun equals(other: Any?) = other is IdentityKey && other.obj === obj
-        override fun hashCode() = obj.hashCode()
     }
 
     /** the identity an object was created with */
