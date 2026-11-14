@@ -506,6 +506,7 @@ class OclToKotlin(private val model: MofModel) {
         val name = nextId()
         val itr = scope.implicitIterator
         if (isSym("(") && name in oclTypeOps) return oclTypeOp(itr ?: scope.lookup("self")!!, name) // e.g. select(oclIsKindOf(Package)), or of self
+        if (null == scope.lookup(name) && isSym(".") && isId("allInstances", 1) && isSym("(", 2) && isSym(")", 3)) return allInstances(name, scope)
         if (isSym("(")) {
             // an operation of the implicit iterator or of self
             itr?.type?.let { t -> findOperation(t, name, peekArgCount()) }?.let { return callOperation(itr, it, scope) }
@@ -521,6 +522,19 @@ class OclToKotlin(private val model: MofModel) {
         val self = scope.lookup("self")!!
         val p = findProperty(selfType, name) ?: throw Untranslatable("unknown name '$name'")
         return navigateProperty(self, p)
+    }
+
+    /**
+     * 'T.allInstances()': the instances of T (and its subtypes) held by the factory of self, i.e. every object
+     * in the whole tree of reference stores that the factory belongs to (HierarchicalReferenceStore.findAllInTree).
+     * The tokens after the type name are '.', 'allInstances', '(', ')'.
+     */
+    private fun allInstances(typeName: String, scope: Scope): KExpr {
+        val t = model.allClasses.firstOrNull { it.name == typeName } ?: throw Untranslatable("unknown name '$typeName'")
+        pos += 4
+        val self = scope.lookup("self")!!
+        val store = "(${self.code}._factory as? net.akehurst.kotlinx.utils.HierarchicalReferenceStore<*> ?: error(\"allInstances() needs a factory that is a HierarchicalReferenceStore\"))"
+        return KExpr("$store.findAllInTree(${t.validName}::class)", t, true, false)
     }
 
     private fun navigate(recv: KExpr, scope: Scope): KExpr {

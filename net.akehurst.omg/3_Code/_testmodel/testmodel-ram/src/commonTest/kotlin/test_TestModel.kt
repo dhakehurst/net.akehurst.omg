@@ -214,14 +214,25 @@ class test_TestModel {
 
     // operations that are not translated are generated with a TODO body
     @Test
-    fun untranslated_operations_and_derivations_are_todo() {
+    fun untranslated_operations_are_todo() {
         val root = model()
         // depth(): 'owner.depth() + 1' is arithmetic on a possibly null value
         assertFailsWith<NotImplementedError> { root.depth() }
         // informal(): the body is not OCL
         assertFailsWith<NotImplementedError> { root.informal() }
-        // everything = Element.allInstances()
-        assertFailsWith<NotImplementedError> { root.everythingSet.size }
+    }
+
+    // everything = Element.allInstances(): every Element held by the factory of self, from any element
+    @Test
+    fun allInstances() {
+        val root = model()
+        val a = root.child("A")
+        val all = setOf("root", "r1", "a", "r2", "b", "c")
+        assertEquals(all, root.everythingSet.map { it._identity }.toSet())
+        assertEquals(all, a.child("B").everythingSet.map { it._identity }.toSet())
+        // another factory is another extent
+        assertEquals(setOf("root", "r1", "a", "r2", "b", "c"), model().everythingSet.map { it._identity }.toSet())
+        assertTrue(model().everythingSet.none { it === root })
     }
 
     // Relationship::relatedElement is a derived union of owningRelatedElement, ownedRelatedElement and target;

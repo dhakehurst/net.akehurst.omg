@@ -43,6 +43,10 @@ val model = UML_ModelBuilder.Model(factory, "test") {
 
 The argument of each builder function (`"P1"`, `"C1"`) is the object's `_identity`. Only stored properties can be
 set; derived ones are computed when they are read, e.g. `model.nestedPackageSet` is derived from `packagedElement`.
+Derivations that use OCL `allInstances()` look at every object created by the same factory, whether it is in the
+model or not: e.g. `clientDependencySet` of a `NamedElement` is the Dependencies of that factory whose `client`
+includes it. An object taken out of the model stays in the factory until it is removed from its package factory
+(`(e._factory as HierarchicalReferenceStore<Any>).remove(<metaclass>::class, e._identity)`).
 
 Names follow the XMI, with a suffix for collections: `Set` (unique), `OrderedSet` (unique, ordered), `List` (ordered)
 or `Collection`. A stored reference `p` also has `pReference`, which holds the reference even when it is not resolved.
