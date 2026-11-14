@@ -55,6 +55,11 @@ from its subsets, and opposite ends are updated. Collections are changed through
 association.ownedEndOrderedSet.mutable.remove(p)   // also removed from navigableOwnedEnd
 ```
 
+An opposite end that is a collection computed by redefinition is not updated from the other end. For example
+`InteractionFragment.covered[*]` is redefined by `OccurrenceSpecification.covered[1]`, so on an occurrence
+specification `coveredSet` is computed from `covered`: adding it to a lifeline's `coveredBySet` does not set
+`covered`. Set the redefining property itself (XMI written by tools has both ends, so the reader gets both).
+
 ## Building a model by name
 
 `UML_ModelReflective` builds a model from the names of metaclasses and features, as in the OMG XMI, for readers that
@@ -112,7 +117,8 @@ result.issues                // problems found; see XmiIssueKind
 - Reading is lenient by default: problems are collected in `result.issues` (`errors`, `warnings`), not thrown.
   Set `XmiReadOptions(lenient = false)` to throw `XmiReadException` on the first error.
 - Documents referenced by `href` (profiles, libraries, other model parts) are asked for from the `resolver`.
-  The UML PrimitiveTypes library is always available. A reference that cannot be resolved is kept as an `XmiProxy`
+  The UML PrimitiveTypes library and the UML StandardProfile (ptc/18-01-03, a copy is in `specs`) are built in,
+  so they need no resolver. A reference that cannot be resolved is kept as an `XmiProxy`
   in the property's `...Reference`, with its `href`.
 - The xmi:id and xmi:uuid stay properties of the XMI, not of the UML elements: `idOf`/`uuidOf` (on the result, the
   `XmiResourceSet` or an `XmiDocument`) look the element up by identity, and `resourceSet.documentOf(element)` gives the
@@ -170,6 +176,9 @@ from the IDE. The JVM test `render_DemoDiagrams` writes each view as a PNG to `<
 ```sh
 ./gradlew :uml-2_5_1-ram:jvmTest :uml-2_5_1-xmi:jvmTest
 ```
+
+`test_UML_OppositePairs` (JVM) sets every class-owned opposite pair of UML from both ends, for every pair of
+concrete metaclasses, through `UML_ModelReflective`, and checks that each end holds the other once.
 
 The XMI reader tests use a made-up spacecraft model ("Testsat", `TestsatModel.kt`) with a stand-in SysML profile,
 and the SysML 1.7 profile from `3_Code/sysml/v1_7/specs`.

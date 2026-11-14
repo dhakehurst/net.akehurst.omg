@@ -21,15 +21,22 @@ The templates produce:
 |---|---|---|---|
 | UML 2.5.1 | [`uml/v2_5_1`](net.akehurst.omg/3_Code/uml/v2_5_1/README.md) | api, ram, agl-types, xmi (model reader), gui-compose, demo-diagrams | ptc-18-01-01 |
 | KerML 1.0 | [`kerml/v1_0`](net.akehurst.omg/3_Code/kerml/v1_0/README.md) | api, ram | ptc-25-04-04, patched |
-| SysML 2.0 | [`sysml/v2_0`](net.akehurst.omg/3_Code/sysml/v2_0/README.md) | api, ram (includes KerML) | ptc-25-02-15, patched |
-| Systems Modeling API 1.0 | `sysmod-api/v1_0` | api | ptc-25-02-29 |
-| Diagram Definition 1.1 | `dd/v1_1` | api, ram, agl-types | DD 2013-10-01 |
-| MOF 2.5.1 | `mof` | api, ram (hand written, not generated) | ptc-14-08-10 |
+| SysML 2.0 | [`sysml/v2_0`](net.akehurst.omg/3_Code/sysml/v2_0/README.md) | api, ram (includes KerML), agl-types | ptc-25-02-15, patched |
+| Systems Modeling API 1.0 | [`sysmod-api/v1_0`](net.akehurst.omg/3_Code/sysmod-api/v1_0/README.md) | api | ptc-25-02-29 |
+| Diagram Definition 1.1 | [`dd/v1_1`](net.akehurst.omg/3_Code/dd/v1_1/README.md) | api, ram, agl-types | DD 2013-10-01 |
+| MOF 2.5.1 | [`mof`](net.akehurst.omg/3_Code/mof/README.md) | api, ram (hand written, not generated) | ptc-14-08-10 |
 
-The `generate` task of the Diagram Definition and Systems Modeling API modules does not work with the current
-generator, so those two modules do not build at the moment.
+The `generate` task of the Systems Modeling API module fails with the current generator, so that module does not
+build at the moment.
 
-Each metamodel folder has a `specs` folder with the OMG XMI and specification PDF the code is generated from.
+Each metamodel folder has a `specs` folder with the XMI and specification PDF the code is generated from.
+
+### Where the spec files come from
+
+The repository does not record where the files in the `specs` folders were downloaded from. Their names follow OMG
+document numbers (`ptc-18-01-01`, `formal-26-03-01`, ...), which suggests they are the machine-readable files and
+specifications published by the OMG, but that is not confirmed. In particular, the SysML 2.0 and KerML metamodel XMI
+is not from the SysML v2 release repository (Systems-Modeling/SysML-v2-Release), which has no metamodel XMI.
 
 The KerML and SysML XMI from the OMG has errors in its OCL (and does not set aggregations), so the code is generated
 from patched copies: `kerml_patched.xmi` and `sysml_patched.xmi`. Each change is listed in the `specs/ocl-fixes.md`
@@ -46,11 +53,11 @@ reader; there is no generated SysML 1.7 code.
 | [`diagram/diagram-model`](net.akehurst.omg/3_Code/diagram/diagram-model/README.md) | A generic diagram model (nodes, compartments, ports, edges) that knows nothing about the modelling language, with its AGL types and a conversion to the `layout-graph` Compose view |
 | [`_simple-mof-for-xmi`](net.akehurst.omg/3_Code/_simple-mof-for-xmi/README.md) | The generator: reads MOF XMI into a simple MOF model, translates OCL to Kotlin, runs the templates |
 | [`_templates`](net.akehurst.omg/3_Code/_templates/README.md) | The AGL format templates for api, ram and agl-types |
-| `_testmodel` | A small test metamodel (`specs/testmodel.xmi`) generated with the real templates, with tests of the generated code |
+| [`_testmodel`](net.akehurst.omg/3_Code/_testmodel/README.md) | A small test metamodel (`specs/testmodel.xmi`) generated with the real templates, with tests of the generated code |
 
 These modules are not published: `_simple-mof-for-xmi`, `_templates`, `_testmodel` (`testmodel-api`, `testmodel-ram`).
-`uml-2_5_1-demo-diagrams` is a demo. `mof/mof-gen` and `mof/gen-agl-types` are not part of the build (their build
-files are named `build.gradle.kts_`).
+`uml-2_5_1-demo-diagrams` is a demo. `mof/mof-gen` is not part of the build (its build file is named
+`build.gradle.kts_`).
 
 ## Using
 
@@ -95,7 +102,8 @@ println(UML_ModelAsString.Model_asString(model))
 
 ## Building
 
-The Gradle project is in the `net.akehurst.omg/` folder, so run Gradle from there.
+The Gradle project is in the `net.akehurst.omg/` folder, so run Gradle from there. The Gradle wrapper (Gradle 9.5.0,
+`gradle/wrapper/gradle-wrapper.jar` included) is checked in, so `./gradlew` works in a fresh clone.
 
 It depends on these other projects. When their versions in `gradle/libs.versions.toml` are `-SNAPSHOT`, build each one
 with `publishToMavenLocal` first, in this order:
@@ -114,6 +122,9 @@ cd net.akehurst.omg
 ./gradlew :uml-2_5_1-ram:generate   # only regenerate the code of one module
 ./gradlew publishToMavenLocal
 ```
+
+While the Systems Modeling API module does not build, a whole-project `assemble` or `build` fails at its `generate`
+task; build the other modules by name (e.g. `./gradlew :uml-2_5_1-ram:assemble`).
 
 The generated code is written to `.gradle-build/<module>/generated/sources/generator/commonMain/kotlin` and is not
 checked in. Compiling a generated module runs its `generate` task first.

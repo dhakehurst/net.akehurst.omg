@@ -28,7 +28,7 @@ Package `<TARGET_PACKAGE>.ram`. The in-memory realisation of the api.
 
 | Template | Generates |
 |---|---|
-| `ClassesRam.agl-fmt` | `ram/<path>/<Class>_Ram.kt` per class. Stored values are created on first use; derived values and derived unions are computed when read; subsets, supersets and opposite ends are kept consistent |
+| `ClassesRam.agl-fmt` | `ram/<path>/<Class>_Ram.kt` per class. Stored values are created on first use; derived values and derived unions are computed when read; subsets, supersets and opposite ends are kept consistent. A subset, superset or opposite that a subclass computes by redefinition is left as it is (`addIfStored`/`removeIfStored` in the factory) |
 | `FactoryRam.agl-fmt` | `<Package>_FactoryRam` per package and `<Model>_ModelFactoryRam` |
 | `InterfaceNonNavigable.agl-fmt` | `ram/<path>/<Package>_TypesNonNavigable.kt`: internal interfaces with the association ends that are not navigable from the class |
 
@@ -36,7 +36,9 @@ Package `<TARGET_PACKAGE>.ram`. The in-memory realisation of the api.
 
 | Template | Generates |
 |---|---|
-| `TypesDomain.agl-fmt` | `agl/<Model>TypesDomain.kt`: the AGL types of the metamodel (supertypes, properties named as in the XMI, with accessors and mutators bound to the ram classes) and `<Model>TypesMutation`, which says how a mutator sets a value |
+| `TypesDomain.agl-fmt` | `agl/<Model>TypesDomain.kt`: the AGL types of the metamodel (supertypes, properties named as in the XMI, with accessors and mutators bound to the ram classes) and `<Model>TypesMutation`, which says how a mutator sets a value. Packages in `EXCLUDE_PACKAGE` are left out |
+
+The agl-types modules are `uml-2_5_1-agl-types`, `sysml-2_0-agl-types` and `dd-1_1-agl-types`.
 
 ## The rules
 
