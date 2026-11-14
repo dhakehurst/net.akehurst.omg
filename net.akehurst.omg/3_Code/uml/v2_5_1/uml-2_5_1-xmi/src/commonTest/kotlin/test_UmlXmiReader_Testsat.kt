@@ -164,6 +164,25 @@ class test_UmlXmiReader_Testsat {
         assertEquals("Mass Test", (st.elementsWithStereotype(SYSML, "TestCase").single() as NamedElement).name)
     }
 
+    // NamedElement.clientDependency = Dependency.allInstances()->select(d | d.client->includes(self)),
+    // where allInstances() is every object held by the factory the reader created the elements with
+    @Test
+    fun clientDependency_of_read_elements() {
+        val r = read()
+        val sat = r.elementById("_sat1") as Abstraction
+        val der = r.elementById("_der1") as Abstraction
+        val ver = r.elementById("_ver1") as Abstraction
+        assertTrue(r.stereotypes.hasStereotype(sat, SYSML, "Satisfy"))
+        // a Class that is the client of a Satisfy Abstraction
+        assertEquals(setOf(sat), r.named("_power").clientDependencySet)
+        // client of one Abstraction (DeriveReqt), supplier of another (Satisfy)
+        assertEquals(setOf(der), r.named("_req2").clientDependencySet)
+        assertEquals(setOf(ver), r.named("_massTest").clientDependencySet)
+        // only a supplier
+        assertEquals(emptySet(), r.named("_req1").clientDependencySet)
+        assertEquals(emptySet(), r.named("_testsat").clientDependencySet)
+    }
+
     @Test
     fun application_with_missing_profile_is_kept_untyped() {
         val r = read()

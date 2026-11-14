@@ -80,10 +80,10 @@ class test_Templates {
             "object Test_Derivations {",
             "fun Element_name(self: Element): String? = self.effectiveName()",
             "fun Element_isA(self: Element): Boolean = (self.kind == Kind.a)",
-            "fun Element_everythingSet(self: Element): Set<Element> = TODO(\"Derivation of 'Test.Element.everything' is not implemented\")",
+            "fun Element_everythingSet(self: Element): Set<Element> = (self._factory as? net.akehurst.kotlinx.utils.HierarchicalReferenceStore<*> ?: error(\"allInstances() needs a factory that is a HierarchicalReferenceStore\")).findAllInTree(Element::class).toSet()",
         )
         // the OCL is kept in the KDoc
-        assertContains(d, "* everything = Element.allInstances()", "* Not translated: unknown name 'Element'.")
+        assertContains(d, "* everything = Element.allInstances()")
     }
 
     @Test

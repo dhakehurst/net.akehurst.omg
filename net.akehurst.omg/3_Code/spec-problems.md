@@ -259,7 +259,7 @@ Errors in the spec OCL:
 
 Rules that navigate non-navigable association ends (the same kind of problem as KerML's `valuation`): `Property::isAttribute`, `isNavigable` and `subsettingContext` (`classifier`); `ConnectorEnd::definingEnd` (`connector`); `MessageEnd::oppositeEnd` (`messageEnd`); `Gate::isInsideCF`, `isOutsideCF`, `getOperand` and `MessageEnd::enclosingFragment` (`combinedFragment`); `Gate::isFormal` and `Action::containingBehavior` (`interaction`); `Gate::isActual` (`interactionUse`); `Classifier::directlyUsedInterfaces` (`supplierDependency`); `Behavior::context` (`nestingClass`).
 
-Rules that use `allInstances()`, which needs a whole model rather than one element: `NamedElement::clientDependency`, `Vertex::incoming` and `outgoing`, `Class::extension` and `ConnectableElement::end`.
+Rules that use `allInstances()`, which needs a whole model rather than one element: `NamedElement::clientDependency`, `Vertex::incoming` and `outgoing`, `Class::extension` and `ConnectableElement::end`. Since 2026-11-14 the generator translates `T.allInstances()` as the instances of `T` held by the factory of `self`, so these are now implemented.
 
 No OCL at all: `ExtensionEnd::lower`, `CallAction::inputParameters` and `outputParameters`, and `Behavior::behavioredClassifier`.
 

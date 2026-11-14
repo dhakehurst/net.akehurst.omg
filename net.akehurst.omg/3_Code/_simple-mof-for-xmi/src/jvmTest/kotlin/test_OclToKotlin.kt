@@ -116,7 +116,9 @@ class test_OclToKotlin {
         check("ownedElement", "ownedElement->asOrderedSet()", "self.ownedElementOrderedSet.distinct().toOrderedSet()")
         check("ownedElement", "Sequence{self, owner}", "listOfNotNull(self, self.owner).toOrderedSet()")
         check("ownedElement", "OrderedSet{}", "emptyList<Element>().toOrderedSet()")
-        check("ownedElement", "Element.allInstances()", "UNTRANSLATABLE: unknown name 'Element'")
+        check("ownedElement", "Element.allInstances()", "(self._factory as? net.akehurst.kotlinx.utils.HierarchicalReferenceStore<*> ?: error(\"allInstances() needs a factory that is a HierarchicalReferenceStore\")).findAllInTree(Element::class).toOrderedSet()")
+        check("ownedElement", "Element.allInstances()->select(isA)", "(self._factory as? net.akehurst.kotlinx.utils.HierarchicalReferenceStore<*> ?: error(\"allInstances() needs a factory that is a HierarchicalReferenceStore\")).findAllInTree(Element::class).filter { _e1 -> _e1.isA }.toOrderedSet()")
+        check("ownedElement", "Nothing.allInstances()", "UNTRANSLATABLE: unknown name 'Nothing'")
     }
 
     // OCL closure: the source elements and everything reached from them by the body
@@ -139,8 +141,8 @@ class test_OclToKotlin {
         assertEquals("self.effectiveName()", prop("Element", "name").derivationKotlin)
         assertEquals("(if ((self.owningRelationship == null)) null else self.owningRelationship?.owningRelatedElement)", prop("Element", "owner").derivationKotlin)
         assertEquals("self.ownedElementOrderedSet.filterIsInstance<Package>().toOrderedSet()", prop("Element", "ownedPackage").derivationKotlin)
-        assertNull(prop("Element", "everything").derivationKotlin)
-        assertTrue(prop("Element", "everything").derivationDoc.contains("Not translated: unknown name 'Element'."))
+        assertEquals("(self._factory as? net.akehurst.kotlinx.utils.HierarchicalReferenceStore<*> ?: error(\"allInstances() needs a factory that is a HierarchicalReferenceStore\")).findAllInTree(Element::class).toSet()", prop("Element", "everything").derivationKotlin)
+        assertFalse(prop("Element", "everything").derivationDoc.contains("Not translated"))
     }
 
     // operation bodies are default methods of the api interface: 'self' is 'this', parameters are in scope

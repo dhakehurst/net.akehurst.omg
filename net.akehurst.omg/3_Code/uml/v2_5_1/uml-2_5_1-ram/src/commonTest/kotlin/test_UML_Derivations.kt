@@ -16,7 +16,10 @@
 
 package net.akehurst.omg.uml.v2_5_1
 
+import net.akehurst.kotlinx.collections.SetExt.mutable
 import net.akehurst.kotlinx.utils.ReferenceExt.mutable
+import net.akehurst.kotlinx.utils.ReferenceImmutable
+import net.akehurst.omg.uml.v2_5_1.api.UML.CommonStructure.Dependency
 import net.akehurst.omg.uml.v2_5_1.api.UML.Classification.AggregationKind
 import net.akehurst.omg.uml.v2_5_1.api.UML.Packages.Model
 import net.akehurst.omg.uml.v2_5_1.api.UML.Packages.Package
@@ -158,6 +161,52 @@ class test_UML_Derivations {
         assertEquals(false, t.isComposite)
         assertEquals(false, t.isOrthogonal)
         assertEquals(true, t.isSimple)
+    }
+
+    // clientDependency = Dependency.allInstances()->select(d | d.client->includes(self))
+    // allInstances() is every object held by the factory of self (any package factory of the same model factory)
+    @Test
+    fun clientDependency() {
+        val factory = UML_ModelFactoryRam("TestFactoryRam")
+        val m = UML_ModelBuilder.Model(factory, "M") {
+            name("M")
+            packagedElementSet {
+                Class("A") { name("A") }
+                Class("B") { name("B") }
+                Class("C") { name("C") }
+                Usage("A->B") { }
+                Abstraction("A,B->C") { }
+                Realization("C->A") { }
+            }
+        }
+        val a = m.cls("A")
+        val b = m.cls("B")
+        val c = m.cls("C")
+        val deps = m.packagedElementSet.filterIsInstance<Dependency>().associateBy { it._identity }
+        val usage = deps.getValue("A->B")
+        val abstraction = deps.getValue("A,B->C")
+        val realization = deps.getValue("C->A")
+        usage.clientSetReference.mutable.add(ReferenceImmutable("A", a))
+        usage.supplierSetReference.mutable.add(ReferenceImmutable("B", b))
+        abstraction.clientSetReference.mutable.add(ReferenceImmutable("A", a))
+        abstraction.clientSetReference.mutable.add(ReferenceImmutable("B", b))
+        abstraction.supplierSetReference.mutable.add(ReferenceImmutable("C", c))
+        realization.clientSetReference.mutable.add(ReferenceImmutable("C", c))
+        realization.supplierSetReference.mutable.add(ReferenceImmutable("A", a))
+
+        assertEquals(setOf(usage, abstraction), a.clientDependencySet)
+        assertEquals(setOf(abstraction), b.clientDependencySet)
+        assertEquals(setOf(realization), c.clientDependencySet)
+        assertEquals(emptySet(), m.clientDependencySet)
+        assertEquals(emptySet(), usage.clientDependencySet)
+
+        // derived, so it follows changes to Dependency.client
+        abstraction.clientSetReference.mutable.remove(abstraction.clientSetReference.first { it.resolved === b })
+        assertEquals(emptySet(), b.clientDependencySet)
+        assertEquals(setOf(usage, abstraction), a.clientDependencySet)
+
+        // a model built with another factory is another extent
+        assertEquals(emptySet(), model().cls("Vehicle").clientDependencySet)
     }
 
     // containingStateMachine(): through the container regions of a vertex
