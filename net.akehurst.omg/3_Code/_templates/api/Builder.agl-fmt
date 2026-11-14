@@ -73,7 +73,7 @@ format BuilderClass {
    }
     MofProperty -> when {
         isSingle -> when {
-          type.isPrimitive -> "
+          (type.isPrimitive or type.isExternal) -> "
             private var _${validName}: ${validTypeNameNotNullable}? = null
             fun ${validName}(value: ${validTypeName}) {
                 _${validName} = value
@@ -91,7 +91,7 @@ format BuilderClass {
           "
         }
         else -> when {
-          type.isPrimitive -> "
+          (type.isPrimitive or type.isExternal) -> "
              private var _${validName}: Collection<${type.validName}>? = null
              fun ${validName}(value: ${validTypeName}) {
                  _${validName} = value

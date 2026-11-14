@@ -38,7 +38,7 @@ format AppendPropertyComposite {
         else -> "rootAsString.${type.parentPackage.qualifiedName}"
       }
       when {
-        type.isPrimitive -> when {
+        (type.isPrimitive or type.isExternal) -> when {
             isSingle -> when {
                 'String'==type.name -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} '\$it'\") }"
                 else -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it\") }"

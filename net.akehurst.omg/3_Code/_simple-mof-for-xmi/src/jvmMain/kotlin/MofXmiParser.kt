@@ -151,7 +151,7 @@ class MofXmiParser(
         when (xmiType) {
             "uml:Package" -> {
                 if (!hasRef(xmiId)) {
-                    val subPackage = MofPackage(model, name, xmiId)
+                    val subPackage = MofPackage(model, packageName(name), xmiId)
                     model.addPackage(currentFileName, currentMofPackage, subPackage)
                     discoverElements(node, subPackage) // Recurse
                 }
@@ -241,11 +241,18 @@ class MofXmiParser(
 
     }
 
+    /**
+     * the name of a package as used in the generated Kotlin package and file paths: characters that are not valid in
+     * a Kotlin identifier (e.g. the spaces in the Systems Modeling API model name "Systems Modeling API and Services PIM")
+     * are replaced by '_'
+     */
+    private fun packageName(name: String): String = name.replace(Regex("[^A-Za-z0-9_]"), "_")
+
     private fun preParsePackage(packageElement: Element): MofPackage? {
         val xmiId = packageElement.getAttribute("xmi:id")
         val name = packageElement.getAttribute("name")
         if (xmiId.isNotEmpty() && name.isNotEmpty()) {
-            return MofPackage(model, name, xmiId)
+            return MofPackage(model, packageName(name), xmiId)
         }
         return null
     }
@@ -371,7 +378,14 @@ class MofXmiParser(
                             // inverse of the opposite end) and is not in the api, so it is omitted
                             if (end.isComputed.not()) pt.associationOwnedAttribute.add(end)
                         }
-                        else -> error("Error finding class for '${otherEnd.typeXmiId ?: otherEnd.typeHref}', not foud or its not a class.")
+                        null -> error("Error finding class for '${otherEnd.typeXmiId ?: otherEnd.typeHref}', not found.")
+                        else -> {
+                            // an association-owned (non-navigable) end whose opposite is typed by an interface or an
+                            // enumeration (Systems Modeling API: DataVersion::payload : Data, CompositeConstraint::operator
+                            // : JoinOperator). The generated code of those types has no association-owned attributes,
+                            // so the end is not added to the type.
+                            end.parentType = pt
+                        }
                     }
 
                 }
@@ -386,7 +400,7 @@ class MofXmiParser(
     }
 
     private fun parseProperty(propertyElement: Element, ownerClass: MofClass?, assocXmiId: String? = null): MofProperty {
-        val name = propertyElement.getAttribute("name")
+        val name = propertyElement.getAttribute("name").trim() // e.g. Systems Modeling API " externalDataEnd"
         val xmiId = propertyElement.getAttribute("xmi:id")
         val comment = getChildrenByTagName(propertyElement, "ownedComment").joinToString("\n") {
             val annotated = getChildrenByTagName(it, "annotatedElement").firstOrNull()?.let {

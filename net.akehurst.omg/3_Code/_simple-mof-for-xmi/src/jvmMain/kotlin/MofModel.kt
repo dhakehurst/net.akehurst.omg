@@ -242,6 +242,8 @@ interface MofType {
     val validName: String
     val isAbstract: Boolean
     val isPrimitive: Boolean
+    /** a type from outside the XMI, given by the generator's referencedTypeMapping (no code is generated for it) */
+    val isExternal: Boolean get() = false
     val hasSubtypes: Boolean
 
     val ownedRedefiningAttribute: List<MofProperty>
@@ -705,6 +707,8 @@ class ExternalReferenceClass(
     name: String
 ) : MofClass(model, name, href) {
 
+    override val isExternal: Boolean get() = true
+
     override fun hashCode(): Int = xmiId.hashCode()
     override fun equals(other: Any?): Boolean = when {
         other !is ExternalReferenceClass -> false
@@ -1166,8 +1170,31 @@ data class MofEnumLiteral(
     val name: String,
     val xmiId: String
 ) {
-    /** the Kotlin name of the enum entry, e.g. 'in_' for 'in' */
-    val validName: String get() = kotlinValidName(name)
+    /**
+     * the Kotlin name of the enum entry, e.g. 'in_' for 'in'.
+     * A name that is not a Kotlin identifier (e.g. the Systems Modeling API Operator literals '=', '<', '<=')
+     * is spelled with the names of its symbols, e.g. 'EQ', 'LT', 'LT_EQ'.
+     */
+    val validName: String get() = when {
+        Regex("[A-Za-z_][A-Za-z0-9_]*").matches(name) -> kotlinValidName(name)
+        else -> {
+            val symbolNames = mapOf('=' to "EQ", '<' to "LT", '>' to "GT", '!' to "NOT", '+' to "PLUS", '-' to "MINUS", '*' to "STAR", '/' to "SLASH", '.' to "DOT", '&' to "AND", '|' to "OR")
+            val parts = mutableListOf<String>()
+            val word = StringBuilder()
+            name.forEach { c ->
+                when {
+                    c.isLetterOrDigit() || c == '_' -> word.append(c)
+                    else -> {
+                        if (word.isNotEmpty()) { parts.add(word.toString()); word.clear() }
+                        symbolNames[c]?.let { parts.add(it) }
+                    }
+                }
+            }
+            if (word.isNotEmpty()) parts.add(word.toString())
+            val n = parts.joinToString("_").ifEmpty { "_" }
+            if (n.first().isDigit()) "_$n" else kotlinValidName(n)
+        }
+    }
 }
 
 data class MofConstraint(

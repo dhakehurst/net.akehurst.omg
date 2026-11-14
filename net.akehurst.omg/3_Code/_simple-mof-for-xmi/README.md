@@ -6,7 +6,12 @@ configures it.
 
 1. `MofXmiParser` reads one or more MOF XMI files into a small MOF model (`MofModel`, `MofPackage`, `MofClass`,
    `MofProperty`, ...). References between files and to external types (`referencedTypeMapping`) are resolved by
-   `XmiReferenceHandler`.
+   `XmiReferenceHandler`. A key of `referencedTypeMapping` may also be an xmi:id of the XMI itself, to replace a type
+   of the model (the Systems Modeling API maps its interface `Data` to `Any`). A composite property typed by a mapped
+   type is treated like a primitive by the api templates (a value in the builder, nothing to resolve).
+   Names are made valid Kotlin: characters that are not valid in a package name are replaced by `_`, property names are
+   trimmed, and an enumeration literal that is not a Kotlin name is spelled with the names of its symbols (`<=` is
+   `LT_EQ`). An association-owned end whose opposite is typed by an interface or enumeration is not added to that type.
 2. `OclToKotlin` translates the OCL of derived properties and operation bodies into Kotlin over the generated api.
    It handles a subset of OCL (navigation, `let`, `if`, literals, boolean and comparison operators,
    `oclIsKindOf`/`oclAsType` and the common collection operations). Where it cannot translate, the generated code is a

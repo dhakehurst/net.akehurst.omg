@@ -26,9 +26,6 @@ The templates produce:
 | Diagram Definition 1.1 | [`dd/v1_1`](net.akehurst.omg/3_Code/dd/v1_1/README.md) | api, ram, agl-types | DD 2013-10-01 |
 | MOF 2.5.1 | [`mof`](net.akehurst.omg/3_Code/mof/README.md) | api, ram (hand written, not generated) | ptc-14-08-10 |
 
-The `generate` task of the Systems Modeling API module fails with the current generator, so that module does not
-build at the moment.
-
 Each metamodel folder has a `specs` folder with the XMI and specification PDF the code is generated from.
 
 ### Where the spec files come from
@@ -122,9 +119,6 @@ cd net.akehurst.omg
 ./gradlew :uml-2_5_1-ram:generate   # only regenerate the code of one module
 ./gradlew publishToMavenLocal
 ```
-
-While the Systems Modeling API module does not build, a whole-project `assemble` or `build` fails at its `generate`
-task; build the other modules by name (e.g. `./gradlew :uml-2_5_1-ram:assemble`).
 
 The generated code is written to `.gradle-build/<module>/generated/sources/generator/commonMain/kotlin` and is not
 checked in. Compiling a generated module runs its `generate` task first.

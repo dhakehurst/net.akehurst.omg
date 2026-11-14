@@ -26,6 +26,7 @@ format ResolvePropertyReference {
 format ResolvePropertyComposite {
     MofProperty -> when {
         type.isPrimitive -> '// ${validName}: ${validTypeName} is primitive'
+        type.isExternal -> '// ${validName}: ${validTypeName} is not a type of this model'
         isSingle -> when {
             isOptional -> "obj.${validName}?.let { rootResolver.${type.parentPackage.qualifiedName}.${type.validName}_resolve(it) }"
             else -> "rootResolver.${type.parentPackage.qualifiedName}.${type.validName}_resolve(obj.${validName})"
