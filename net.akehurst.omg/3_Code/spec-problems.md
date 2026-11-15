@@ -1,10 +1,10 @@
 # Problems found in the KerML, SysML and UML specs and XMI
 
-6 November 2026 · David Akehurst
+6 November 2026, updated 15 November 2026 · David Akehurst
 
 ## Summary
 
-The OMG XMI for KerML 1.0 and SysML 2.0 has about 180 problems that stop its OCL being used as written; UML 2.5.1 has 35, and its XMI is left unpatched. Every fix lives in the patched XMI (`kerml_patched.xmi`, `sysml_patched.xmi`), and each one is also listed in the `specs/ocl-fixes.md` file next to it.
+The OMG XMI for KerML 1.0 and SysML 2.0 has about 180 problems that stop its OCL being used as written; UML 2.5.1 has 35 (30 of them still open), and its XMI is left unpatched. Every fix lives in the patched XMI (`kerml_patched.xmi`, `sysml_patched.xmi`), and each one is also listed in the `specs/ocl-fixes.md` file next to it.
 
 | Kind of problem | KerML 1.0 | SysML 2.0 |
 | --- | --- | --- |
@@ -14,8 +14,12 @@ The OMG XMI for KerML 1.0 and SysML 2.0 has about 180 problems that stop its OCL
 | Operation with no body | 1 (`escapedName`) | 0 |
 | XMI structure (missing or wrong result parameters) | 2 kinds | 0 |
 | Rule whose logic is wrong | 0 | 1 (`satisfyingFeature`) |
+| Containment property not marked composite | 35 | 37 |
+| Operation still not implemented (not fixed yet) | 15 | 1 (`namingFeature`) |
 
 Sources checked: the XMI files (KerML ptc-25-04-04, SysML ptc-25-02-15, UML ptc-18-01-01), the formal spec PDFs (KerML formal-26-03-01, SysML formal-26-03-02) and the OMG pilot implementation (Systems-Modeling/SysML-v2-Pilot-Implementation). Most errors in the XMI appear the same way in the formal spec text.
+
+On 15 November 2026 these XMI files were checked against the OMG machine-readable pages, and they are the latest official files: SysML 2.0 `SysML.xmi` (ptc/25-02-15), KerML 1.0 `KerML.xmi` (ptc/25-04-04), and UML 2.5.1 `UML.xmi`, `PrimitiveTypes.xmi` and `StandardProfile.xmi` (ptc/18-01-01 to 18-01-03). No newer version of any of the three (SysML 2.1, KerML 1.1, UML 2.6) has machine-readable files yet.
 
 ## KerML 1.0: errors in the OCL
 
@@ -89,6 +93,43 @@ Problems in the XMI structure:
 
 - The result parameters named `result` of the `evaluate` operations and of `Type::allSupertypes` have no `direction="return"`, so they read as input parameters. Fixed in the patched XMI.
 - `Type::isCompatibleWith` and `Feature::isCompatibleWith` are Boolean queries but have no result parameter, in the XMI or in the spec. A Boolean result was added.
+- No property in the KerML XMI is marked composite: `aggregation="composite"` appears nowhere, so the XMI says nothing about which properties own their values (the SysML XMI is the same). The patched XMI marks these 35 properties composite:
+  - Element: `ownedRelationship`, `ownedElement`, `ownedAnnotation`
+  - Relationship: `ownedRelatedElement`
+  - Namespace: `ownedImport`, `ownedMember`, `ownedMembership`
+  - OwningMembership: `ownedMemberElement`, `ownedMemberElementId`, `ownedMemberShortName`, `ownedMemberName`
+  - Annotation: `ownedAnnotatingElement`; AnnotatingElement: `ownedAnnotatingRelationship`
+  - Type: `ownedSpecialization`, `ownedFeatureMembership`, `ownedFeature`, `ownedEndFeature`, `ownedConjugator`, `ownedIntersecting`, `ownedUnioning`, `ownedDisjoining`, `ownedDifferencing`
+  - Classifier: `ownedSubclassification`
+  - Feature: `ownedRedefinition`, `ownedSubsetting`, `ownedTyping`, `ownedTypeFeaturing`, `ownedFeatureInverting`, `ownedFeatureChaining`, `ownedReferenceSubsetting`, `ownedCrossSubsetting`
+  - FeatureMembership, EndFeatureMembership: `ownedMemberFeature`; ParameterMembership: `ownedMemberParameter`; ResultExpressionMembership: `ownedResultExpression`
+
+## KerML 1.0: operations still not implemented
+
+15 KerML operations are still a TODO in the generated api (and so in the SysML api, which includes KerML). There are no derivation TODOs left. The OCL errors below are still in `kerml_patched.xmi`: some of these bodies had other errors fixed (see the table above), but these remain.
+
+Errors still in the OCL:
+
+| Operation | Problem |
+| --- | --- |
+| `Namespace::visibilityOf` | Uses `memberships`, which doesn't exist (`membership` is meant), and has two `if`s but only one `endif` |
+| `Namespace::visibleMemberships` | Uses `selectAsKind`, which is not an OCL operation (`selectByKind` is meant), then `.` where `->` is needed before `select`, and calls the operation `visibleMemberships` with `->` on a collection |
+| `Expression::modelLevelEvaluable` | The `forAll(` on `ownedFeature` is never closed |
+| `FeatureReferenceExpression::modelLevelEvaluable` | Calls `modelLevelEvaluable` on `referent.valuation`, which is a FeatureValue; FeatureValue has no such operation (`referent.valuation.value`, the Expression, is meant) |
+| `FeatureChainExpression::sourceTargetFeature` | Compares `direction` with `_'in'`, which is not a name (`FeatureDirectionKind::_'in'` is meant); the let variable is typed `Feature` but holds a collection |
+| `OwningMembership::path` | Calls `self.oclAsType(Relationship).path()` to mean "the Relationship version of path". OCL has no such super call: `oclAsType` doesn't change which operation is called, so as written it calls itself. The generator treats `oclAsType` to a direct supertype as a super call, but Relationship is an indirect supertype of OwningMembership |
+
+No OCL in the spec:
+
+- `Namespace::resolveGlobal`, `Namespace::qualificationOf`, `Namespace::unqualifiedNameOf` and `MetadataFeature::syntaxElement`: the body is the words "No OCL". The first three depend on the textual notation's syntax of qualified names.
+- `InvocationExpression::evaluate` and `MetadataAccessExpression::metaclassFeature`: no body at all, only a description in words.
+
+Valid OCL that the generator doesn't translate yet:
+
+- `Membership::isDistinguishableFrom` uses `oclType()`.
+- `MultiplicityRange::valueOf`: the generator reports a comparison of non-integers at `value >= 0`.
+
+`Import::importedMemberships` is also a TODO, but it is abstract in the spec, and `NamespaceImport` and `MembershipImport` implement it.
 
 ## KerML 1.0: derivations and bodies missing from the spec
 
@@ -183,6 +224,17 @@ Five derivation rules have the wrong content or wrong logic:
 | deriveUsageNestedEnumeration | Defines `ownedNested`, which does not exist | `nestedEnumeration = nestedUsage->selectByKind(EnumerationUsage)` |
 | deriveSatisfyRequirementUsageSatisfyingFeature | Typo `exits` for `exists`; the let variable is typed `BindingConnector` but holds a collection; and the condition is the wrong way round, so the rule gives null whenever a binding to another feature exists, which is always. It also relies on a BindingConnector that a tool must add as an implied relationship; a model read from the textual notation has only the subject's FeatureValue. | The other end of the BindingConnector to the subjectParameter (spec rule, corrected); if there is none, the Feature referenced by the subject's FeatureValue (as the pilot does). |
 
+## SysML 2.0: XMI structure and operations
+
+- The root package's URI is `https://ww.omg.org/spec/SysML/20250201`, with `ww.` for `www.` (it is the same in the file served by OMG). References to SysML elements by this URI won't match `https://www.omg.org/...`.
+- As in KerML, no property is marked composite. The patched XMI marks these 37 properties composite:
+  - Definition: `ownedUsage`, `ownedReference`, `ownedAttribute`, `ownedEnumeration`, `ownedOccurrence`, `ownedItem`, `ownedPart`, `ownedPort`, `ownedConnection`, `ownedFlow`, `ownedInterface`, `ownedAllocation`, `ownedAction`, `ownedState`, `ownedTransition`, `ownedCalculation`, `ownedConstraint`, `ownedRequirement`, `ownedConcern`, `ownedCase`, `ownedAnalysisCase`, `ownedVerificationCase`, `ownedUseCase`, `ownedView`, `ownedViewpoint`, `ownedRendering`, `ownedMetadata`
+  - ActorMembership: `ownedActorParameter`; StakeholderMembership: `ownedStakeholderParameter`; SubjectMembership: `ownedSubjectParameter`
+  - FramedConcernMembership: `ownedConcern`; RequirementConstraintMembership: `ownedConstraint`; RequirementVerificationMembership: `ownedRequirement`; ObjectiveMembership: `ownedObjectiveRequirement`
+  - VariantMembership: `ownedVariantUsage`; ViewRenderingMembership: `ownedRendering`; ConjugatedPortDefinition: `ownedPortConjugator`
+
+Still not implemented: `PerformActionUsage::namingFeature` calls `self.oclAsType(Usage).namingFeature()` to mean the Usage version of the operation, the same super-call problem as KerML's `OwningMembership::path`. Usage is an indirect supertype of PerformActionUsage, so the generator leaves it as a TODO.
+
 ## SysML 2.0: derived properties with no OCL
 
 52 derived properties have no derivation in the SysML XMI. A rule was added for each, following the pilot, except where noted. TYPES is the `Feature::type` derivation, as in the KerML section.
@@ -244,7 +296,7 @@ Five derivation rules have the wrong content or wrong logic:
 
 ## UML 2.5.1: problems found (XMI not patched)
 
-The UML XMI (ptc-18-01-01) is used as published, so these problems are left in place: 6 errors in its OCL, and 29 more rules or bodies that can't be used for other reasons. Together they leave 43 TODOs in the generated UML api, because some rules serve both a derived property and its operation.
+The UML XMI (ptc-18-01-01) is used as published, so these problems are left in place: 6 errors in its OCL, and 29 more rules or bodies that couldn't be used for other reasons, 5 of which (the `allInstances()` rules) are now implemented. The other 30 leave 33 TODOs in the generated UML api (28 operations and 5 derivations, counted 15 November 2026), because some rules serve both a derived property and its operation.
 
 Errors in the spec OCL:
 
@@ -262,6 +314,8 @@ Rules that navigate non-navigable association ends (the same kind of problem as 
 Rules that use `allInstances()`, which needs a whole model rather than one element: `NamedElement::clientDependency`, `Vertex::incoming` and `outgoing`, `Class::extension` and `ConnectableElement::end`. Since 2026-11-14 the generator translates `T.allInstances()` as the instances of `T` held by the factory of `self`, so these are now implemented.
 
 No OCL at all: `ExtensionEnd::lower`, `CallAction::inputParameters` and `outputParameters`, and `Behavior::behavioredClassifier`.
+
+Its XMI also uses older namespaces than its own URI: the XMI and UML namespaces are `20131001`, and it refers to PrimitiveTypes as `http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi`, while the PrimitiveTypes file's own URI is `http://www.omg.org/spec/PrimitiveTypes/20161101`, and the KerML and SysML XMI refer to it as `https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi`. So the same primitive types are referred to in three ways, and each build maps its own spelling.
 
 Valid OCL that the generator doesn't translate yet: `oclType()` in `Classifier::maySpecializeType`, `NamedElement::isDistinguishableFrom`, `ParameterableElement::isCompatibleWith` and `ValueSpecification::isCompatibleWith`; `isUnique` in `BehavioralFeature::isDistinguishableFrom`; and the comparison with the primitive type `String` in `Parameter::default`.
 

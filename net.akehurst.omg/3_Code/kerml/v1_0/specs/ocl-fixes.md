@@ -144,3 +144,43 @@ Rules corrected 2026-11-06. The spec puts the argument rules on the subclasses, 
 | deriveInvocationExpressionArgument | `instantiatedType.input->collect(inp \| ownedFeatures->select(redefines(inp)).valuation->select(v \| v <> null).value )` | `argument = instantiatedType.input->collect(inp \| ownedFeature->select(redefines(inp)).valuation->select(v \| v <> null).value )` |
 | deriveInstantiationExpressionArgument (added) | (none) | `argument = if instantiatedType = null then OrderedSet{} else if self.oclIsKindOf(InvocationExpression) then <InvocationExpression rule>->asOrderedSet() else if self.oclIsKindOf(ConstructorExpression) then <ConstructorExpression rule>->asOrderedSet() else OrderedSet{} endif endif endif` |
 | deriveConstructorExpressionArgument | `instantiatedType.feature->collect(f \| result.ownedFeatures->select(redefines(f)).valuation->select(v \| v <> null).value )` | `argument = instantiatedType.feature->collect(f \| result.ownedFeature->select(redefines(f)).valuation->select(v \| v <> null).value )` |
+
+## Properties made composite
+
+No property in the OMG XMI is marked composite. These derived containment properties have `aggregation="composite"` in the patched XMI:
+
+- `ParameterMembership::ownedMemberParameter`
+- `ResultExpressionMembership::ownedResultExpression`
+- `Type::ownedSpecialization`
+- `Type::ownedFeatureMembership`
+- `Type::ownedFeature`
+- `Type::ownedEndFeature`
+- `Type::ownedConjugator`
+- `Type::ownedIntersecting`
+- `Type::ownedUnioning`
+- `Type::ownedDisjoining`
+- `Type::ownedDifferencing`
+- `FeatureMembership::ownedMemberFeature`
+- `Classifier::ownedSubclassification`
+- `Feature::ownedRedefinition`
+- `Feature::ownedSubsetting`
+- `Feature::ownedTyping`
+- `Feature::ownedTypeFeaturing`
+- `Feature::ownedFeatureInverting`
+- `Feature::ownedFeatureChaining`
+- `Feature::ownedReferenceSubsetting`
+- `Feature::ownedCrossSubsetting`
+- `EndFeatureMembership::ownedMemberFeature`
+- `Annotation::ownedAnnotatingElement`
+- `AnnotatingElement::ownedAnnotatingRelationship`
+- `OwningMembership::ownedMemberElement`
+- `OwningMembership::ownedMemberElementId`
+- `OwningMembership::ownedMemberShortName`
+- `OwningMembership::ownedMemberName`
+- `Namespace::ownedImport`
+- `Namespace::ownedMember`
+- `Namespace::ownedMembership`
+- `Relationship::ownedRelatedElement`
+- `Element::ownedRelationship`
+- `Element::ownedElement`
+- `Element::ownedAnnotation`
