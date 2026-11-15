@@ -8,14 +8,14 @@ The OMG XMI for KerML 1.0 and SysML 2.0 has about 180 problems that stop its OCL
 
 | Kind of problem | KerML 1.0 | SysML 2.0 |
 | --- | --- | --- |
-| OCL with wrong names, typos or missing `endif` | 53 | 14 |
+| OCL with wrong names, typos or missing `endif` | 59 | 14 |
 | Derivation rule that names the wrong property, or has no `property =` start | 2 | 4 |
 | Derived property with no OCL at all | 47 (+ `valuation`) | 52 |
 | Operation with no body | 1 (`escapedName`) | 0 |
 | XMI structure (missing or wrong result parameters) | 2 kinds | 0 |
 | Rule whose logic is wrong | 0 | 1 (`satisfyingFeature`) |
 | Containment property not marked composite | 35 | 37 |
-| Operation still not implemented (not fixed yet) | 15 | 1 (`namingFeature`) |
+| Operation still not implemented | 9 (no OCL, or not translated yet) | 1 (`namingFeature`) |
 
 Sources checked: the XMI files (KerML ptc-25-04-04, SysML ptc-25-02-15, UML ptc-18-01-01), the formal spec PDFs (KerML formal-26-03-01, SysML formal-26-03-02) and the OMG pilot implementation (Systems-Modeling/SysML-v2-Pilot-Implementation). Most errors in the XMI appear the same way in the formal spec text.
 
@@ -23,7 +23,7 @@ On 15 November 2026 these XMI files were checked against the OMG machine-readabl
 
 ## KerML 1.0: errors in the OCL
 
-53 OCL expressions in the KerML XMI use names that don't exist in the metamodel, use operations that OCL doesn't have, or are not well formed. Each was fixed in `kerml_patched.xmi` by checking the names against the metamodel, and against the spec text or the pilot where the intent was unclear.
+59 OCL expressions in the KerML XMI use names that don't exist in the metamodel, use operations that OCL doesn't have, or are not well formed. Each was fixed in `kerml_patched.xmi` by checking the names against the metamodel, and against the spec text or the pilot where the intent was unclear.
 
 | Problem | Was | Now |
 | --- | --- | --- |
@@ -106,18 +106,18 @@ Problems in the XMI structure:
 
 ## KerML 1.0: operations still not implemented
 
-15 KerML operations are still a TODO in the generated api (and so in the SysML api, which includes KerML). There are no derivation TODOs left. The OCL errors below are still in `kerml_patched.xmi`: some of these bodies had other errors fixed (see the table above), but these remain.
+9 KerML operations are still a TODO in the generated api (and so in the SysML api, which includes KerML). There are no derivation TODOs left.
 
-Errors still in the OCL:
+Six more operations had errors that were still in `kerml_patched.xmi` after the first round of fixes (some of these bodies had other errors fixed, see the table above). They were fixed on 15 November 2026 and are now implemented:
 
-| Operation | Problem |
-| --- | --- |
-| `Namespace::visibilityOf` | Uses `memberships`, which doesn't exist (`membership` is meant), and has two `if`s but only one `endif` |
-| `Namespace::visibleMemberships` | Uses `selectAsKind`, which is not an OCL operation (`selectByKind` is meant), then `.` where `->` is needed before `select`, and calls the operation `visibleMemberships` with `->` on a collection |
-| `Expression::modelLevelEvaluable` | The `forAll(` on `ownedFeature` is never closed |
-| `FeatureReferenceExpression::modelLevelEvaluable` | Calls `modelLevelEvaluable` on `referent.valuation`, which is a FeatureValue; FeatureValue has no such operation (`referent.valuation.value`, the Expression, is meant) |
-| `FeatureChainExpression::sourceTargetFeature` | Compares `direction` with `_'in'`, which is not a name (`FeatureDirectionKind::_'in'` is meant); the let variable is typed `Feature` but holds a collection |
-| `OwningMembership::path` | Calls `self.oclAsType(Relationship).path()` to mean "the Relationship version of path". OCL has no such super call: `oclAsType` doesn't change which operation is called, so as written it calls itself. The generator treats `oclAsType` to a direct supertype as a super call, but Relationship is an indirect supertype of OwningMembership |
+| Operation | Problem | Fix |
+| --- | --- | --- |
+| `Namespace::visibilityOf` | Uses `memberships`, which doesn't exist, and has two `if`s but only one `endif` | `membership`; `endif` added |
+| `Namespace::visibleMemberships` | Uses `selectAsKind`, which is not an OCL operation, then `.` where `->` is needed before `select`, and calls the operation `visibleMemberships` with `->` on a collection | `selectByKind`, `->select`, `->collect(ns \| ns.visibleMemberships(...))` |
+| `Expression::modelLevelEvaluable` | The `forAll(` on `ownedFeature` is never closed (the same in the spec text) | `)` added at the end, as the spec prose describes |
+| `FeatureReferenceExpression::modelLevelEvaluable` | Calls `modelLevelEvaluable` on `referent.valuation`, which is a FeatureValue; FeatureValue has no such operation. The spec prose says "the value Expression" | `referent.valuation.value.modelLevelEvaluable(...)` |
+| `FeatureChainExpression::sourceTargetFeature` | Compares `direction` with `_'in'`, which is not a name; the let variable is typed `Feature` but holds a collection | `FeatureDirectionKind::_'in'`; `OrderedSet(Feature)` |
+| `OwningMembership::path` | Calls `self.oclAsType(Relationship).path()` to mean "the Relationship version of path". OCL has no such super call: `oclAsType` doesn't change which operation is called, so as written it calls itself. (The generator treats `oclAsType` to a direct supertype as a super call, but Relationship is an indirect supertype of OwningMembership.) | The bodies of `Relationship::path` and `Element::path` written out in place |
 
 No OCL in the spec:
 

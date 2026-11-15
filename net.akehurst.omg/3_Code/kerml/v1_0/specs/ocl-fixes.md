@@ -59,6 +59,12 @@ Also: the result parameters named `result` (the `evaluate` operations and `Type:
 | `specializes(otherType) or supertype.oclIsKindOf(Feature) and` | `specializes(otherType) or otherType.oclIsKindOf(Feature) and` |
 | `ownedRedefinitions.allRedefinedFeatures()->exists(f \|` | `allRedefinedFeatures()->exists(f \|` |
 | `supertypes(false)->excluding(excludedSelf).` | `supertypes(false)->reject(t \| excludedSelf->includes(t)).` |
+| `else if memberships->includes(mem) then mem.visibility else VisibilityKind::private endif` (Namespace::visibilityOf) | `else if membership->includes(mem) then mem.visibility else VisibilityKind::private endif endif` |
+| `ownedMember-> selectAsKind(Namespace). select(...)-> visibleMemberships(excluded->including(self), true, includeAll))` (Namespace::visibleMemberships) | `ownedMember->selectByKind(Namespace)->select(...)->collect(ns \| ns.visibleMemberships(excluded->including(self), true, includeAll)))` |
+| `f.oclAsType(Expression).modelLevelEvaluable(visited)` (Expression::modelLevelEvaluable, `forAll(` not closed) | `f.oclAsType(Expression).modelLevelEvaluable(visited))` |
+| `referent.valuation.modelLevelEvaluable(visited->including(referent))` (FeatureReferenceExpression::modelLevelEvaluable) | `referent.valuation.value.modelLevelEvaluable(visited->including(referent))` |
+| `let inputParameters : Feature = ownedFeature-> select(direction = _'in')` (FeatureChainExpression::sourceTargetFeature) | `let inputParameters : OrderedSet(Feature) = ownedFeature-> select(direction = FeatureDirectionKind::_'in')` |
+| `else self.oclAsType(Relationship).path() endif` (OwningMembership::path; OCL has no super call) | the bodies of Relationship::path and Element::path written out in place: `else if owningRelationship = null and owningRelatedElement <> null then owningRelatedElement.path() + '/' + owningRelatedElement.ownedRelationship->indexOf(self).toString() else if qualifiedName <> null then qualifiedName else if owningRelationship <> null then owningRelationship.path() + '/' + owningRelationship.ownedRelatedElement->indexOf(self).toString() else '' endif endif endif endif` |
 
 ## Rules corrected so the derivation is found
 
