@@ -16,7 +16,7 @@ models in a repository: projects, commits, branches, queries, ...), generated fr
   that are not valid in a Kotlin name by `_` in package names, so the generated packages are
   `net.akehurst.omg.sysmodapi.v1_0.api.Systems_Modeling_API_and_Services_PIM` and `...Systems_Modeling_API_and_Services_PIM.API_Model`.
 - References to KerML (by href to "KerML Abstract Syntax.xml") are mapped in `referencedTypeMapping` in the build file:
-  `..._42199` to KerML `Element`, and `..._42192` (the result of `getRelationships`) to KerML `Relationship`.
+  `..._42199` to KerML `Element`, and `..._42192` (the result of `getRelationshipsByRelatedElement`, which the spec, Figure 9, gives as `Relationship [0..*]`) to KerML `Relationship`.
 - The interface `Data` is realized by KerML `Element` as well as by `ProjectUsage`, `ExternalRelationship` and
   `ExternalData`. `kerml-1_0-api` cannot implement an interface of this module, so `Data` is mapped to `Any` in
   `referencedTypeMapping`: properties, parameters and results typed `Data` (e.g. `DataVersion.payload`) are typed `Any`.

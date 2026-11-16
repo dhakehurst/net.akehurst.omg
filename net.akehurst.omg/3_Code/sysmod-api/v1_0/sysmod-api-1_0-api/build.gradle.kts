@@ -32,7 +32,7 @@ tasks.named<generator.GenerateTask>("generate") {
         "http://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Real" to "Double",
         "http://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#UnlimitedNatural" to "Long",
         "KerML Abstract Syntax.xml#_18_5_3_12e503d9_1533160651703_306405_42199" to "net.akehurst.omg.kerml.v1_0.api.KerML.Root.Elements.Element",
-        // the result of getRelationships(..)
+        // the result of getRelationshipsByRelatedElement(..): Relationship [0..*] in the spec (Figure 9)
         "KerML Abstract Syntax.xml#_18_5_3_12e503d9_1533160651700_869737_42192" to "net.akehurst.omg.kerml.v1_0.api.KerML.Root.Elements.Relationship",
         // the interface Data: it is realized by KerML Element (as well as by ProjectUsage, ExternalRelationship and
         // ExternalData), which cannot implement an interface of this module, so values of type Data are typed Any
