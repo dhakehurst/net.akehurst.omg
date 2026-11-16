@@ -100,42 +100,4 @@ Where the pilot narrows the type further than the metamodel (`ActionUsage::actio
 
 ## Properties made composite
 
-No property in the OMG XMI is marked composite. These derived containment properties have `aggregation="composite"` in the patched XMI:
-
-- `FramedConcernMembership::ownedConcern`
-- `ActorMembership::ownedActorParameter`
-- `StakeholderMembership::ownedStakeholderParameter`
-- `SubjectMembership::ownedSubjectParameter`
-- `RequirementConstraintMembership::ownedConstraint`
-- `ObjectiveMembership::ownedObjectiveRequirement`
-- `VariantMembership::ownedVariantUsage`
-- `Definition::ownedUsage`
-- `Definition::ownedReference`
-- `Definition::ownedAttribute`
-- `Definition::ownedEnumeration`
-- `Definition::ownedOccurrence`
-- `Definition::ownedItem`
-- `Definition::ownedPart`
-- `Definition::ownedPort`
-- `Definition::ownedConnection`
-- `Definition::ownedFlow`
-- `Definition::ownedInterface`
-- `Definition::ownedAllocation`
-- `Definition::ownedAction`
-- `Definition::ownedState`
-- `Definition::ownedTransition`
-- `Definition::ownedCalculation`
-- `Definition::ownedConstraint`
-- `Definition::ownedRequirement`
-- `Definition::ownedConcern`
-- `Definition::ownedCase`
-- `Definition::ownedAnalysisCase`
-- `Definition::ownedVerificationCase`
-- `Definition::ownedUseCase`
-- `Definition::ownedView`
-- `Definition::ownedViewpoint`
-- `Definition::ownedRendering`
-- `Definition::ownedMetadata`
-- `ConjugatedPortDefinition::ownedPortConjugator`
-- `ViewRenderingMembership::ownedRendering`
-- `RequirementVerificationMembership::ownedRequirement`
+No property in the OMG XMI is marked composite. SysML elements are owned through KerML's `Element::ownedRelationship` and `Relationship::ownedRelatedElement` (composite in `kerml_patched.xmi`), so no SysML property is made composite, as in the OMG pilot's `SysML.ecore`.

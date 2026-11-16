@@ -14,7 +14,7 @@ The OMG XMI for KerML 1.0 and SysML 2.0 has about 180 problems that stop its OCL
 | Operation with no body | 1 (`escapedName`) | 0 |
 | XMI structure (missing or wrong result parameters) | 2 kinds | 0 |
 | Rule whose logic is wrong | 0 | 1 (`satisfyingFeature`) |
-| Containment property not marked composite | 35 | 37 |
+| Containment property not marked composite | 2 (`ownedRelationship`, `ownedRelatedElement`) | 0 (owned through KerML) |
 | Operation still not implemented | 9 (no OCL, or not translated yet) | 1 (`namingFeature`) |
 
 Sources checked: the XMI files (KerML ptc-25-04-04, SysML ptc-25-02-15, UML ptc-18-01-01), the formal spec PDFs (KerML formal-26-03-01, SysML formal-26-03-02) and the OMG pilot implementation (Systems-Modeling/SysML-v2-Pilot-Implementation). Most errors in the XMI appear the same way in the formal spec text.
@@ -93,16 +93,7 @@ Problems in the XMI structure:
 
 - The result parameters named `result` of the `evaluate` operations and of `Type::allSupertypes` have no `direction="return"`, so they read as input parameters. Fixed in the patched XMI.
 - `Type::isCompatibleWith` and `Feature::isCompatibleWith` are Boolean queries but have no result parameter, in the XMI or in the spec. A Boolean result was added.
-- No property in the KerML XMI is marked composite: `aggregation="composite"` appears nowhere, so the XMI says nothing about which properties own their values (the SysML XMI is the same). The patched XMI marks these 35 properties composite:
-  - Element: `ownedRelationship`, `ownedElement`, `ownedAnnotation`
-  - Relationship: `ownedRelatedElement`
-  - Namespace: `ownedImport`, `ownedMember`, `ownedMembership`
-  - OwningMembership: `ownedMemberElement`, `ownedMemberElementId`, `ownedMemberShortName`, `ownedMemberName`
-  - Annotation: `ownedAnnotatingElement`; AnnotatingElement: `ownedAnnotatingRelationship`
-  - Type: `ownedSpecialization`, `ownedFeatureMembership`, `ownedFeature`, `ownedEndFeature`, `ownedConjugator`, `ownedIntersecting`, `ownedUnioning`, `ownedDisjoining`, `ownedDifferencing`
-  - Classifier: `ownedSubclassification`
-  - Feature: `ownedRedefinition`, `ownedSubsetting`, `ownedTyping`, `ownedTypeFeaturing`, `ownedFeatureInverting`, `ownedFeatureChaining`, `ownedReferenceSubsetting`, `ownedCrossSubsetting`
-  - FeatureMembership, EndFeatureMembership: `ownedMemberFeature`; ParameterMembership: `ownedMemberParameter`; ResultExpressionMembership: `ownedResultExpression`
+- No property in the KerML XMI is marked composite: `aggregation="composite"` appears nowhere, so the XMI says nothing about which properties own their values (the SysML XMI is the same). In KerML an Element owns other Elements only through Relationships, so the patched XMI marks just the two properties that hold that ownership composite: `Element::ownedRelationship` and `Relationship::ownedRelatedElement`. This is also what the OMG pilot's `SysML.ecore` does (there they are the only containment features, apart from the pilot's own `InvocationExpression::operand`). All the other `owned...` properties (`Namespace::ownedMember`, `Type::ownedFeature` and so on) are derived from these two and are not composite, so each element has one owner. (Until 16 November 2026 the patched XMI also marked 33 of those derived properties composite; David chose to follow the pilot instead.)
 
 ## KerML 1.0: operations still not implemented
 
@@ -227,11 +218,7 @@ Five derivation rules have the wrong content or wrong logic:
 ## SysML 2.0: XMI structure and operations
 
 - The root package's URI is `https://ww.omg.org/spec/SysML/20250201`, with `ww.` for `www.` (it is the same in the file served by OMG). References to SysML elements by this URI won't match `https://www.omg.org/...`.
-- As in KerML, no property is marked composite. The patched XMI marks these 37 properties composite:
-  - Definition: `ownedUsage`, `ownedReference`, `ownedAttribute`, `ownedEnumeration`, `ownedOccurrence`, `ownedItem`, `ownedPart`, `ownedPort`, `ownedConnection`, `ownedFlow`, `ownedInterface`, `ownedAllocation`, `ownedAction`, `ownedState`, `ownedTransition`, `ownedCalculation`, `ownedConstraint`, `ownedRequirement`, `ownedConcern`, `ownedCase`, `ownedAnalysisCase`, `ownedVerificationCase`, `ownedUseCase`, `ownedView`, `ownedViewpoint`, `ownedRendering`, `ownedMetadata`
-  - ActorMembership: `ownedActorParameter`; StakeholderMembership: `ownedStakeholderParameter`; SubjectMembership: `ownedSubjectParameter`
-  - FramedConcernMembership: `ownedConcern`; RequirementConstraintMembership: `ownedConstraint`; RequirementVerificationMembership: `ownedRequirement`; ObjectiveMembership: `ownedObjectiveRequirement`
-  - VariantMembership: `ownedVariantUsage`; ViewRenderingMembership: `ownedRendering`; ConjugatedPortDefinition: `ownedPortConjugator`
+- As in KerML, no property is marked composite. SysML elements are owned through the KerML `ownedRelationship` and `ownedRelatedElement`, so no SysML property is made composite in the patched XMI. Derived properties such as `Definition::ownedPart` and `Usage::nestedPart` are views of that ownership, as in the pilot. (Until 16 November 2026 the 27 `Definition::owned*` properties and 10 membership `owned...` properties were marked composite, but the matching `Usage::nested*` were not.)
 
 Still not implemented: `PerformActionUsage::namingFeature` calls `self.oclAsType(Usage).namingFeature()` to mean the Usage version of the operation, the same super-call problem as KerML's `OwningMembership::path`. Usage is an indirect supertype of PerformActionUsage, so the generator leaves it as a TODO.
 

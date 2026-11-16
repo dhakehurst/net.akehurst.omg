@@ -520,7 +520,7 @@
             <redefinedProperty xmi:idref="Systems-Requirements-RequirementConstraintMembership-kind" />
             <type xmi:idref="Systems-Requirements-RequirementConstraintKind" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-Requirements-FramedConcernMembership-ownedConcern" xmi:type="uml:Property" isDerived="true" name="ownedConcern" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-Requirements-FramedConcernMembership-ownedConcern" xmi:type="uml:Property" isDerived="true" name="ownedConcern">
             <association xmi:idref="Systems-Requirements-A_ownedConcern_framedConstraintMembership" />
             <lowerValue xmi:id="Systems-Requirements-FramedConcernMembership-ownedConcern-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Systems-Requirements-FramedConcernMembership-ownedConcern-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ConcernUsage&lt;/code&gt; that is the &lt;code&gt;ownedConstraint&lt;/code&gt; of this &lt;code&gt;FramedConcernMembership&lt;/code&gt;.&lt;/p&gt;">
@@ -559,7 +559,7 @@
           <generalization xmi:id="Systems-Requirements-ActorMembership-_generalization.Kernel-Behaviors-ParameterMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Kernel-Behaviors-ParameterMembership" />
           </generalization>
-          <ownedAttribute xmi:id="Systems-Requirements-ActorMembership-ownedActorParameter" xmi:type="uml:Property" isDerived="true" name="ownedActorParameter" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-Requirements-ActorMembership-ownedActorParameter" xmi:type="uml:Property" isDerived="true" name="ownedActorParameter">
             <association xmi:idref="Systems-Requirements-A_ownedActorParameter_owningActorMembership" />
             <lowerValue xmi:id="Systems-Requirements-ActorMembership-ownedActorParameter-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Systems-Requirements-ActorMembership-ownedActorParameter-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;PartUsage&lt;/code&gt; specifying the actor.&lt;/p&gt;">
@@ -617,7 +617,7 @@
           <generalization xmi:id="Systems-Requirements-StakeholderMembership-_generalization.Kernel-Behaviors-ParameterMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Kernel-Behaviors-ParameterMembership" />
           </generalization>
-          <ownedAttribute xmi:id="Systems-Requirements-StakeholderMembership-ownedStakeholderParameter" xmi:type="uml:Property" isDerived="true" name="ownedStakeholderParameter" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-Requirements-StakeholderMembership-ownedStakeholderParameter" xmi:type="uml:Property" isDerived="true" name="ownedStakeholderParameter">
             <association xmi:idref="Systems-Requirements-A_ownedStakeholderParameter_owningStakeholderMembership" />
             <lowerValue xmi:id="Systems-Requirements-StakeholderMembership-ownedStakeholderParameter-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Systems-Requirements-StakeholderMembership-ownedStakeholderParameter-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;PartUsage&lt;/code&gt; specifying the stakeholder.&lt;/p&gt;">
@@ -674,7 +674,7 @@
           <generalization xmi:id="Systems-Requirements-SubjectMembership-_generalization.Kernel-Behaviors-ParameterMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Kernel-Behaviors-ParameterMembership" />
           </generalization>
-          <ownedAttribute xmi:id="Systems-Requirements-SubjectMembership-ownedSubjectParameter" xmi:type="uml:Property" isDerived="true" name="ownedSubjectParameter" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-Requirements-SubjectMembership-ownedSubjectParameter" xmi:type="uml:Property" isDerived="true" name="ownedSubjectParameter">
             <association xmi:idref="Systems-Requirements-A_ownedSubjectParameter_owningSubjectMembership" />
             <lowerValue xmi:id="Systems-Requirements-SubjectMembership-ownedSubjectParameter-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Systems-Requirements-SubjectMembership-ownedSubjectParameter-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;Usage&lt;/code&lt; that is the &lt;code&gt;ownedMemberParameter&lt;/code&gt; of this &lt;code&gt;SubjectMembership&lt;/code&gt;.&lt;/p&gt;">
@@ -969,7 +969,7 @@
             </ownedComment>
             <type xmi:idref="Systems-Requirements-RequirementConstraintKind" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-Requirements-RequirementConstraintMembership-ownedConstraint" xmi:type="uml:Property" isDerived="true" name="ownedConstraint" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-Requirements-RequirementConstraintMembership-ownedConstraint" xmi:type="uml:Property" isDerived="true" name="ownedConstraint">
             <association xmi:idref="Systems-Requirements-A_ownedConstraint_requirementConstraintMembership" />
             <lowerValue xmi:id="Systems-Requirements-RequirementConstraintMembership-ownedConstraint-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Systems-Requirements-RequirementConstraintMembership-ownedConstraint-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ConstraintUsage&lt;/code&gt; that is the &lt;code&gt;ownedMemberFeature&lt;/code&gt; of this &lt;code&gt;RequirementConstraintMembership&lt;/code&gt;.&lt;/p&gt;">
@@ -1949,7 +1949,7 @@
           <generalization xmi:id="Systems-Cases-ObjectiveMembership-_generalization.Core-Types-FeatureMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Core-Types-FeatureMembership" />
           </generalization>
-          <ownedAttribute xmi:id="Systems-Cases-ObjectiveMembership-ownedObjectiveRequirement" xmi:type="uml:Property" isDerived="true" name="ownedObjectiveRequirement" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-Cases-ObjectiveMembership-ownedObjectiveRequirement" xmi:type="uml:Property" isDerived="true" name="ownedObjectiveRequirement">
             <association xmi:idref="Systems-Cases-A_ownedObjectiveRequirement_owningObjectiveMembership" />
             <lowerValue xmi:id="Systems-Cases-ObjectiveMembership-ownedObjectiveRequirement-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Systems-Cases-ObjectiveMembership-ownedObjectiveRequirement-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The RequirementUsage that is the &lt;code&gt;ownedMemberFeature&lt;/code&gt; of this RequirementUsage.&lt;/p&gt;  ">
@@ -5579,7 +5579,7 @@
           <generalization xmi:id="Systems-DefinitionAndUsage-VariantMembership-_generalization.Root-Namespaces-OwningMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Root-Namespaces-OwningMembership" />
           </generalization>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-VariantMembership-ownedVariantUsage" xmi:type="uml:Property" isDerived="true" name="ownedVariantUsage" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-VariantMembership-ownedVariantUsage" xmi:type="uml:Property" isDerived="true" name="ownedVariantUsage">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedVariantUsage_owningVariantMembership" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-VariantMembership-ownedVariantUsage-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-VariantMembership-ownedVariantUsage-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;Usage&lt;/code&gt; that represents a variant in the context of the &lt;code&gt;owningVariationDefinition&lt;/code&gt; or &lt;code&gt;owningVariationUsage&lt;/code&gt;.&lt;/p&gt;">
@@ -6011,7 +6011,7 @@
             <type xmi:idref="Systems-DefinitionAndUsage-Usage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-directedUsage-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedUsage" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedUsage" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedUsage" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedUsage">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedUsage_owningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedUsage-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedUsage-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;Usages&lt;/code&gt; that are &lt;code&gt;ownedFeatures&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6022,7 +6022,7 @@
             <type xmi:idref="Systems-DefinitionAndUsage-Usage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedUsage-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedReference" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedReference" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedReference" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedReference">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedReference_referenceOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedReference-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedReference-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ReferenceUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6032,7 +6032,7 @@
             <type xmi:idref="Systems-DefinitionAndUsage-ReferenceUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedReference-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedAttribute" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedAttribute" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedAttribute" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedAttribute">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedAttribute_attributeOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedAttribute-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedAttribute-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;AttributeUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;p&gt;">
@@ -6042,7 +6042,7 @@
             <type xmi:idref="Systems-Attributes-AttributeUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedAttribute-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedEnumeration" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedEnumeration" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedEnumeration" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedEnumeration">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedEnumeration_enumerationOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedEnumeration-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedEnumeration-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;EnumerationUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;p&gt;">
@@ -6052,7 +6052,7 @@
             <type xmi:idref="Systems-Enumerations-EnumerationUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedEnumeration-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedOccurrence" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedOccurrence" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedOccurrence" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedOccurrence">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedOccurrence_occurrenceOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedOccurrence-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedOccurrence-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;OccurrenceUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6062,7 +6062,7 @@
             <type xmi:idref="Systems-Occurrences-OccurrenceUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedOccurrence-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedItem" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedItem" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedItem" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedItem">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedItem_itemOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedItem-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedItem-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ItemUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6072,7 +6072,7 @@
             <type xmi:idref="Systems-Items-ItemUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedItem-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedPart" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedPart" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedPart" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedPart">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedPart_partOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedPart-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedPart-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;PartUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6082,7 +6082,7 @@
             <type xmi:idref="Systems-Parts-PartUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedPart-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedPort" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedPort" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedPort" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedPort">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedPort_portOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedPort-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedPort-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;PortUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6092,7 +6092,7 @@
             <type xmi:idref="Systems-Ports-PortUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedPort-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedConnection" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedConnection" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedConnection" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedConnection">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedConnection_connectionOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedConnection-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedConnection-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ConnectorAsUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;. Note that this list includes &lt;code&gt;BindingConnectorAsUsages&lt;/code&gt;, &lt;code&gt;SuccessionAsUsages&lt;/code&gt;, and &lt;code&gt;FlowUsages&lt;/code&gt; because these are &lt;code&gt;ConnectorAsUsages&lt;/code&gt; even though they are not &lt;code&gt;ConnectionUsages&lt;/code&gt;.&lt;/p&gt;">
@@ -6102,7 +6102,7 @@
             <type xmi:idref="Systems-Connections-ConnectorAsUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedConnection-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedFlow" xmi:type="uml:Property" isDerived="true" name="ownedFlow" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedFlow" xmi:type="uml:Property" isDerived="true" name="ownedFlow">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedFlow_flowOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedFlow-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedFlow-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;FlowUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6112,7 +6112,7 @@
             <type xmi:idref="Systems-Flows-FlowUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedFlow-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedInterface" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedInterface" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedInterface" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedInterface">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedInterface_interfaceOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedInterface-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedInterface-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;InterfaceUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6122,7 +6122,7 @@
             <type xmi:idref="Systems-Interfaces-InterfaceUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedInterface-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedAllocation" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedAllocation" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedAllocation" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedAllocation">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedAllocation_allocationOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedAllocation-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedAllocation-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;AllocationUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6132,7 +6132,7 @@
             <type xmi:idref="Systems-Allocations-AllocationUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedAllocation-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedAction" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedAction" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedAction" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedAction">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedAction_actionOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedAction-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedAction-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ActionUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6142,7 +6142,7 @@
             <type xmi:idref="Systems-Actions-ActionUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedAction-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedState" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedState" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedState" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedState">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedState_stateOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedState-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedState-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;StateUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6152,7 +6152,7 @@
             <type xmi:idref="Systems-States-StateUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedState-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedTransition" xmi:type="uml:Property" isDerived="true" name="ownedTransition" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedTransition" xmi:type="uml:Property" isDerived="true" name="ownedTransition">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedTransition_transitionOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedTransition-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedTransition-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;TransitionUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6162,7 +6162,7 @@
             <type xmi:idref="Systems-States-TransitionUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedTransition-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedCalculation" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedCalculation" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedCalculation" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedCalculation">
             <association xmi:idref="Systems-Calculations-A_calculationOwningDefinition_ownedCalculation" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedCalculation-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedCalculation-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;CalculationUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6172,7 +6172,7 @@
             <type xmi:idref="Systems-Calculations-CalculationUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedCalculation-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedConstraint" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedConstraint" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedConstraint" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedConstraint">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedConstraint_constraintOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedConstraint-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedConstraint-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ConstraintUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;  ">
@@ -6182,7 +6182,7 @@
             <type xmi:idref="Systems-Constraints-ConstraintUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedConstraint-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedRequirement" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedRequirement" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedRequirement" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedRequirement">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedRequirement_requirementOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedRequirement-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedRequirement-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;RequirementUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6192,7 +6192,7 @@
             <type xmi:idref="Systems-Requirements-RequirementUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedRequirement-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedConcern" xmi:type="uml:Property" isDerived="true" name="ownedConcern" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedConcern" xmi:type="uml:Property" isDerived="true" name="ownedConcern">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedConcern_concernOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedConcern-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedConcern-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ConcernUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6202,7 +6202,7 @@
             <type xmi:idref="Systems-Requirements-ConcernUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedConcern-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedCase" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedCase" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedCase" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedCase">
             <association xmi:idref="Systems-DefinitionAndUsage-A_caseOwningDefinition_ownedCase" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedCase-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedCase-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The code&gt;CaseUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6212,7 +6212,7 @@
             <type xmi:idref="Systems-Cases-CaseUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedCase-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedAnalysisCase" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedAnalysisCase" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedAnalysisCase" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedAnalysisCase">
             <association xmi:idref="Systems-DefinitionAndUsage-A_analysisCaseOwningDefinition_ownedAnalysisCase" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedAnalysisCase-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedAnalysisCase-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;AnalysisCaseUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6222,7 +6222,7 @@
             <type xmi:idref="Systems-AnalysisCases-AnalysisCaseUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedAnalysisCase-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedVerificationCase" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedVerificationCase" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedVerificationCase" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedVerificationCase">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedVerificationCase_verificationCaseOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedVerificationCase-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedVerificationCase-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;VerificationCaseUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6232,7 +6232,7 @@
             <type xmi:idref="Systems-VerificationCases-VerificationCaseUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedVerificationCase-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedUseCase" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedUseCase" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedUseCase" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedUseCase">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedUseCase_useCaseOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedUseCase-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedUseCase-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;UseCaseUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6242,7 +6242,7 @@
             <type xmi:idref="Systems-UseCases-UseCaseUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedUseCase-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedView" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedView" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedView" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedView">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedView_viewOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedView-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedView-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ViewUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6252,7 +6252,7 @@
             <type xmi:idref="Systems-Views-ViewUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedView-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedViewpoint" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedViewpoint" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedViewpoint" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedViewpoint">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedViewpoint_viewpointOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedViewpoint-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedViewpoint-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ViewpointUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6262,7 +6262,7 @@
             <type xmi:idref="Systems-Views-ViewpointUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedViewpoint-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedRendering" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedRendering" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedRendering" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedRendering">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedRendering_redenderingOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedRendering-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedRendering-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;RenderingUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -6272,7 +6272,7 @@
             <type xmi:idref="Systems-Views-RenderingUsage" />
             <upperValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedRendering-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedMetadata" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedMetadata" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-DefinitionAndUsage-Definition-ownedMetadata" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedMetadata">
             <association xmi:idref="Systems-DefinitionAndUsage-A_ownedMetadata_metadataOwningDefinition" />
             <lowerValue xmi:id="Systems-DefinitionAndUsage-Definition-ownedMetadata-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Systems-DefinitionAndUsage-Definition-ownedMetadata-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;MetadataUsages&lt;/code&gt; that are &lt;code&gt;ownedUsages&lt;/code&gt; of this &lt;code&gt;Definition&lt;/code&gt;.&lt;/p&gt;">
@@ -7299,7 +7299,7 @@
             <type xmi:idref="Systems-Ports-PortDefinition" />
             <upperValue xmi:id="Systems-Ports-ConjugatedPortDefinition-originalPortDefinition-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Systems-Ports-ConjugatedPortDefinition-ownedPortConjugator" xmi:type="uml:Property" isDerived="true" name="ownedPortConjugator" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-Ports-ConjugatedPortDefinition-ownedPortConjugator" xmi:type="uml:Property" isDerived="true" name="ownedPortConjugator">
             <association xmi:idref="Systems-Ports-A_conjugatedPortDefinition_ownedPortConjugator" />
             <lowerValue xmi:id="Systems-Ports-ConjugatedPortDefinition-ownedPortConjugator-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Systems-Ports-ConjugatedPortDefinition-ownedPortConjugator-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;PortConjugation&lt;/code&gt; that is the &lt;code&gt;ownedConjugator&lt;/code&gt; of this &lt;code&gt;ConjugatedPortDefinition&lt;/code&gt;, linking it to its &lt;code&gt;originalPortDefinition&lt;/code&gt;.&lt;/p&gt;">
@@ -8073,7 +8073,7 @@
           <generalization xmi:id="Systems-Views-ViewRenderingMembership-_generalization.Core-Types-FeatureMembership" xmi:type="uml:Generalization">
             <general href="https://www.omg.org/spec/KerML/20250201/KerML.xmi#Core-Types-FeatureMembership" />
           </generalization>
-          <ownedAttribute xmi:id="Systems-Views-ViewRenderingMembership-ownedRendering" xmi:type="uml:Property" isDerived="true" name="ownedRendering" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-Views-ViewRenderingMembership-ownedRendering" xmi:type="uml:Property" isDerived="true" name="ownedRendering">
             <association xmi:idref="Systems-Views-A_ownedRendering_viewRenderingMembership" />
             <lowerValue xmi:id="Systems-Views-ViewRenderingMembership-ownedRendering-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Systems-Views-ViewRenderingMembership-ownedRendering-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The owned &lt;code&gt;RenderingUsage&lt;/code&gt; that is either itself the &lt;code&gt;referencedRendering&lt;/code&gt; or subsets the &lt;code&gt;referencedRendering&lt;/code&gt;.">
@@ -8618,7 +8618,7 @@
           <generalization xmi:id="Systems-VerificationCases-RequirementVerificationMembership-_generalization.Systems-Requirements-RequirementConstraintMembership" xmi:type="uml:Generalization">
             <general xmi:idref="Systems-Requirements-RequirementConstraintMembership" />
           </generalization>
-          <ownedAttribute xmi:id="Systems-VerificationCases-RequirementVerificationMembership-ownedRequirement" xmi:type="uml:Property" isDerived="true" name="ownedRequirement" aggregation="composite">
+          <ownedAttribute xmi:id="Systems-VerificationCases-RequirementVerificationMembership-ownedRequirement" xmi:type="uml:Property" isDerived="true" name="ownedRequirement">
             <association xmi:idref="Systems-VerificationCases-A_ownedRequirement_requirementVerificationMembership" />
             <lowerValue xmi:id="Systems-VerificationCases-RequirementVerificationMembership-ownedRequirement-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Systems-VerificationCases-RequirementVerificationMembership-ownedRequirement-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The owned &lt;code&gt;RequirementUsage&lt;/code&gt; that acts as the &lt;code&gt;ownedConstraint&lt;/code&gt; for this &lt;code&gt;RequirementVerificationMembership&lt;/code&gt;. This will either be the &lt;code&gt;verifiedRequirement&lt;/code&gt;, or it will subset the &lt;code&gt;verifiedRequirement&lt;/code&gt;.&lt;/p&gt;">

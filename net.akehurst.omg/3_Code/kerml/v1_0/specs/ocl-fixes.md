@@ -153,40 +153,9 @@ Rules corrected 2026-11-06. The spec puts the argument rules on the subclasses, 
 
 ## Properties made composite
 
-No property in the OMG XMI is marked composite. These derived containment properties have `aggregation="composite"` in the patched XMI:
+No property in the OMG XMI is marked composite. In the patched XMI only the two properties that hold ownership are composite, as in the OMG pilot's `SysML.ecore`:
 
-- `ParameterMembership::ownedMemberParameter`
-- `ResultExpressionMembership::ownedResultExpression`
-- `Type::ownedSpecialization`
-- `Type::ownedFeatureMembership`
-- `Type::ownedFeature`
-- `Type::ownedEndFeature`
-- `Type::ownedConjugator`
-- `Type::ownedIntersecting`
-- `Type::ownedUnioning`
-- `Type::ownedDisjoining`
-- `Type::ownedDifferencing`
-- `FeatureMembership::ownedMemberFeature`
-- `Classifier::ownedSubclassification`
-- `Feature::ownedRedefinition`
-- `Feature::ownedSubsetting`
-- `Feature::ownedTyping`
-- `Feature::ownedTypeFeaturing`
-- `Feature::ownedFeatureInverting`
-- `Feature::ownedFeatureChaining`
-- `Feature::ownedReferenceSubsetting`
-- `Feature::ownedCrossSubsetting`
-- `EndFeatureMembership::ownedMemberFeature`
-- `Annotation::ownedAnnotatingElement`
-- `AnnotatingElement::ownedAnnotatingRelationship`
-- `OwningMembership::ownedMemberElement`
-- `OwningMembership::ownedMemberElementId`
-- `OwningMembership::ownedMemberShortName`
-- `OwningMembership::ownedMemberName`
-- `Namespace::ownedImport`
-- `Namespace::ownedMember`
-- `Namespace::ownedMembership`
-- `Relationship::ownedRelatedElement`
 - `Element::ownedRelationship`
-- `Element::ownedElement`
-- `Element::ownedAnnotation`
+- `Relationship::ownedRelatedElement`
+
+All other `owned...` properties are derived from these and are not composite.
