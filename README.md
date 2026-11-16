@@ -30,10 +30,11 @@ Each metamodel folder has a `specs` folder with the XMI and specification PDF th
 
 ### Where the spec files come from
 
-The repository does not record where the files in the `specs` folders were downloaded from. Their names follow OMG
-document numbers (`ptc-18-01-01`, `formal-26-03-01`, ...), which suggests they are the machine-readable files and
-specifications published by the OMG, but that is not confirmed. In particular, the SysML 2.0 and KerML metamodel XMI
-is not from the SysML v2 release repository (Systems-Modeling/SysML-v2-Release), which has no metamodel XMI.
+The KerML 1.0, SysML 2.0 and UML 2.5.1 XMI files are the OMG's official machine-readable files: on 15 November 2026
+they were checked against the OMG machine-readable pages and are the latest releases (see
+[spec-problems.md](net.akehurst.omg/3_Code/spec-problems.md)). They are not from the SysML v2 release repository
+(Systems-Modeling/SysML-v2-Release), which has no metamodel XMI. Where the other files (DD, MOF, Systems Modeling API,
+SysML 1.7 profile, the PDFs) were downloaded from is not recorded; their names follow OMG document numbers.
 
 The KerML and SysML XMI from the OMG has errors in its OCL (and does not set aggregations), so the code is generated
 from patched copies: `kerml_patched.xmi` and `sysml_patched.xmi`. Each change is listed in the `specs/ocl-fixes.md`
