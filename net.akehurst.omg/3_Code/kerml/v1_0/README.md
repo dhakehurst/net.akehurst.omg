@@ -11,6 +11,7 @@ All modules have the group `net.akehurst.omg`. The Kotlin package is `net.akehur
 |---|---|
 | `kerml-1_0-api` | Generated: one interface per metaclass (package `api.KerML.<Package>`, e.g. `api.KerML.Kernel.Packages.Package`), `KerML_ModelFactory`, `KerML_ModelBuilder`, `KerML_ModelResolver`, `KerML_ModelAsString`, `KerML_ModelReflective` (by-name API, see the [UML README](../../uml/v2_5_1/README.md#building-a-model-by-name)), and the derivations of derived properties |
 | `kerml-1_0-ram` | Generated: in-memory classes that implement the api, created by `KerML_ModelFactoryRam` |
+| `kerml-1_0-agl-types` | Generated: `KerMLTypesDomain`, the AGL types of KerML, bound to the ram classes, so that AGL expressions and agl-m2m transforms can read, create and set KerML objects. Package `agl.types`. For SysML models use `sysml-2_0-agl-types`, which includes KerML |
 
 The builder and `asString` have root functions for `Package` and `LibraryPackage`.
 
@@ -45,7 +46,7 @@ A derivation that the generator cannot translate from OCL is generated as a `TOD
 ## Tests
 
 ```sh
-./gradlew :kerml-1_0-ram:jvmTest
+./gradlew --max-workers=1 :kerml-1_0-ram:jvmTest :kerml-1_0-agl-types:jvmTest
 ```
 
 `test_KerML_NoDerivationCycles` (JVM) reads every property of every class, and fails if a derivation calls itself without end (for example a derivation that uses the property it redefines).

@@ -20,7 +20,7 @@ The templates produce:
 | Metamodel | Folder | Modules | Source XMI |
 |---|---|---|---|
 | UML 2.5.1 | [`uml/v2_5_1`](net.akehurst.omg/3_Code/uml/v2_5_1/README.md) | api, ram, agl-types, xmi (model reader), gui-compose, demo-diagrams | ptc-18-01-01 |
-| KerML 1.0 | [`kerml/v1_0`](net.akehurst.omg/3_Code/kerml/v1_0/README.md) | api, ram | ptc-25-04-04, patched |
+| KerML 1.0 | [`kerml/v1_0`](net.akehurst.omg/3_Code/kerml/v1_0/README.md) | api, ram, agl-types | ptc-25-04-04, patched |
 | SysML 2.0 | [`sysml/v2_0`](net.akehurst.omg/3_Code/sysml/v2_0/README.md) | api, ram (includes KerML), agl-types | ptc-25-02-15, patched |
 | Systems Modeling API 1.0 | [`sysmod-api/v1_0`](net.akehurst.omg/3_Code/sysmod-api/v1_0/README.md) | api | ptc-25-02-29 |
 | Diagram Definition 1.1 | [`dd/v1_1`](net.akehurst.omg/3_Code/dd/v1_1/README.md) | api, ram, agl-types | DD 2013-10-01 |
