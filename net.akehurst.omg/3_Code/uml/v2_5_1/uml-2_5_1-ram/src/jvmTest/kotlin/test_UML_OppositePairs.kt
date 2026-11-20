@@ -44,7 +44,7 @@ class test_UML_OppositePairs {
     }
 
     private fun readMetamodel(): Metamodel {
-        val f = File("../specs/UML_2-5-1_ASM_ptc-18-01-01.xmi")
+        val f = File("../specs/uml_patched.xmi")
         val doc = DocumentBuilderFactory.newInstance().also { it.isNamespaceAware = true }.newDocumentBuilder().parse(f)
         val xmiNs = "http://www.omg.org/spec/XMI/20131001"
         val classes = mutableMapOf<String, Boolean>()

@@ -18,7 +18,7 @@ kotlin {
 
 tasks.named<generator.GenerateTask>("generate") {
     modelName = "UML"
-    sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/UML_2-5-1_ASM_ptc-18-01-01.xmi"))
+    sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/uml_patched.xmi"))
     generateDir.set(layout.projectDirectory.dir("../../../_templates/ram"))
     parameters = mapOf(
         "TARGET_PACKAGE" to "net.akehurst.omg.uml.v2_5_1",
