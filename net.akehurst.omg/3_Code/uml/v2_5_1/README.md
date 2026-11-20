@@ -1,6 +1,6 @@
 # UML 2.5.1
 
-Kotlin Multiplatform UML 2.5.1, generated from the OMG UML XMI (`specs/UML_2-5-1_ASM_ptc-18-01-01.xmi`), with a reader
+Kotlin Multiplatform UML 2.5.1, generated from the OMG UML XMI (`specs/UML_2-5-1_ASM_ptc-18-01-01.xmi`, used as `specs/uml_patched.xmi` with the fixes listed in `specs/ocl-fixes.md`), with a reader
 for UML model XMI (including stereotype applications) and Compose diagrams.
 
 ```kotlin

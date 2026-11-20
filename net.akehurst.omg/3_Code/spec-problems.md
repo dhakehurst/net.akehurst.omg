@@ -4,7 +4,7 @@
 
 ## Summary
 
-The OMG XMI for KerML 1.0 and SysML 2.0 has about 180 problems that stop its OCL being used as written; UML 2.5.1 has 35 (30 of them still open), and its XMI is left unpatched. Every fix lives in the patched XMI (`kerml_patched.xmi`, `sysml_patched.xmi`), and each one is also listed in the `specs/ocl-fixes.md` file next to it.
+The OMG XMI for KerML 1.0 and SysML 2.0 has about 180 problems that stop its OCL being used as written; UML 2.5.1 has 35 (29 of them still open). Every fix lives in the patched XMI (`kerml_patched.xmi`, `sysml_patched.xmi`, `uml_patched.xmi`), and each one is also listed in the `specs/ocl-fixes.md` file next to it.
 
 | Kind of problem | KerML 1.0 | SysML 2.0 |
 | --- | --- | --- |
@@ -281,9 +281,9 @@ Still not implemented: `PerformActionUsage::namingFeature` calls `self.oclAsType
 | FramedConcernMembership::referencedConcern | `let r : Feature = ownedConcern.referencedFeatureTarget() in if r.oclIsKindOf(ConcernUsage) then r.oclAsType(ConcernUsage) else ownedConcern endif` | pilot |
 | RequirementVerificationMembership::verifiedRequirement | `let r : Feature = ownedRequirement.referencedFeatureTarget() in if r.oclIsKindOf(RequirementUsage) then r.oclAsType(RequirementUsage) else ownedRequirement endif` | pilot |
 
-## UML 2.5.1: problems found (XMI not patched)
+## UML 2.5.1: problems found
 
-The UML XMI (ptc-18-01-01) is used as published, so these problems are left in place: 6 errors in its OCL, and 29 more rules or bodies that couldn't be used for other reasons, 5 of which (the `allInstances()` rules) are now implemented. The other 30 leave 33 TODOs in the generated UML api (28 operations and 5 derivations, counted 15 November 2026), because some rules serve both a derived property and its operation.
+The UML XMI (ptc-18-01-01) has 6 errors in its OCL, and 29 more rules or bodies that couldn't be used for other reasons, 5 of which (the `allInstances()` rules) are now implemented. Since 20 November 2026 the UML modules are generated from `uml/v2_5_1/specs/uml_patched.xmi`, which fixes `Classifier::directlyUsedInterfaces` (see `specs/ocl-fixes.md` there); the other problems are still left in place. The remaining 29 leave 32 TODOs in the generated UML api (27 operations and 5 derivations), because some rules serve both a derived property and its operation.
 
 Errors in the spec OCL:
 
@@ -296,7 +296,7 @@ Errors in the spec OCL:
 | Region::isRedefinitionContextValid | Uses `State::redefinedState`, which is not in the metamodel |
 | Vertex::isConsistentWith | Calls `oclIsKindOf` on `redefinedElement`, which is a collection |
 
-Rules that navigate non-navigable association ends (the same kind of problem as KerML's `valuation`): `Property::isAttribute`, `isNavigable` and `subsettingContext` (`classifier`); `ConnectorEnd::definingEnd` (`connector`); `MessageEnd::oppositeEnd` (`messageEnd`); `Gate::isInsideCF`, `isOutsideCF`, `getOperand` and `MessageEnd::enclosingFragment` (`combinedFragment`); `Gate::isFormal` and `Action::containingBehavior` (`interaction`); `Gate::isActual` (`interactionUse`); `Classifier::directlyUsedInterfaces` (`supplierDependency`); `Behavior::context` (`nestingClass`).
+Rules that navigate non-navigable association ends (the same kind of problem as KerML's `valuation`): `Property::isAttribute`, `isNavigable` and `subsettingContext` (`classifier`); `ConnectorEnd::definingEnd` (`connector`); `MessageEnd::oppositeEnd` (`messageEnd`); `Gate::isInsideCF`, `isOutsideCF`, `getOperand` and `MessageEnd::enclosingFragment` (`combinedFragment`); `Gate::isFormal` and `Action::containingBehavior` (`interaction`); `Gate::isActual` (`interactionUse`); `Behavior::context` (`nestingClass`). `Classifier::directlyUsedInterfaces` (`supplierDependency`, and it also collected the clients instead of the suppliers) is fixed in `uml_patched.xmi`.
 
 Rules that use `allInstances()`, which needs a whole model rather than one element: `NamedElement::clientDependency`, `Vertex::incoming` and `outgoing`, `Class::extension` and `ConnectableElement::end`. Since 2026-11-14 the generator translates `T.allInstances()` as the instances of `T` held by the factory of `self`, so these are now implemented.
 
