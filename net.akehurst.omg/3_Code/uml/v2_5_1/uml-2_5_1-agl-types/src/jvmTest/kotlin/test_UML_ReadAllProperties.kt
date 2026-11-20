@@ -22,6 +22,7 @@ import net.akehurst.language.types.api.TypeDefinition
 import net.akehurst.omg.uml.v2_5_1.api.UML_ModelReflectiveDefault
 import net.akehurst.omg.uml.v2_5_1.ram.UML_ModelFactoryRam
 import net.akehurst.omg.uml.v2_5_1.xmi.UmlXmiReader
+import net.akehurst.omg.uml.v2_5_1.xmi.XmiIssueKind
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -41,14 +42,14 @@ class test_UML_ReadAllProperties {
     private val reflective = UML_ModelReflectiveDefault(UML_ModelFactoryRam("UML"))
 
     /** "Metaclass.property" -> the first failure found reading it */
-    private fun readAll(elements: Collection<Any>): Map<String, String> {
+    private fun readAll(elements: Collection<Any>, skip: Set<String> = emptySet()): Map<String, String> {
         val failures = sortedMapOf<String, String>()
         for (o in elements) {
             val mc = reflective.metaclassOf(o) ?: continue
             val def = defs[mc] ?: fail("no AGL type for metaclass $mc")
             for (p in def.type().allResolvedProperty.values) {
                 val key = "$mc.${p.name.value}"
-                if (key in failures) continue
+                if (key in failures || p.name.value in skip) continue
                 // a resolved (inherited) property does not carry the accessor, its original does
                 val accessor = p.accessor ?: p.original.accessor ?: fail("no accessor for $key")
                 try {
@@ -64,9 +65,10 @@ class test_UML_ReadAllProperties {
         return failures
     }
 
-    private fun readXmi(uri: String, path: String): Collection<Any> {
+    private fun readXmi(uri: String, path: String, allowed: Set<XmiIssueKind> = emptySet()): Collection<Any> {
         val r = UmlXmiReader().read(uri, File(path).readText())
-        assertTrue(r.errors.isEmpty(), "errors reading $path: ${r.errors.take(5)}")
+        val errors = r.errors.filter { it.kind !in allowed }
+        assertTrue(errors.isEmpty(), "errors reading $path: ${errors.take(5)}")
         return r.document.elementsById.values
     }
 
@@ -84,8 +86,23 @@ class test_UML_ReadAllProperties {
     fun empty_objects() {
         val objs = emptyObjects()
         assertTrue(objs.size > 100, "${objs.size} concrete metaclasses")
-        val f = readAll(objs)
-        report("empty objects (${objs.size})", f)
+        val all = readAll(objs)
+        report("empty objects (${objs.size})", all)
+        // an object on its own is not a valid model: a derivation that needs a value of multiplicity [1]
+        // (e.g. Vertex::containingStateMachine() of a Vertex that is in no Region) says it 'gave null'
+        val f = all.filterValues { !(it.startsWith("IllegalStateException") && it.endsWith("gave null")) }
+        assertTrue(f.isEmpty(), "${f.size} properties fail, see output: $f")
+    }
+
+    @Test
+    fun uml_metamodel() {
+        // the UML metamodel XMI is itself a UML model (Packages, Classes, Properties, Associations, Operations, Constraints)
+        // the OMG XMI has 8 duplicate xmi:ids (e.g. Vertex::isConsistentWith has the id 'State-isConsistentWith'); the reader keeps the first
+        // Namespace::member and importedMember are skipped: with no caching of derived values, computing them for the
+        // packages of the metamodel (which all import each other) takes too long (see test_UmlXmiReader_PackageImports)
+        val elements = readXmi("http://www.omg.org/spec/UML/20161101/UML.xmi", "../specs/uml_patched.xmi", setOf(XmiIssueKind.DUPLICATE_ID))
+        val f = readAll(elements, skip = setOf("member", "importedMember"))
+        report("UML metamodel", f)
         assertTrue(f.isEmpty(), "${f.size} properties fail, see output")
     }
 

@@ -106,7 +106,8 @@ class test_UmlXmiReader_Testsat {
         """.trimIndent()
         val r = readUmlXmi(xmi)
         assertEquals("private", (r.elementById("_c") as Class).visibility?.name)
-        assertNull((r.elementById("_d") as Class).visibility)
+        // an unknown literal is not set, so the attribute keeps its default value
+        assertEquals("public", (r.elementById("_d") as Class).visibility?.name)
         // an unknown literal is a warning, not an error
         assertTrue(r.errors.isEmpty(), r.errors.toString())
         assertTrue(r.warnings.any { it.kind == XmiIssueKind.INVALID_VALUE && it.message.contains("'nowhere'") }, r.warnings.toString())

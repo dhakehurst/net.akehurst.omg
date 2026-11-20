@@ -37,11 +37,13 @@ format AppendPropertyComposite {
         type.parentPackage == parentType.parentPackage -> 'this'
         else -> "rootAsString.${type.parentPackage.qualifiedName}"
       }
+      // a value that is the property's default value (in the metamodel) is not shown
+      notDefault := hasDefaultValue ? "?.takeIf { it != $defaultValueCode }" : ''
       when {
         (type.isPrimitive or type.isExternal) -> when {
             isSingle -> when {
-                'String'==type.name -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} '\$it'\") }"
-                else -> "self.${validName}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it\") }"
+                'String'==type.name -> "self.${validName}${notDefault}?.let{ sb.appendLine(\"\${indentInc}${validName} '\$it'\") }"
+                else -> "self.${validName}${notDefault}?.let{ sb.appendLine(\"\${indentInc}${validName} \$it\") }"
             }
             isCollection -> when {
                 'String'==type.name -> "self.${validName}?.let{ if (it.isNotEmpty()) sb.appendLine(\"\${indentInc}${validName} [\${it.joinToString{e -> \"'\$e'\"}}]\") }"

@@ -467,14 +467,9 @@ format ModelReflectiveFile {
             override fun featureKind(metaclass: String, feature: String): ReflectiveFeature? =
                 $[pkgs sep $EOL via ChainFeature] null
 
-            override fun metaclassOf(obj: Any): String? = when (obj) {
-                // most specific first
-                $[reflectiveConcreteClassList sep $EOL via MetaclassOfCase]
-                else -> null
-            }
+            override fun metaclassOf(obj: Any): String? = ${name}_ReflectiveSupport.metaclassOf(obj)
 
-            override fun superclasses(metaclass: String): List<String> =
-                $[pkgs sep $EOL via ChainSuperclasses] emptyList()
+            override fun superclasses(metaclass: String): List<String> = ${name}_ReflectiveSupport.superclasses(metaclass)
 
             override fun enumLiteral(enumeration: String, literal: String): Any? = when (enumeration) {
                 $[reflectiveEnumList sep $EOL via EnumLiteralOfCase]
@@ -495,6 +490,26 @@ format ModelReflectiveFile {
         internal object ${name}_ReflectiveSupport {
             /** marks a value that can't be converted */
             val NO = Any()
+
+            fun metaclassOf(obj: Any): String? = when (obj) {
+                // most specific first
+                $[reflectiveConcreteClassList sep $EOL via MetaclassOfCase]
+                else -> null
+            }
+
+            fun superclasses(metaclass: String): List<String> =
+                $[pkgs sep $EOL via ChainSuperclasses] emptyList()
+
+            /**
+             * OCL 'obj.oclIsKindOf(typeOf.oclType())': [obj] is an instance of the metaclass of [typeOf] (or of one of its subclasses).
+             * False if either is null or not a model object.
+             */
+            fun oclIsKindOfTypeOf(obj: Any?, typeOf: Any?): Boolean {
+                if (null == obj || null == typeOf) return false
+                val t = metaclassOf(typeOf) ?: return false
+                val o = metaclassOf(obj) ?: return false
+                return o == t || t in superclasses(o)
+            }
 
             fun string(v: Any?): Any? = when (v) {
                 null -> null

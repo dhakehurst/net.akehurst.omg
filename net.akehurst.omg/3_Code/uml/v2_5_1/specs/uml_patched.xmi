@@ -4687,12 +4687,15 @@ endif)</body>
                      <constrainedElement xmi:idref="ConnectorEnd-definingEnd"/>
                      <specification xmi:type="uml:OpaqueExpression"
                                     xmi:id="ConnectorEnd-definingEnd.1-spec-_specification">
-                        <body>result = (if connector.type = null 
+                        <body>result = (if not owner.oclIsKindOf(Connector) then
+  null
+else if owner.oclAsType(Connector).type = null 
 then
   null 
 else
-  let index : Integer = connector.end-&gt;indexOf(self) in
-    connector.type.memberEnd-&gt;at(index)
+  let index : Integer = owner.oclAsType(Connector).end-&gt;indexOf(self) in
+    owner.oclAsType(Connector).type.memberEnd-&gt;at(index)
+endif
 endif)</body>
                         <language>OCL</language>
                      </specification>
@@ -8419,7 +8422,7 @@ Sequence{1..signal.ownedAttribute-&gt;size()}-&gt;forAll( i |
                      <constrainedElement xmi:idref="Extension-metaclassEnd"/>
                      <specification xmi:type="uml:OpaqueExpression"
                                     xmi:id="Extension-metaclassEnd-spec-_specification">
-                        <body>result = (memberEnd-&gt;reject(p | ownedEnd-&gt;includes(p.oclAsType(ExtensionEnd)))-&gt;any(true))</body>
+                        <body>result = (memberEnd-&gt;reject(p | ownedEnd-&gt;includes(p))-&gt;any(true))</body>
                         <language>OCL</language>
                      </specification>
                   </ownedRule>
@@ -8453,6 +8456,13 @@ Sequence{1..signal.ownedAttribute-&gt;size()}-&gt;forAll( i |
                   <specification xmi:type="uml:OpaqueExpression"
                                  xmi:id="ExtensionEnd-aggregation-_specification">
                      <body>self.aggregation = AggregationKind::composite</body>
+                     <language>OCL</language>
+                  </specification>
+               </ownedRule>
+               <ownedRule xmi:type="uml:Constraint" xmi:id="ExtensionEnd-lower-derivation" name="derivation">
+                  <constrainedElement xmi:idref="ExtensionEnd-lower"/>
+                  <specification xmi:type="uml:OpaqueExpression" xmi:id="ExtensionEnd-lower-derivation-_specification">
+                     <body>result = (lowerBound())</body>
                      <language>OCL</language>
                   </specification>
                </ownedRule>
@@ -8739,9 +8749,9 @@ endif)</body>
                      <constrainedElement xmi:idref="Package-makesVisible"/>
                      <specification xmi:type="uml:OpaqueExpression"
                                     xmi:id="Package-makesVisible-spec-_specification">
-                        <body>result = (ownedMember-&gt;includes(el) or
-(elementImport-&gt;select(ei|ei.importedElement = VisibilityKind::public)-&gt;collect(importedElement.oclAsType(NamedElement))-&gt;includes(el)) or
-(packageImport-&gt;select(visibility = VisibilityKind::public)-&gt;collect(importedPackage.member-&gt;includes(el))-&gt;notEmpty()))</body>
+                        <body>result = (Set{self}-&gt;closure(q | q.packageImport-&gt;select(pi | pi.visibility = VisibilityKind::public).importedPackage)-&gt;exists(p |
+  p.ownedMember-&gt;includes(el) or
+  p.elementImport-&gt;select(ei | ei.visibility = VisibilityKind::public)-&gt;exists(ei | ei.importedElement = el)))</body>
                         <language>OCL</language>
                      </specification>
                   </ownedRule>
@@ -8852,7 +8862,9 @@ endif)</body>
                      <constrainedElement xmi:idref="Package-visibleMembers"/>
                      <specification xmi:type="uml:OpaqueExpression"
                                     xmi:id="Package-visibleMembers-spec-_specification">
-                        <body>result = (member-&gt;select( m | m.oclIsKindOf(PackageableElement) and self.makesVisible(m))-&gt;collect(oclAsType(PackageableElement))-&gt;asSet())</body>
+                        <body>result = (Set{self}-&gt;closure(q | q.packageImport-&gt;select(pi | pi.visibility = VisibilityKind::public).importedPackage)-&gt;
+  collect(p | p.ownedMember-&gt;union(p.elementImport-&gt;select(ei | ei.visibility = VisibilityKind::public).importedElement.oclAsType(NamedElement)))-&gt;
+  select(m | m.oclIsKindOf(PackageableElement))-&gt;collect(oclAsType(PackageableElement))-&gt;asSet())</body>
                         <language>OCL</language>
                      </specification>
                   </ownedRule>
@@ -10779,7 +10791,13 @@ e.operand-&gt;asSequence()-&gt;first().type.oclAsType(Classifier).conformsTo(p.t
                      <constrainedElement xmi:idref="Message-messageKind"/>
                      <specification xmi:type="uml:OpaqueExpression"
                                     xmi:id="Message-messageKind.1-spec-_specification">
-                        <body>result = (messageKind)</body>
+                        <body>result = (if sendEvent &lt;&gt; null and receiveEvent &lt;&gt; null then MessageKind::complete
+else if sendEvent &lt;&gt; null then MessageKind::lost
+else if receiveEvent &lt;&gt; null then MessageKind::found
+else MessageKind::unknown
+endif
+endif
+endif)</body>
                         <language>OCL</language>
                      </specification>
                   </ownedRule>
@@ -13492,7 +13510,7 @@ endif)</body>
                      <constrainedElement xmi:idref="Namespace-excludeCollisions"/>
                      <specification xmi:type="uml:OpaqueExpression"
                                     xmi:id="Namespace-excludeCollisions-spec-_specification">
-                        <body>result = (imps-&gt;reject(imp1  | imps-&gt;exists(imp2 | not imp1.isDistinguishableFrom(imp2, self))))</body>
+                        <body>result = (imps-&gt;reject(imp1  | imps-&gt;exists(imp2 | imp1 &lt;&gt; imp2 and not imp1.isDistinguishableFrom(imp2, self))))</body>
                         <language>OCL</language>
                      </specification>
                   </ownedRule>
@@ -13522,16 +13540,11 @@ endif)</body>
                      <constrainedElement xmi:idref="Namespace-getNamesOfMember"/>
                      <specification xmi:type="uml:OpaqueExpression"
                                     xmi:id="Namespace-getNamesOfMember-spec-_specification">
-                        <body>result = (if self.ownedMember -&gt;includes(element)
-then Set{element.name}
-else let elementImports : Set(ElementImport) = self.elementImport-&gt;select(ei | ei.importedElement = element) in
-  if elementImports-&gt;notEmpty()
-  then
-     elementImports-&gt;collect(el | el.getName())-&gt;asSet()
-  else 
-     self.packageImport-&gt;select(pi | pi.importedPackage.visibleMembers().oclAsType(NamedElement)-&gt;includes(element))-&gt; collect(pi | pi.importedPackage.getNamesOfMember(element))-&gt;asSet()
-  endif
-endif)</body>
+                        <body>result = (Set{self}-&gt;closure(n | n.packageImport-&gt;select(pi |
+    not (n.ownedMember-&gt;includes(element) or n.elementImport-&gt;exists(ei | ei.importedElement = element)) and
+    pi.importedPackage.visibleMembers()-&gt;includes(element)).importedPackage)-&gt;
+  collect(n | if n.ownedMember-&gt;includes(element) then Set{element.name}
+    else n.elementImport-&gt;select(ei | ei.importedElement = element)-&gt;collect(ei | ei.getName()) endif)-&gt;asSet())</body>
                         <language>OCL</language>
                      </specification>
                   </ownedRule>
@@ -14771,10 +14784,10 @@ endif)</body>
                      <constrainedElement xmi:idref="Behavior-context.1"/>
                      <constrainedElement xmi:idref="Behavior-context"/>
                      <specification xmi:type="uml:OpaqueExpression" xmi:id="Behavior-context.1-spec-_specification">
-                        <body>result = (if nestingClass &lt;&gt; null then
+                        <body>result = (if owner.oclIsKindOf(Class) and owner.oclAsType(Class).nestedClassifier-&gt;includes(self) then
     null
 else
-    let b:BehavioredClassifier = self.behavioredClassifier(self.owner) in
+    let b:BehavioredClassifier = if owner = null then null else self.behavioredClassifier(self.owner) endif in
     if b.oclIsKindOf(Behavior) and b.oclAsType(Behavior)._'context' &lt;&gt; null then 
         b.oclAsType(Behavior)._'context'
     else 
@@ -14790,8 +14803,8 @@ endif
                      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="Behavior-context.1-result-_lowerValue"/>
                   </ownedParameter>
                </ownedOperation>
-               <ownedOperation xmi:type="uml:Operation" xmi:id="Behavior-behavioredClassifier" name="behavioredClassifier" isQuery="true">
-                  <precondition xmi:idref="Behavior-behavioredClassifier-spec"/>
+               <ownedOperation xmi:type="uml:Operation" xmi:id="Behavior-behavioredClassifier" name="behavioredClassifier" isQuery="true"
+                               bodyCondition="Behavior-behavioredClassifier-spec">
                   <ownedComment xmi:type="uml:Comment" xmi:id="Behavior-behavioredClassifier-_ownedComment.0"
                                 body="The first BehavioredClassifier reached by following the chain of owner relationships from the Behavior, if any.">
                      <annotatedElement xmi:idref="Behavior-behavioredClassifier"/>
@@ -14800,7 +14813,7 @@ endif
                      <constrainedElement xmi:idref="Behavior-behavioredClassifier"/>
                      <specification xmi:type="uml:OpaqueExpression"
                                     xmi:id="Behavior-behavioredClassifier-spec-_specification">
-                        <body>if from.oclIsKindOf(BehavioredClassifier) then
+                        <body>result = if from.oclIsKindOf(BehavioredClassifier) then
     from.oclAsType(BehavioredClassifier)
 else if from.owner = null then
     null
@@ -17104,7 +17117,7 @@ and
                      <constrainedElement xmi:idref="Parameter-default"/>
                      <specification xmi:type="uml:OpaqueExpression"
                                     xmi:id="Parameter-default.1-spec-_specification">
-                        <body>result = (if self.type = String then defaultValue.stringValue() else null endif)</body>
+                        <body>result = (if defaultValue = null then null else defaultValue.stringValue() endif)</body>
                         <language>OCL</language>
                      </specification>
                   </ownedRule>
@@ -19192,8 +19205,10 @@ endif)</body>
                      <specification xmi:type="uml:OpaqueExpression"
                                     xmi:id="Action-containingBehavior-spec-_specification">
                         <body>result = (if inStructuredNode&lt;&gt;null then inStructuredNode.containingBehavior() 
-else if activity&lt;&gt;null then activity
-else interaction 
+else if activity&lt;&gt;null then activity.oclAsType(Behavior)
+else if owner.oclIsKindOf(Interaction) then owner.oclAsType(Behavior)
+else null
+endif
 endif
 endif
 )</body>

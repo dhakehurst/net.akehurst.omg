@@ -302,12 +302,17 @@ format PropertyGetterSglCmp {
         opt := isOptional ? '' : " ?: error(\"Property ${validName} is not optional, therefore it must be set before is is accessed.\")"
         typeName := type.isPrimitive ? type.validName : type.validName+'_NN'
         nullable := isOptional ? '?' : ''
-        // the holder is created on first use; reading the value does not create it
-        accessor := "override val ${validName}: ${typeName}${nullable} get() = _${validName}Value?.get()$opt"
+        // the holder is created on first use; reading the value does not create it.
+        // Until then a property with a default value (in the metamodel) has that value; the holder starts with it.
+        initial := hasDefaultValue ? defaultValueCode : 'null'
+        accessor := when {
+            hasDefaultValue -> "override val ${validName}: ${typeName}${nullable} get() = _${validName}Value.let { if (null == it) $defaultValueCode else it.get()$opt }"
+            else -> "override val ${validName}: ${typeName}${nullable} get() = _${validName}Value?.get()$opt"
+        }
         mutable := "
             private var _${validName}Value: Value<${typeName}?>? = null
             override val ${validName}Value: Value<${typeName}?> get() = _${validName}Value ?: ManagedValue<${typeName}?>(
-                null, \"${parentType.validName}.${validName}\", _k_${validName},
+                $initial, \"${parentType.validName}.${validName}\", _k_${validName},
                 $onChanged
             ).also { _${validName}Value = it }
         "

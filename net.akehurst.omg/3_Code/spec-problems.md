@@ -283,28 +283,30 @@ Still not implemented: `PerformActionUsage::namingFeature` calls `self.oclAsType
 
 ## UML 2.5.1: problems found
 
-The UML XMI (ptc-18-01-01) has 6 errors in its OCL, and 29 more rules or bodies that couldn't be used for other reasons, 5 of which (the `allInstances()` rules) are now implemented. Since 20 November 2026 the UML modules are generated from `uml/v2_5_1/specs/uml_patched.xmi`, which fixes `Classifier::directlyUsedInterfaces` (see `specs/ocl-fixes.md` there); the other problems are still left in place. The remaining 29 leave 32 TODOs in the generated UML api (27 operations and 5 derivations), because some rules serve both a derived property and its operation.
+The UML XMI (ptc-18-01-01) has 6 errors in its OCL, and 29 more rules or bodies that couldn't be used for other reasons, 5 of which (the `allInstances()` rules) are now implemented. Since 20 November 2026 the UML modules are generated from `uml/v2_5_1/specs/uml_patched.xmi`, which fixes `Classifier::directlyUsedInterfaces`, `Extension::metaclassEnd`, `Action::containingBehavior`, `Behavior::context` and `behavioredClassifier`, `ConnectorEnd::definingEnd`, `ExtensionEnd::lower`, `Message::messageKind`, `Parameter::default`, `Package::makesVisible` and `visibleMembers`, `Namespace::getNamesOfMember` and `excludeCollisions` (every edit is listed in `uml/v2_5_1/specs/ocl-fixes.md`), and the generator now translates `x.oclIsKindOf(v.oclType())`. That leaves 17 TODOs in the generated UML api, all operations (counted 20 November 2026); the problems below that are fixed say so.
 
 Errors in the spec OCL:
 
 | Rule | Problem |
 | --- | --- |
-| Message::messageKind (derivation) | Defined as `messageKind`, the property itself, so it is circular |
+| Message::messageKind (derivation) | Defined as `messageKind`, the property itself, so it is circular (fixed in uml_patched.xmi) |
 | Property::isCompatibleWith | Uses `TypeElement`, which doesn't exist; `TypedElement` is meant |
-| Package::makesVisible | Compares `ei.importedElement = VisibilityKind::public`; `ei.visibility` is meant |
+| Package::makesVisible | Compares `ei.importedElement = VisibilityKind::public`; `ei.visibility` is meant (fixed in uml_patched.xmi) |
 | Transition::isConsistentWith | Uses `source.redefinedTransition`, but `source` is a Vertex, and `redefinedTransition` belongs to Transition |
 | Region::isRedefinitionContextValid | Uses `State::redefinedState`, which is not in the metamodel |
 | Vertex::isConsistentWith | Calls `oclIsKindOf` on `redefinedElement`, which is a collection |
 
-Rules that navigate non-navigable association ends (the same kind of problem as KerML's `valuation`): `Property::isAttribute`, `isNavigable` and `subsettingContext` (`classifier`); `ConnectorEnd::definingEnd` (`connector`); `MessageEnd::oppositeEnd` (`messageEnd`); `Gate::isInsideCF`, `isOutsideCF`, `getOperand` and `MessageEnd::enclosingFragment` (`combinedFragment`); `Gate::isFormal` and `Action::containingBehavior` (`interaction`); `Gate::isActual` (`interactionUse`); `Behavior::context` (`nestingClass`). `Classifier::directlyUsedInterfaces` (`supplierDependency`, and it also collected the clients instead of the suppliers) is fixed in `uml_patched.xmi`.
+Rules that navigate non-navigable association ends (the same kind of problem as KerML's `valuation`): `Property::isAttribute`, `isNavigable` and `subsettingContext` (`classifier`); `MessageEnd::oppositeEnd` (`messageEnd`); `Gate::isInsideCF`, `isOutsideCF`, `getOperand` and `MessageEnd::enclosingFragment` (`combinedFragment`); `Gate::isFormal` (`interaction`); `Gate::isActual` (`interactionUse`). Fixed in `uml_patched.xmi` by going through `owner` instead: `ConnectorEnd::definingEnd` (`connector`), `Action::containingBehavior` (`interaction`), `Behavior::context` (`nestingClass`); and `Classifier::directlyUsedInterfaces` (`supplierDependency`, and it also collected the clients instead of the suppliers).
 
 Rules that use `allInstances()`, which needs a whole model rather than one element: `NamedElement::clientDependency`, `Vertex::incoming` and `outgoing`, `Class::extension` and `ConnectableElement::end`. Since 2026-11-14 the generator translates `T.allInstances()` as the instances of `T` held by the factory of `self`, so these are now implemented.
 
-No OCL at all: `ExtensionEnd::lower`, `CallAction::inputParameters` and `outputParameters`, and `Behavior::behavioredClassifier`.
+No OCL at all: `CallAction::inputParameters` and `outputParameters`. `ExtensionEnd::lower` (now `lowerBound()`) and `Behavior::behavioredClassifier` (its rule was a precondition, not the body) are fixed in `uml_patched.xmi`.
 
 Its XMI also uses older namespaces than its own URI: the XMI and UML namespaces are `20131001`, and it refers to PrimitiveTypes as `http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi`, while the PrimitiveTypes file's own URI is `http://www.omg.org/spec/PrimitiveTypes/20161101`, and the KerML and SysML XMI refer to it as `https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi`. So the same primitive types are referred to in three ways, and each build maps its own spelling.
 
-Valid OCL that the generator doesn't translate yet: `oclType()` in `Classifier::maySpecializeType`, `NamedElement::isDistinguishableFrom`, `ParameterableElement::isCompatibleWith` and `ValueSpecification::isCompatibleWith`; `isUnique` in `BehavioralFeature::isDistinguishableFrom`; and the comparison with the primitive type `String` in `Parameter::default`.
+Valid OCL that the generator doesn't translate yet: `isUnique` in `BehavioralFeature::isDistinguishableFrom`. Since 20 November 2026 `oclType()` (in `Classifier::maySpecializeType`, `NamedElement::isDistinguishableFrom`, `ParameterableElement::isCompatibleWith` and `ValueSpecification::isCompatibleWith`) is translated, and `Parameter::default` (comparison with the primitive type `String`) is replaced in `uml_patched.xmi`.
+
+Other problems found by reading every property of the SysML 1.7 profile and the UML metamodel (test_UML_ReadAllProperties): the packages of the UML metamodel import each other, so `Package::makesVisible`, `visibleMembers` and `Namespace::getNamesOfMember` recursed for ever (rewritten with `closure` in `uml_patched.xmi`); `Namespace::excludeCollisions` excluded every import, because each element is indistinguishable from itself (fixed); `Extension::metaclassEnd` cast the metaclass end to ExtensionEnd (fixed); and the UML XMI has 8 duplicate xmi:ids (e.g. Vertex::isConsistentWith has the id `State-isConsistentWith`), left as they are.
 
 ## SysML 1.7 (ptc/24-01-02): problems in the XMI
 

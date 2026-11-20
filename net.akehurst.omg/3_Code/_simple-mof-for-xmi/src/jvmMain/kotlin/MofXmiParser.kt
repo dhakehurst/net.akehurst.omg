@@ -475,6 +475,14 @@ class MofXmiParser(
             self.associationXmiId = assocXmiId ?: propertyElement.getAttribute("association").ifEmpty { null }
             (self.redefinedPropertyRef as MutableSet).addAll(redefinedRefs)
             (self.subsettedPropertyRef as MutableSet).addAll(subsettedRefs)
+            self.defaultValue = getChildrenByTagName(propertyElement, "defaultValue").firstOrNull()?.let { dv ->
+                MofDefaultValue(
+                    xmiType = dv.getAttribute("xmi:type").substringAfter(':'),
+                    value = dv.getAttributeOrNull("value"),
+                    instanceRef = dv.getAttributeOrNull("instance")
+                        ?: getChildrenByTagName(dv, "instance").firstOrNull()?.getAttribute("xmi:idref")?.ifEmpty { null }
+                )
+            }
         }
         return prop
     }

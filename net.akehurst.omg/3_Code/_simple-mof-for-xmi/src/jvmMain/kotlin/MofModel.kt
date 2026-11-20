@@ -742,6 +742,8 @@ class MofProperty(
     val subsettedPropertyRef: Set<String> = mutableSetOf()
     var opposite: MofProperty? = null
     var association: MofAssociation? = null
+    /** the 'defaultValue' of the property in the XMI, if it has one */
+    var defaultValue: MofDefaultValue? = null
 
     // --- derived ---
     val name: String
@@ -820,6 +822,59 @@ class MofProperty(
             }
             else -> t.name
         }
+
+    /**
+     * the Kotlin expression for the default value of a stored, single-valued property of a primitive or enumeration type,
+     * e.g. 'false', '0L', or the fully qualified enumeration literal; null if the property has no (usable) default.
+     * A literal with no 'value' attribute has the XMI default value of its type (false, 0, 0.0, "").
+     * Defaults given by an expression (OpaqueExpression) are not used.
+     */
+    val defaultValueCode: String? by lazy {
+        val dv = defaultValue
+        when {
+            null == dv || isDerived || isDerivedUnion || !isSingle -> null
+            else -> when (val t = type) {
+                is MofEnum -> {
+                    val litId = dv.instanceRef
+                    val lit = t.literals.firstOrNull { it.xmiId == litId || it.name == dv.value }
+                    when {
+                        null == lit || "InstanceValue" != dv.xmiType && null == dv.value -> null
+                        else -> {
+                            val tp = model.generateParameters["TARGET_PACKAGE"] as? String
+                            val pkg = t.parentPackage?.qualifiedName
+                            if (null == tp || null == pkg) null else "$tp.api.$pkg.${t.validName}.${lit.validName}"
+                        }
+                    }
+                }
+
+                else -> when {
+                    dv.xmiType !in setOf("LiteralBoolean", "LiteralInteger", "LiteralReal", "LiteralString", "LiteralUnlimitedNatural") -> null
+                    else -> when (typeNameInXmi) {
+                        "Boolean" -> when (dv.value?.trim()) {
+                            null, "", "false" -> "false"
+                            "true" -> "true"
+                            else -> null
+                        }
+
+                        "Integer", "UnlimitedNatural" -> when (val v = dv.value?.trim()) {
+                            null, "" -> "0L"
+                            "*" -> if (isUnlimitedNatural) "-1L" else null
+                            else -> v.toLongOrNull()?.let { "${it}L" }
+                        }
+
+                        "Real" -> when (val v = dv.value?.trim()) {
+                            null, "" -> "0.0"
+                            else -> v.toDoubleOrNull()?.toString()
+                        }
+
+                        "String" -> "\"" + (dv.value ?: "").replace("\\", "\\\\").replace("\"", "\\\"").replace("$", "\\$") + "\""
+                        else -> null
+                    }
+                }
+            }
+        }
+    }
+    val hasDefaultValue: Boolean get() = null != defaultValueCode
 
     /** the type is UnlimitedNatural, whose value '*' is -1 */
     val isUnlimitedNatural: Boolean get() = "UnlimitedNatural" == typeNameInXmi
@@ -1164,6 +1219,13 @@ data class MofUnionImpl(
 data class MofReflectiveFeature(
     val name: String,
     val property: MofProperty
+)
+
+/** a 'defaultValue' of a property: a literal (xmiType e.g. 'LiteralBoolean', with its 'value' if given) or an InstanceValue of an enumeration literal */
+data class MofDefaultValue(
+    val xmiType: String,
+    val value: String?,
+    val instanceRef: String?
 )
 
 data class MofEnumLiteral(

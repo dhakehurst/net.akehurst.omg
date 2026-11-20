@@ -505,7 +505,7 @@ class OclToKotlin(private val model: MofModel) {
     private fun bareName(scope: Scope): KExpr {
         val name = nextId()
         val itr = scope.implicitIterator
-        if (isSym("(") && name in oclTypeOps) return oclTypeOp(itr ?: scope.lookup("self")!!, name) // e.g. select(oclIsKindOf(Package)), or of self
+        if (isSym("(") && name in oclTypeOps) return oclTypeOp(itr ?: scope.lookup("self")!!, name, scope) // e.g. select(oclIsKindOf(Package)), or of self
         if (null == scope.lookup(name) && isSym(".") && isId("allInstances", 1) && isSym("(", 2) && isSym(")", 3)) return allInstances(name, scope)
         if (isSym("(")) {
             // an operation of the implicit iterator or of self
@@ -541,7 +541,7 @@ class OclToKotlin(private val model: MofModel) {
         val name = nextId()
         if (isSym("::")) return qualifiedCall(recv, name, scope)
         if (isSym("(")) {
-            if (name in oclTypeOps) return oclTypeOp(recv, name)
+            if (name in oclTypeOps) return oclTypeOp(recv, name, scope)
             primitiveOp(recv, name, scope)?.let { return it }
             val t = recv.type ?: throw Untranslatable("operation call on unknown type")
             val op = findOperation(t, name, peekArgCount()) ?: throw Untranslatable("unknown operation '$name' of '${t.name}'")
@@ -602,10 +602,19 @@ class OclToKotlin(private val model: MofModel) {
     }
 
     /** oclIsKindOf / oclAsType applied to [recv]; the next token is '(' */
-    private fun oclTypeOp(recv: KExpr, name: String): KExpr {
+    private fun oclTypeOp(recv: KExpr, name: String, scope: Scope): KExpr {
         expectSym("(")
         return when (name) {
                 "oclIsKindOf" -> {
+                    // 'x.oclIsKindOf(v.oclType())', v a variable (or self): the metaclass of v's value, found at run time
+                    if (isId("oclType", 2) && isSym(".", 1) && isSym("(", 3) && isSym(")", 4) && isSym(")", 5)) {
+                        val v = scope.lookup(nextId()) ?: throw Untranslatable("type given by an expression (e.g. oclType())")
+                        expectSym("."); nextId(); expectSym("("); expectSym(")"); expectSym(")")
+                        if (recv.isCollection || v.isCollection) throw Untranslatable("oclIsKindOf on collection")
+                        val tp = model.generateParameters["TARGET_PACKAGE"] as? String
+                        val support = if (null == tp) "${model.name}_ReflectiveSupport" else "$tp.api.${model.name}_ReflectiveSupport"
+                        return bool("$support.oclIsKindOfTypeOf(${recv.code}, ${v.code})")
+                    }
                     val t = typeArg()
                     if (recv.isCollection) throw Untranslatable("oclIsKindOf on collection")
                     bool("(${recv.code} is ${t.validName})")

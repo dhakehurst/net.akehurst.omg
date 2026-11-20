@@ -19,8 +19,8 @@ Package `<TARGET_PACKAGE>.api`.
 | `Factory.agl-fmt` | `<Package>_PackageFactory` per package and `<Model>_ModelFactory` |
 | `Builder.agl-fmt` | `<Package>_PackageBuilder.kt` per package and `<Model>_ModelBuilder`, a DSL for building models (stored properties only) |
 | `Resolver.agl-fmt` | `<Package>_PackageResolver` per package and `<Model>_ModelResolver`, which resolve references |
-| `AsString.agl-fmt` | `<Package>_PackageAsString` per package and `<Model>_ModelAsString`, which print a model as text |
-| `Reflective.agl-fmt` | `<Model>_ModelReflective` (interface) and `<Model>_ModelReflectiveDefault`, a by-name API that builds models from metaclass and feature names as in the XMI, plus an internal `<Package>_PackageReflective` per package with the `when` tables. Written only against the api and `<Model>_ModelFactory`, so it works with any implementation |
+| `AsString.agl-fmt` | `<Package>_PackageAsString` per package and `<Model>_ModelAsString`, which print a model as text (an attribute that has its default value is not printed) |
+| `Reflective.agl-fmt` | `<Model>_ModelReflective` (interface) and `<Model>_ModelReflectiveDefault`, a by-name API that builds models from metaclass and feature names as in the XMI, plus an internal `<Package>_PackageReflective` per package with the `when` tables, and the internal `<Model>_ReflectiveSupport` (metaclass of an object, superclasses, and the run-time check for OCL `oclType()`). Written only against the api and `<Model>_ModelFactory`, so it works with any implementation |
 
 ## ram
 
@@ -28,7 +28,7 @@ Package `<TARGET_PACKAGE>.ram`. The in-memory realisation of the api.
 
 | Template | Generates |
 |---|---|
-| `ClassesRam.agl-fmt` | `ram/<path>/<Class>_Ram.kt` per class. Stored values are created on first use; derived values and derived unions are computed when read; subsets, supersets and opposite ends are kept consistent. A subset, superset or opposite that a subclass computes by redefinition is left as it is (`addIfStored`/`removeIfStored` in the factory) |
+| `ClassesRam.agl-fmt` | `ram/<path>/<Class>_Ram.kt` per class. Stored values are created on first use; until then a single-valued attribute with a `defaultValue` in the metamodel (e.g. `false`, `0`, an enumeration literal) has that value; derived values and derived unions are computed when read; subsets, supersets and opposite ends are kept consistent. A subset, superset or opposite that a subclass computes by redefinition is left as it is (`addIfStored`/`removeIfStored` in the factory) |
 | `FactoryRam.agl-fmt` | `<Package>_FactoryRam` per package and `<Model>_ModelFactoryRam` |
 | `InterfaceNonNavigable.agl-fmt` | `ram/<path>/<Package>_TypesNonNavigable.kt`: internal interfaces with the association ends that are not navigable from the class |
 

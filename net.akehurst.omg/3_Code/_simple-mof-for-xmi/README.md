@@ -16,7 +16,8 @@ configures it.
    It handles a subset of OCL (navigation, `let`, `if`, literals, boolean and comparison operators,
    `oclIsKindOf`/`oclAsType` and the common collection operations). `T.allInstances()` is every instance of `T` held
    by the factory of `self` (`HierarchicalReferenceStore.findAllInTree`, over the whole tree of package factories),
-   so it needs an implementation whose factory is a reference store, as the ram one is. Where it cannot translate, the generated code is a
+   so it needs an implementation whose factory is a reference store, as the ram one is. `x.oclIsKindOf(v.oclType())` checks
+   the metaclass of `v` at run time (`<Model>_ReflectiveSupport.oclIsKindOfTypeOf`). Where it cannot translate, the generated code is a
    `TODO(...)` with the OCL in its documentation. A body whose language is `Kotlin` is copied as it is.
 3. `GeneratorFromTemplate` runs an [AGL format](https://github.com/dhakehurst/net.akehurst.language) template over the
    model. `SimpleMof` is the AGL types domain of the MOF model, so the templates can navigate it. Each `#output` of
