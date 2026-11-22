@@ -18,7 +18,7 @@ nak-compose = "2.4.0"
 xmlutil = "1.0.0"
 
 [libraries]
-korlibs-korio = { module = "com.soywiz:korlibs-io", version.ref = "korlibs" }
+korlibs-korio = { module = "org.korge:korlibs-io", version.ref = "korlibs" }
 xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "xmlutil" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 
