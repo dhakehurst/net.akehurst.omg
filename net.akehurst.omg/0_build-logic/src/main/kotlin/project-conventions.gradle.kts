@@ -148,7 +148,6 @@ mavenPublishing {
         }
         developers {
             developer {
-                id.set("dhakehurst")
                 name.set("Dr. David H. Akehurst")
                 email.set("dr.david.h@akehurst.net")
             }
