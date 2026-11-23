@@ -73,7 +73,7 @@
           <generalization xmi:id="Kernel-Behaviors-ParameterMembership-_generalization.Core-Types-FeatureMembership" xmi:type="uml:Generalization">
             <general xmi:idref="Core-Types-FeatureMembership" />
           </generalization>
-          <ownedAttribute xmi:id="Kernel-Behaviors-ParameterMembership-ownedMemberParameter" xmi:type="uml:Property" isDerived="true" name="ownedMemberParameter" aggregation="composite">
+          <ownedAttribute xmi:id="Kernel-Behaviors-ParameterMembership-ownedMemberParameter" xmi:type="uml:Property" isDerived="true" name="ownedMemberParameter">
             <association xmi:idref="Kernel-Behaviors-A_ownedMemberParameter_owningParameterMembership" />
             <lowerValue xmi:id="Kernel-Behaviors-ParameterMembership-ownedMemberParameter-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Kernel-Behaviors-ParameterMembership-ownedMemberParameter-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;Feature&lt;/code&gt; that is identified as a &lt;code&gt;parameter&lt;/code&gt; by this &lt;code&gt;ParameterMembership&lt;/code&gt;.&lt;/p&gt; ">
@@ -282,7 +282,7 @@
 </ownedComment>
           <ownedOperation xmi:id="Kernel-Expressions-FeatureChainExpression-sourceTargetFeature_" xmi:type="uml:Operation" name="sourceTargetFeature">
             <bodyCondition xmi:id="Kernel-Expressions-FeatureChainExpression-sourceTargetFeature_-unnamed1" xmi:type="uml:Constraint" name="unnamed1">
-              <specification xmi:id="Kernel-Expressions-FeatureChainExpression-sourceTargetFeature_-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="let inputParameters : Feature = ownedFeature-&gt;     select(direction = _'in') in if inputParameters-&gt;isEmpty() or     inputParameters-&gt;first().ownedFeature-&gt;isEmpty() then null else inputParameters-&gt;first().ownedFeature-&gt;first() endif" language="OCL2.0" name="">
+              <specification xmi:id="Kernel-Expressions-FeatureChainExpression-sourceTargetFeature_-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="let inputParameters : OrderedSet(Feature) = ownedFeature-&gt;     select(direction = FeatureDirectionKind::_'in') in if inputParameters-&gt;isEmpty() or     inputParameters-&gt;first().ownedFeature-&gt;isEmpty() then null else inputParameters-&gt;first().ownedFeature-&gt;first() endif" language="OCL2.0" name="">
 </specification>
             </bodyCondition>
             <ownedComment xmi:id="Kernel-Expressions-FeatureChainExpression-sourceTargetFeature_-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;Return the first &lt;code&gt;ownedFeature&lt;/code&gt; of the first owned input &lt;code&gt;parameter&lt;/code&gt; of this &lt;code&gt;FeatureChainExpression&lt;/code&gt; (if any).&lt;/p&gt;">
@@ -1035,7 +1035,7 @@
 </ownedComment>
           <ownedOperation xmi:id="Kernel-Expressions-FeatureReferenceExpression-modelLevelEvaluable_Feature" xmi:type="uml:Operation" name="modelLevelEvaluable">
             <bodyCondition xmi:id="Kernel-Expressions-FeatureReferenceExpression-modelLevelEvaluable_Feature-unnamed1" xmi:type="uml:Constraint" name="unnamed1">
-              <specification xmi:id="Kernel-Expressions-FeatureReferenceExpression-modelLevelEvaluable_Feature-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="referent.specializesFromLibrary('Base::Anything::self') or visited-&gt;excludes(referent) and  (referent.oclIsKindOf(Expression) and      referent.oclAsType(Expression).modelLevelEvaluable(visited-&gt;including(referent)) or referent.owningType &lt;&gt; null and      (referent.owningType.oclIsKindOf(Metaclass) or      referent.owningType.oclIsKindOf(MetadataFeature)) or referent.featuringType-&gt;isEmpty() and     (referent.valuation = null or      referent.valuation.modelLevelEvaluable(visited-&gt;including(referent))))" language="OCL2.0" name="">
+              <specification xmi:id="Kernel-Expressions-FeatureReferenceExpression-modelLevelEvaluable_Feature-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="referent.specializesFromLibrary('Base::Anything::self') or visited-&gt;excludes(referent) and  (referent.oclIsKindOf(Expression) and      referent.oclAsType(Expression).modelLevelEvaluable(visited-&gt;including(referent)) or referent.owningType &lt;&gt; null and      (referent.owningType.oclIsKindOf(Metaclass) or      referent.owningType.oclIsKindOf(MetadataFeature)) or referent.featuringType-&gt;isEmpty() and     (referent.valuation = null or      referent.valuation.value.modelLevelEvaluable(visited-&gt;including(referent))))" language="OCL2.0" name="">
 </specification>
             </bodyCondition>
             <ownedComment xmi:id="Kernel-Expressions-FeatureReferenceExpression-modelLevelEvaluable_Feature-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;A &lt;code&gt;FeatureReferenceExpression&lt;/code&gt; is model-level evaluable if it&amp;#39;s &lt;code&gt;referent&lt;/code&gt;&lt;/p&gt;  &lt;ul&gt;  &lt;li&gt;conforms to the self-reference feature &lt;code&gt;&lt;em&gt;Anything::self&lt;/em&gt;&lt;/code&gt;;&lt;/li&gt;  &lt;li&gt;is an &lt;code&gt;Expression&lt;/code&gt; that is model-level evaluable;&lt;/li&gt;  &lt;li&gt;has an &lt;code&gt;owningType&lt;/code&gt; that is a &lt;code&gt;Metaclass&lt;/code&gt; or &lt;code&gt;MetadataFeature&lt;/code&gt;; or&lt;/li&gt;  &lt;li&gt;has no &lt;code&gt;featuringTypes&lt;/code&gt; and, if it has a &lt;code&gt;FeatureValue&lt;/code&gt;, the &lt;code&gt;value&lt;/code&gt; &lt;code&gt;Expression&lt;/code&gt; is model-level evaluable.&lt;/li&gt; &lt;/ul&gt; ">
@@ -1270,7 +1270,7 @@
 </ownedComment>
           <ownedOperation xmi:id="Kernel-Functions-Expression-modelLevelEvaluable_Feature" xmi:type="uml:Operation" name="modelLevelEvaluable">
             <bodyCondition xmi:id="Kernel-Functions-Expression-modelLevelEvaluable_Feature-unnamed1" xmi:type="uml:Constraint" name="unnamed1">
-              <specification xmi:id="Kernel-Functions-Expression-modelLevelEvaluable_Feature-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="ownedSpecialization-&gt;forAll(isImplied) and  ownedFeature-&gt;forAll(f |     (directionOf(f) = FeatureDirectionKind::_'in' or f = result) and         f.ownedFeature-&gt;isEmpty() and f.valuation = null or     f.owningFeatureMembership.oclIsKindOf(ResultExpressionMembership) and         f.oclAsType(Expression).modelLevelEvaluable(visited)     " language="OCL2.0" name="">
+              <specification xmi:id="Kernel-Functions-Expression-modelLevelEvaluable_Feature-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="ownedSpecialization-&gt;forAll(isImplied) and  ownedFeature-&gt;forAll(f |     (directionOf(f) = FeatureDirectionKind::_'in' or f = result) and         f.ownedFeature-&gt;isEmpty() and f.valuation = null or     f.owningFeatureMembership.oclIsKindOf(ResultExpressionMembership) and         f.oclAsType(Expression).modelLevelEvaluable(visited))" language="OCL2.0" name="">
 </specification>
             </bodyCondition>
             <ownedComment xmi:id="Kernel-Functions-Expression-modelLevelEvaluable_Feature-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;Return whether this &lt;code&gt;Expression&lt;/code&gt; is model-level evaluable. The &lt;code&gt;visited&lt;/code&gt; parameter is used to track possible circular &lt;code&gt;Feature&lt;/code&gt; references made from &lt;code&gt;FeatureReferenceExpressions&lt;/code&gt; (see the redefinition of this operation for &lt;code&gt;FeatureReferenceExpression&lt;/code&gt;). Such circular references are not allowed in model-level evaluable expressions.&lt;/p&gt;  &lt;p&gt;An &lt;code&gt;Expression&lt;/code&gt; that is not otherwise specialized is model-level evaluable if it has no (non-implied) &lt;code&gt;ownedSpecializations&lt;/code&gt; and all its &lt;code&gt;ownedFeatures&lt;/code&gt; are either &lt;code&gt;in&lt;/code&gt; parameters, the &lt;code&gt;result&lt;/code&gt; &lt;code&gt;parameter&lt;/code&gt; or a result &lt;code&gt;Expression&lt;/code&gt; owned via a &lt;code&gt;ResultExpressionMembership&lt;/code&gt;. The &lt;code&gt;parameters&lt;/code&gt;  must not have any &lt;code&gt;ownedFeatures&lt;/code&gt; or a &lt;code&gt;FeatureValue&lt;/code&gt;, and the result &lt;code&gt;Expression&lt;/code&gt; must be model-level evaluable.&lt;/p&gt;">
@@ -1442,7 +1442,7 @@
           <generalization xmi:id="Kernel-Functions-ResultExpressionMembership-_generalization.Core-Types-FeatureMembership" xmi:type="uml:Generalization">
             <general xmi:idref="Core-Types-FeatureMembership" />
           </generalization>
-          <ownedAttribute xmi:id="Kernel-Functions-ResultExpressionMembership-ownedResultExpression" xmi:type="uml:Property" isDerived="true" name="ownedResultExpression" aggregation="composite">
+          <ownedAttribute xmi:id="Kernel-Functions-ResultExpressionMembership-ownedResultExpression" xmi:type="uml:Property" isDerived="true" name="ownedResultExpression">
             <association xmi:idref="Kernel-Functions-A_ownedResultExpression_owningResultExpressionMembership" />
             <lowerValue xmi:id="Kernel-Functions-ResultExpressionMembership-ownedResultExpression-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Kernel-Functions-ResultExpressionMembership-ownedResultExpression-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;Expression&lt;/code&gt; that provides the result for the owner of the &lt;code&gt;ResultExpressionMembership&lt;/code&gt;.&lt;/p&gt; ">
@@ -3117,7 +3117,7 @@
           <generalization xmi:id="Core-Types-Type-_generalization.Root-Namespaces-Namespace" xmi:type="uml:Generalization">
             <general xmi:idref="Root-Namespaces-Namespace" />
           </generalization>
-          <ownedAttribute xmi:id="Core-Types-Type-ownedSpecialization" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedSpecialization" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Types-Type-ownedSpecialization" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedSpecialization">
             <association xmi:idref="Core-Types-A_ownedSpecialization_owningType" />
             <lowerValue xmi:id="Core-Types-Type-ownedSpecialization-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Types-Type-ownedSpecialization-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedRelationships&lt;/code&gt; of this &lt;code&gt;Type&lt;/code&gt; that are &lt;code&gt;Specializations&lt;/code&gt;, for which the &lt;code&gt;Type&lt;/code&gt; is the &lt;code&gt;specific&lt;/code&gt; &lt;code&gt;Type&lt;/code&gt;.&lt;/p&gt; ">
@@ -3128,7 +3128,7 @@
             <type xmi:idref="Core-Types-Specialization" />
             <upperValue xmi:id="Core-Types-Type-ownedSpecialization-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Types-Type-ownedFeatureMembership" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedFeatureMembership" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Types-Type-ownedFeatureMembership" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedFeatureMembership">
             <association xmi:idref="Core-Types-A_ownedFeatureMembership_owningType" />
             <lowerValue xmi:id="Core-Types-Type-ownedFeatureMembership-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Types-Type-ownedFeatureMembership-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedMemberships&lt;/code&gt; of this &lt;code&gt;Type&lt;/code&gt; that are &lt;code&gt;FeatureMemberships&lt;/code&gt;, for which the &lt;code&gt;Type&lt;/code&gt; is the &lt;code&gt;owningType&lt;/code&gt;. Each such &lt;code&gt;FeatureMembership&lt;/code&gt; identifies an &lt;code&gt;ownedFeature&lt;/code&gt; of the &lt;code&gt;Type&lt;/code&gt;.&lt;/p&gt; ">
@@ -3149,7 +3149,7 @@
             <type xmi:idref="Core-Features-Feature" />
             <upperValue xmi:id="Core-Types-Type-feature-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Types-Type-ownedFeature" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedFeature" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Types-Type-ownedFeature" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedFeature">
             <association xmi:idref="Core-Types-A_ownedFeature_owningType" />
             <lowerValue xmi:id="Core-Types-Type-ownedFeature-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Types-Type-ownedFeature-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedMemberFeatures&lt;/code&gt; of the &lt;code&gt;ownedFeatureMemberships&lt;/code&gt; of this &lt;code&gt;Type&lt;/code&gt;.&lt;/p&gt; ">
@@ -3206,7 +3206,7 @@
             <type xmi:idref="Core-Features-Feature" />
             <upperValue xmi:id="Core-Types-Type-endFeature-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Types-Type-ownedEndFeature" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedEndFeature" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Types-Type-ownedEndFeature" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedEndFeature">
             <association xmi:idref="Core-Types-A_ownedEndFeature_endOwningType" />
             <lowerValue xmi:id="Core-Types-Type-ownedEndFeature-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Types-Type-ownedEndFeature-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;All &lt;code&gt;endFeatures&lt;/code&gt; of this &lt;code&gt;Type&lt;/code&gt; that are &lt;code&gt;ownedFeatures&lt;/code&gt;.&lt;/p&gt; ">
@@ -3224,7 +3224,7 @@
 </ownedComment>
             <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Boolean" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Types-Type-ownedConjugator" xmi:type="uml:Property" isDerived="true" name="ownedConjugator" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Types-Type-ownedConjugator" xmi:type="uml:Property" isDerived="true" name="ownedConjugator">
             <association xmi:idref="Core-Types-A_ownedConjugator_owningType" />
             <lowerValue xmi:id="Core-Types-Type-ownedConjugator-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Types-Type-ownedConjugator-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;A &lt;code&gt;Conjugation&lt;/code&gt; owned by this &lt;code&gt;Type&lt;/code&gt; for which the &lt;code&gt;Type&lt;/code&gt; is the &lt;code&gt;originalType&lt;/code&gt;.&lt;/p&gt; ">
@@ -3270,7 +3270,7 @@
             <type xmi:idref="Core-Types-Type" />
             <upperValue xmi:id="Core-Types-Type-unioningType-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Types-Type-ownedIntersecting" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedIntersecting" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Types-Type-ownedIntersecting" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedIntersecting">
             <association xmi:idref="Core-Types-A_ownedIntersecting_typeIntersected" />
             <lowerValue xmi:id="Core-Types-Type-ownedIntersecting-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Types-Type-ownedIntersecting-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedRelationships&lt;/code&gt; of this &lt;code&gt;Type&lt;/code&gt; that are &lt;code&gt;Intersectings&lt;/code&gt;, have the &lt;code&gt;Type&lt;/code&gt; as their &lt;code&gt;typeIntersected&lt;/code&gt;.&lt;/p&gt; ">
@@ -3290,7 +3290,7 @@
             <type xmi:idref="Core-Types-Type" />
             <upperValue xmi:id="Core-Types-Type-intersectingType-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Types-Type-ownedUnioning" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedUnioning" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Types-Type-ownedUnioning" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedUnioning">
             <association xmi:idref="Core-Types-A_typeUnioned_ownedUnioning" />
             <lowerValue xmi:id="Core-Types-Type-ownedUnioning-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Types-Type-ownedUnioning-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedRelationships&lt;/code&gt; of this &lt;code&gt;Type&lt;/code&gt; that are &lt;code&gt;Unionings&lt;/code&gt;, having the &lt;code&gt;Type&lt;/code&gt; as their &lt;code&gt;typeUnioned&lt;/code&gt;.&lt;/p&gt; ">
@@ -3301,7 +3301,7 @@
             <type xmi:idref="Core-Types-Unioning" />
             <upperValue xmi:id="Core-Types-Type-ownedUnioning-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Types-Type-ownedDisjoining" xmi:type="uml:Property" isDerived="true" name="ownedDisjoining" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Types-Type-ownedDisjoining" xmi:type="uml:Property" isDerived="true" name="ownedDisjoining">
             <association xmi:idref="Core-Types-A_ownedDisjoining_owningType" />
             <lowerValue xmi:id="Core-Types-Type-ownedDisjoining-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Types-Type-ownedDisjoining-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedRelationships&lt;/code&gt; of this &lt;code&gt;Type&lt;/code&gt; that are &lt;code&gt;Disjoinings&lt;/code&gt;, for which the &lt;code&gt;Type&lt;/code&gt; is the &lt;code&gt;typeDisjoined&lt;/code&gt; &lt;code&gt;Type&lt;/code&gt;.&lt;/p&gt; ">
@@ -3330,7 +3330,7 @@
             <type xmi:idref="Core-Types-Type" />
             <upperValue xmi:id="Core-Types-Type-differencingType-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Types-Type-ownedDifferencing" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedDifferencing" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Types-Type-ownedDifferencing" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedDifferencing">
             <association xmi:idref="Core-Types-A_typeDifferenced_ownedDifferencing" />
             <lowerValue xmi:id="Core-Types-Type-ownedDifferencing-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Types-Type-ownedDifferencing-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedRelationships&lt;/code&gt; of this &lt;code&gt;Type&lt;/code&gt; that are &lt;code&gt;Differencings&lt;/code&gt;, having this &lt;code&gt;Type&lt;/code&gt; as their &lt;code&gt;typeDifferenced&lt;/code&gt;.&lt;/p&gt; ">
@@ -4134,7 +4134,7 @@
             <type xmi:idref="Core-Types-Type" />
             <upperValue xmi:id="Core-Types-FeatureMembership-owningType-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Types-FeatureMembership-ownedMemberFeature" xmi:type="uml:Property" isDerived="true" name="ownedMemberFeature" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Types-FeatureMembership-ownedMemberFeature" xmi:type="uml:Property" isDerived="true" name="ownedMemberFeature">
             <association xmi:idref="Core-Types-A_ownedMemberFeature_owningFeatureMembership" />
             <lowerValue xmi:id="Core-Types-FeatureMembership-ownedMemberFeature-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Core-Types-FeatureMembership-ownedMemberFeature-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;Feature&lt;/code&gt; that this &lt;code&gt;FeatureMembership&lt;/code&gt; relates to its &lt;code&gt;owningType&lt;/code&gt;, making it an &lt;code&gt;ownedFeature&lt;/code&gt; of the &lt;code&gt;owningType&lt;/code&gt;.&lt;/p&gt; ">
@@ -4486,7 +4486,7 @@
           <generalization xmi:id="Core-Classifiers-Classifier-_generalization.Core-Types-Type" xmi:type="uml:Generalization">
             <general xmi:idref="Core-Types-Type" />
           </generalization>
-          <ownedAttribute xmi:id="Core-Classifiers-Classifier-ownedSubclassification" xmi:type="uml:Property" isDerived="true" name="ownedSubclassification" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Classifiers-Classifier-ownedSubclassification" xmi:type="uml:Property" isDerived="true" name="ownedSubclassification">
             <association xmi:idref="Core-Classifiers-A_owningClassifier_ownedSubclassification" />
             <lowerValue xmi:id="Core-Classifiers-Classifier-ownedSubclassification-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Classifiers-Classifier-ownedSubclassification-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedSpecializations&lt;/code&gt; of this &lt;code&gt;Classifier&lt;/code&gt; that are &lt;code&gt;Subclassifications&lt;/code&gt;, for which this &lt;code&gt;Classifier&lt;/code&gt; is the &lt;code&gt;subclassifier&lt;/code&gt;.&lt;/p&gt; ">
@@ -4901,7 +4901,7 @@
             <type xmi:idref="Core-Types-Type" />
             <upperValue xmi:id="Core-Features-Feature-type-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Features-Feature-ownedRedefinition" xmi:type="uml:Property" isDerived="true" name="ownedRedefinition" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Features-Feature-ownedRedefinition" xmi:type="uml:Property" isDerived="true" name="ownedRedefinition">
             <association xmi:idref="Core-Features-A_ownedRedefinition_owningFeature" />
             <lowerValue xmi:id="Core-Features-Feature-ownedRedefinition-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Features-Feature-ownedRedefinition-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedSubsettings&lt;/code&gt; of this &lt;code&gt;Feature&lt;/code&gt; that are &lt;code&gt;Redefinitions&lt;/code&gt;, for which the &lt;code&gt;Feature&lt;/code&gt; is the &lt;code&gt;redefiningFeature&lt;/code&gt;.&lt;/p&gt;  ">
@@ -4911,7 +4911,7 @@
             <type xmi:idref="Core-Features-Redefinition" />
             <upperValue xmi:id="Core-Features-Feature-ownedRedefinition-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Features-Feature-ownedSubsetting" xmi:type="uml:Property" isDerived="true" name="ownedSubsetting" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Features-Feature-ownedSubsetting" xmi:type="uml:Property" isDerived="true" name="ownedSubsetting">
             <association xmi:idref="Core-Features-A_owningFeature_ownedSubsetting" />
             <lowerValue xmi:id="Core-Features-Feature-ownedSubsetting-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Features-Feature-ownedSubsetting-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedSpecializations&lt;/code&gt; of this &lt;code&gt;Feature&lt;/code&gt; that are &lt;code&gt;Subsettings&lt;/code&gt;, for which the &lt;code&gt;Feature&lt;/code&gt; is the &lt;code&gt;subsettingFeature&lt;/code&gt;.&lt;/p&gt; ">
@@ -4957,7 +4957,7 @@
             <type xmi:idref="Core-Types-Type" />
             <upperValue xmi:id="Core-Features-Feature-endOwningType-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Features-Feature-ownedTyping" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedTyping" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Features-Feature-ownedTyping" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedTyping">
             <association xmi:idref="Core-Features-A_ownedTyping_owningFeature" />
             <lowerValue xmi:id="Core-Features-Feature-ownedTyping-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Features-Feature-ownedTyping-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedSpecializations&lt;/code&gt; of this &lt;code&gt;Feature&lt;/code&gt; that are &lt;code&gt;FeatureTypings&lt;/code&gt;, for which the &lt;code&gt;Feature&lt;/code&gt; is the &lt;code&gt;typedFeature&lt;/code&gt;.&lt;/p&gt;">
@@ -4977,7 +4977,7 @@
             <type xmi:idref="Core-Types-Type" />
             <upperValue xmi:id="Core-Features-Feature-featuringType-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Features-Feature-ownedTypeFeaturing" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedTypeFeaturing" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Features-Feature-ownedTypeFeaturing" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedTypeFeaturing">
             <association xmi:idref="Core-Features-A_ownedTypeFeaturing_owningFeatureOfType" />
             <lowerValue xmi:id="Core-Features-Feature-ownedTypeFeaturing-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Features-Feature-ownedTypeFeaturing-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedRelationships&lt;/code&gt; of this &lt;code&gt;Feature&lt;/code&gt; that are &lt;code&gt;TypeFeaturings&lt;/code&gt; and for which the &lt;code&gt;Feature&lt;/code&gt; is the &lt;code&gt;featureOfType&lt;/code&gt;.&lt;/p&gt;">
@@ -5004,7 +5004,7 @@
             <type xmi:idref="Core-Features-Feature" />
             <upperValue xmi:id="Core-Features-Feature-chainingFeature-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Features-Feature-ownedFeatureInverting" xmi:type="uml:Property" isDerived="true" name="ownedFeatureInverting" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Features-Feature-ownedFeatureInverting" xmi:type="uml:Property" isDerived="true" name="ownedFeatureInverting">
             <association xmi:idref="Core-Features-A_ownedFeatureInverting_owningFeature" />
             <lowerValue xmi:id="Core-Features-Feature-ownedFeatureInverting-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Features-Feature-ownedFeatureInverting-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedRelationships&lt;/code&gt; of this &lt;code&gt;Feature&lt;/code&gt; that are &lt;code&gt;FeatureInvertings&lt;/code&gt; and for which the &lt;code&gt;Feature&lt;/code&gt; is the &lt;code&gt;featureInverted&lt;/code&gt;.&lt;/p&gt;">
@@ -5015,7 +5015,7 @@
             <type xmi:idref="Core-Features-FeatureInverting" />
             <upperValue xmi:id="Core-Features-Feature-ownedFeatureInverting-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Features-Feature-ownedFeatureChaining" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedFeatureChaining" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Features-Feature-ownedFeatureChaining" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedFeatureChaining">
             <association xmi:idref="Core-Features-A_ownedFeatureChaining_featureChained" />
             <lowerValue xmi:id="Core-Features-Feature-ownedFeatureChaining-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Features-Feature-ownedFeatureChaining-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedRelationships&lt;/code&gt; of this &lt;code&gt;Feature&lt;/code&gt; that are &lt;code&gt;FeatureChainings&lt;/code&gt;, for which the &lt;code&gt;Feature&lt;/code&gt; will be the &lt;code&gt;featureChained&lt;/code&gt;.&lt;/p&gt;">
@@ -5047,7 +5047,7 @@
 </ownedComment>
             <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#Boolean" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Features-Feature-ownedReferenceSubsetting" xmi:type="uml:Property" isDerived="true" name="ownedReferenceSubsetting" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Features-Feature-ownedReferenceSubsetting" xmi:type="uml:Property" isDerived="true" name="ownedReferenceSubsetting">
             <association xmi:idref="Core-Features-A_ownedReferenceSubsetting_referencingFeature" />
             <lowerValue xmi:id="Core-Features-Feature-ownedReferenceSubsetting-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Features-Feature-ownedReferenceSubsetting-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The one &lt;code&gt;ownedSubsetting&lt;/code&gt; of this &lt;code&gt;Feature&lt;/code&gt;, if any, that is a &lt;code&gt;ReferenceSubsetting&lt;/code&gt;, for which the &lt;code&gt;Feature&lt;/code&gt; is the &lt;code&gt;referencingFeature&lt;/code&gt;.&lt;/p&gt;">
@@ -5083,7 +5083,7 @@
             <type xmi:idref="Core-Types-FeatureDirectionKind" />
             <upperValue xmi:id="Core-Features-Feature-direction-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Core-Features-Feature-ownedCrossSubsetting" xmi:type="uml:Property" isDerived="true" name="ownedCrossSubsetting" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Features-Feature-ownedCrossSubsetting" xmi:type="uml:Property" isDerived="true" name="ownedCrossSubsetting">
             <association xmi:idref="Core-Features-A_ownedCrossSubsetting_crossingFeature" />
             <lowerValue xmi:id="Core-Features-Feature-ownedCrossSubsetting-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Core-Features-Feature-ownedCrossSubsetting-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The one &lt;code&gt;ownedSubsetting&lt;/code&gt; of this &lt;code&gt;Feature&lt;/code&gt;, if any, that is a &lt;code&gt;CrossSubsetting}, for which the &lt;code&gt;Feature&lt;/code&gt; is the &lt;code&gt;crossingFeature&lt;/code&gt;.&lt;/p&gt;">
@@ -5997,7 +5997,7 @@
           <generalization xmi:id="Core-Features-EndFeatureMembership-_generalization.Core-Types-FeatureMembership" xmi:type="uml:Generalization">
             <general xmi:idref="Core-Types-FeatureMembership" />
           </generalization>
-          <ownedAttribute xmi:id="Core-Features-EndFeatureMembership-ownedMemberFeature" xmi:type="uml:Property" isDerived="true" name="ownedMemberFeature" aggregation="composite">
+          <ownedAttribute xmi:id="Core-Features-EndFeatureMembership-ownedMemberFeature" xmi:type="uml:Property" isDerived="true" name="ownedMemberFeature">
             <association xmi:idref="Core-Features-A_ownedMemberFeature_owningEndFeatureMembership" />
             <lowerValue xmi:id="Core-Features-EndFeatureMembership-ownedMemberFeature-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <redefinedProperty xmi:idref="Core-Types-FeatureMembership-ownedMemberFeature" />
@@ -6328,7 +6328,7 @@
             <type xmi:idref="Root-Annotations-AnnotatingElement" />
             <upperValue xmi:id="Root-Annotations-Annotation-owningAnnotatingElement-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Root-Annotations-Annotation-ownedAnnotatingElement" xmi:type="uml:Property" isDerived="true" name="ownedAnnotatingElement" aggregation="composite">
+          <ownedAttribute xmi:id="Root-Annotations-Annotation-ownedAnnotatingElement" xmi:type="uml:Property" isDerived="true" name="ownedAnnotatingElement">
             <association xmi:idref="Root-Annotations-A_ownedAnnotatingElement_owningAnnotatingRelationship" />
             <lowerValue xmi:id="Root-Annotations-Annotation-ownedAnnotatingElement-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Root-Annotations-Annotation-ownedAnnotatingElement-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;annotatingElement&lt;/code&gt; of this &lt;code&gt;Annotation&lt;/code&gt;, when it is an &lt;code&gt;ownedRelatedElement&lt;/code&gt;.&lt;/p&gt;">
@@ -6385,7 +6385,7 @@
             <type xmi:idref="Root-Elements-Element" />
             <upperValue xmi:id="Root-Annotations-AnnotatingElement-annotatedElement-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Root-Annotations-AnnotatingElement-ownedAnnotatingRelationship" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedAnnotatingRelationship" aggregation="composite">
+          <ownedAttribute xmi:id="Root-Annotations-AnnotatingElement-ownedAnnotatingRelationship" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedAnnotatingRelationship">
             <association xmi:idref="Root-Annotations-A_ownedAnnotatingRelationship_owningAnnotatingElement" />
             <lowerValue xmi:id="Root-Annotations-AnnotatingElement-ownedAnnotatingRelationship-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Root-Annotations-AnnotatingElement-ownedAnnotatingRelationship-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedRelationships&lt;/code&gt; of this &lt;code&gt;AnnotatingElement&lt;/code&gt; that are &lt;code&gt;Annotations&lt;/code&gt;, for which this &lt;code&gt;AnnotatingElement&lt;/code&gt; is the &lt;code&gt;annotatingElement&lt;/code&gt;.&lt;/p&gt;">
@@ -6584,7 +6584,7 @@
           <generalization xmi:id="Root-Namespaces-OwningMembership-_generalization.Root-Namespaces-Membership" xmi:type="uml:Generalization">
             <general xmi:idref="Root-Namespaces-Membership" />
           </generalization>
-          <ownedAttribute xmi:id="Root-Namespaces-OwningMembership-ownedMemberElement" xmi:type="uml:Property" isDerived="true" name="ownedMemberElement" aggregation="composite">
+          <ownedAttribute xmi:id="Root-Namespaces-OwningMembership-ownedMemberElement" xmi:type="uml:Property" isDerived="true" name="ownedMemberElement">
             <association xmi:idref="Root-Namespaces-A_ownedMemberElement_owningMembership" />
             <lowerValue xmi:id="Root-Namespaces-OwningMembership-ownedMemberElement-lowerValue" xmi:type="uml:LiteralInteger" name="" value="1" />
             <ownedComment xmi:id="Root-Namespaces-OwningMembership-ownedMemberElement-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;Element&lt;/code&gt; that becomes an &lt;code&gt;ownedMember&lt;/code&gt; of the &lt;code&gt;membershipOwningNamespace&lt;/code&gt; due to this &lt;code&gt;OwningMembership&lt;/code&gt;.&lt;/p&gt; ">
@@ -6595,14 +6595,14 @@
             <type xmi:idref="Root-Elements-Element" />
             <upperValue xmi:id="Root-Namespaces-OwningMembership-ownedMemberElement-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Root-Namespaces-OwningMembership-ownedMemberElementId" xmi:type="uml:Property" isDerived="true" name="ownedMemberElementId" aggregation="composite">
+          <ownedAttribute xmi:id="Root-Namespaces-OwningMembership-ownedMemberElementId" xmi:type="uml:Property" isDerived="true" name="ownedMemberElementId">
             <ownedComment xmi:id="Root-Namespaces-OwningMembership-ownedMemberElementId-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;elementId&lt;/code&gt; of the &lt;code&gt;ownedMemberElement&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Root-Namespaces-OwningMembership-ownedMemberElementId" />
             </ownedComment>
             <redefinedProperty xmi:idref="Root-Namespaces-Membership-memberElementId" />
             <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Root-Namespaces-OwningMembership-ownedMemberShortName" xmi:type="uml:Property" isDerived="true" name="ownedMemberShortName" aggregation="composite">
+          <ownedAttribute xmi:id="Root-Namespaces-OwningMembership-ownedMemberShortName" xmi:type="uml:Property" isDerived="true" name="ownedMemberShortName">
             <lowerValue xmi:id="Root-Namespaces-OwningMembership-ownedMemberShortName-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Root-Namespaces-OwningMembership-ownedMemberShortName-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;shortName&lt;/code&gt; of the &lt;code&gt;ownedMemberElement&lt;/code&gt;.&lt;/p&gt;">
               <annotatedElement xmi:idref="Root-Namespaces-OwningMembership-ownedMemberShortName" />
@@ -6611,7 +6611,7 @@
             <type href="https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String" />
             <upperValue xmi:id="Root-Namespaces-OwningMembership-ownedMemberShortName-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Root-Namespaces-OwningMembership-ownedMemberName" xmi:type="uml:Property" isDerived="true" name="ownedMemberName" aggregation="composite">
+          <ownedAttribute xmi:id="Root-Namespaces-OwningMembership-ownedMemberName" xmi:type="uml:Property" isDerived="true" name="ownedMemberName">
             <lowerValue xmi:id="Root-Namespaces-OwningMembership-ownedMemberName-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Root-Namespaces-OwningMembership-ownedMemberName-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;name&lt;/code&gt; of the &lt;code&gt;ownedMemberElement&lt;/code&gt;.&lt;/p&gt; ">
               <annotatedElement xmi:idref="Root-Namespaces-OwningMembership-ownedMemberName" />
@@ -6625,7 +6625,7 @@
 </ownedComment>
           <ownedOperation xmi:id="Root-Namespaces-OwningMembership-path_" xmi:type="uml:Operation" name="path">
             <bodyCondition xmi:id="Root-Namespaces-OwningMembership-path_-unnamed1" xmi:type="uml:Constraint" name="unnamed1">
-              <specification xmi:id="Root-Namespaces-OwningMembership-path_-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="if ownedMemberElement.qualifiedName &lt;&gt; null then ownedMemberElement.qualifiedName + '/owningMembership' else self.oclAsType(Relationship).path() endif" language="OCL2.0" name="" />
+              <specification xmi:id="Root-Namespaces-OwningMembership-path_-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="if ownedMemberElement.qualifiedName &lt;&gt; null then ownedMemberElement.qualifiedName + '/owningMembership' else if owningRelationship = null and owningRelatedElement &lt;&gt; null then owningRelatedElement.path() + '/' + owningRelatedElement.ownedRelationship-&gt;indexOf(self).toString() else if qualifiedName &lt;&gt; null then qualifiedName else if owningRelationship &lt;&gt; null then owningRelationship.path() + '/' + owningRelationship.ownedRelatedElement-&gt;indexOf(self).toString() else '' endif endif endif endif" language="OCL2.0" name="" />
             </bodyCondition>
             <ownedComment xmi:id="Root-Namespaces-OwningMembership-path_-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;If the &lt;code&gt;ownedMemberElement&lt;/code&gt; of this &lt;code&gt;OwningMembership&lt;/code&gt; has a non-null &lt;code&gt;qualifiedName&lt;/code&gt;, then return the string constructed by appending to that &lt;code&gt;qualifiedName&lt;/code&gt; the string &lt;code&gt;&quot;/owningMembership&quot;&lt;/code&gt;. Otherwise, return the &lt;code&gt;path&lt;/code&gt; of the &lt;code&gt;OwningMembership&lt;/code&gt; as specified for a &lt;code&gt;Relationship&lt;/code&gt; in general.">
               <annotatedElement xmi:idref="Root-Namespaces-OwningMembership-path_" />
@@ -6749,7 +6749,7 @@
             <type xmi:idref="Root-Namespaces-Membership" />
             <upperValue xmi:id="Root-Namespaces-Namespace-membership-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Root-Namespaces-Namespace-ownedImport" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedImport" aggregation="composite">
+          <ownedAttribute xmi:id="Root-Namespaces-Namespace-ownedImport" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedImport">
             <association xmi:idref="Root-Namespaces-A_ownedImport_importOwningNamespace" />
             <lowerValue xmi:id="Root-Namespaces-Namespace-ownedImport-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Root-Namespaces-Namespace-ownedImport-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedRelationships&lt;/code&gt; of this &lt;code&gt;Namespace&lt;/code&gt; that are &lt;code&gt;Imports&lt;/code&gt;, for which the &lt;code&gt;Namespace&lt;/code&gt; is the &lt;code&gt;importOwningNamespace&lt;/code&gt;.&lt;/p&gt; ">
@@ -6769,7 +6769,7 @@
             <type xmi:idref="Root-Elements-Element" />
             <upperValue xmi:id="Root-Namespaces-Namespace-member-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Root-Namespaces-Namespace-ownedMember" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedMember" aggregation="composite">
+          <ownedAttribute xmi:id="Root-Namespaces-Namespace-ownedMember" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedMember">
             <association xmi:idref="Root-Namespaces-A_ownedMember_owningNamespace" />
             <lowerValue xmi:id="Root-Namespaces-Namespace-ownedMember-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Root-Namespaces-Namespace-ownedMember-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The owned &lt;code&gt;members&lt;/code&gt; of this &lt;code&gt;Namespace&lt;/code&gt;, which are the &lt;cpde&gt;&lt;code&gt;ownedMemberElements&lt;/code&gt; of the &lt;code&gt;ownedMemberships&lt;/code&gt; of the &lt;code&gt;Namespace&lt;/code&gt;.&lt;/p&gt; ">
@@ -6779,7 +6779,7 @@
             <type xmi:idref="Root-Elements-Element" />
             <upperValue xmi:id="Root-Namespaces-Namespace-ownedMember-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Root-Namespaces-Namespace-ownedMembership" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedMembership" aggregation="composite">
+          <ownedAttribute xmi:id="Root-Namespaces-Namespace-ownedMembership" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedMembership">
             <association xmi:idref="Root-Namespaces-A_ownedMembership_membershipOwningNamespace" />
             <lowerValue xmi:id="Root-Namespaces-Namespace-ownedMembership-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Root-Namespaces-Namespace-ownedMembership-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedRelationships&lt;/code&gt; of this &lt;code&gt;Namespace&lt;/code&gt; that are &lt;code&gt;Memberships&lt;/code&gt;, for which the &lt;code&gt;Namespace&lt;/code&gt; is the &lt;code&gt;membershipOwningNamespace&lt;/code&gt;.&lt;/p&gt; ">
@@ -6824,7 +6824,7 @@
           </ownedOperation>
           <ownedOperation xmi:id="Root-Namespaces-Namespace-visibilityOf_Membership" xmi:type="uml:Operation" name="visibilityOf">
             <bodyCondition xmi:id="Root-Namespaces-Namespace-visibilityOf_Membership-unnamed1" xmi:type="uml:Constraint" name="unnamed1">
-              <specification xmi:id="Root-Namespaces-Namespace-visibilityOf_Membership-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="if importedMembership-&gt;includes(mem) then     ownedImport-&gt;         select(importedMemberships(Set{})-&gt;includes(mem))-&gt;         first().visibility else if memberships-&gt;includes(mem) then     mem.visibility else     VisibilityKind::private endif" language="OCL2.0" name="">
+              <specification xmi:id="Root-Namespaces-Namespace-visibilityOf_Membership-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="if importedMembership-&gt;includes(mem) then     ownedImport-&gt;         select(importedMemberships(Set{})-&gt;includes(mem))-&gt;         first().visibility else if membership-&gt;includes(mem) then     mem.visibility else     VisibilityKind::private endif endif" language="OCL2.0" name="">
 </specification>
             </bodyCondition>
             <ownedComment xmi:id="Root-Namespaces-Namespace-visibilityOf_Membership-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;Returns this visibility of &lt;code&gt;mem&lt;/code&gt; relative to this &lt;code&gt;Namespace&lt;/code&gt;. If &lt;code&gt;mem&lt;/code&gt; is an &lt;code&gt;importedMembership&lt;/code&gt;, this is the &lt;code&gt;visibility&lt;/code&gt; of its Import. Otherwise it is the &lt;code&gt;visibility&lt;/code&gt; of the &lt;code&gt;Membership&lt;/code&gt; itself.&lt;/p&gt; ">
@@ -6840,7 +6840,7 @@
           </ownedOperation>
           <ownedOperation xmi:id="Root-Namespaces-Namespace-visibleMemberships_Namespace_Boolean_Boolean" xmi:type="uml:Operation" name="visibleMemberships">
             <bodyCondition xmi:id="Root-Namespaces-Namespace-visibleMemberships_Namespace_Boolean_Boolean-unnamed1" xmi:type="uml:Constraint" name="unnamed1">
-              <specification xmi:id="Root-Namespaces-Namespace-visibleMemberships_Namespace_Boolean_Boolean-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="let visibleMemberships : OrderedSet(Membership) =      if includeAll then membershipsOfVisibility(null, excluded)     else membershipsOfVisibility(VisibilityKind::public, excluded)     endif in if not isRecursive then visibleMemberships else visibleMemberships-&gt;union(ownedMember-&gt;     selectAsKind(Namespace).     select(includeAll or owningMembership.visibility = VisibilityKind::public)-&gt;     visibleMemberships(excluded-&gt;including(self), true, includeAll)) endif " language="OCL2.0" name="">
+              <specification xmi:id="Root-Namespaces-Namespace-visibleMemberships_Namespace_Boolean_Boolean-unnamed1-specification0" xmi:type="uml:OpaqueExpression" body="let visibleMemberships : OrderedSet(Membership) =      if includeAll then membershipsOfVisibility(null, excluded)     else membershipsOfVisibility(VisibilityKind::public, excluded)     endif in if not isRecursive then visibleMemberships else visibleMemberships-&gt;union(ownedMember-&gt;     selectByKind(Namespace)-&gt;     select(includeAll or owningMembership.visibility = VisibilityKind::public)-&gt;     collect(ns | ns.visibleMemberships(excluded-&gt;including(self), true, includeAll))) endif " language="OCL2.0" name="">
 </specification>
             </bodyCondition>
             <ownedComment xmi:id="Root-Namespaces-Namespace-visibleMemberships_Namespace_Boolean_Boolean-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;If &lt;code&gt;includeAll = true&lt;/code&gt;, then return all the &lt;code&gt;Memberships&lt;/code&gt; of this &lt;code&gt;Namespace&lt;/code&gt;. Otherwise, return only the publicly visible &lt;code&gt;Memberships&lt;/code&gt; of this &lt;code&gt;Namespace&lt;/code&gt;, including &lt;code&gt;ownedMemberships&lt;/code&gt; that have a &lt;code&gt;visibility&lt;/code&gt; of &lt;code&gt;public&lt;/code&gt; and &lt;code&gt;Memberships&lt;/code&gt; imported with a &lt;code&gt;visibility&lt;/code&gt; of &lt;code&gt;public&lt;/code&gt;. If &lt;code&gt;isRecursive = true&lt;/code&gt;, also recursively include all visible &lt;code&gt;Memberships&lt;/code&gt; of any &lt;code&gt;public&lt;/code&gt; owned &lt;code&gt;Namespaces&lt;/code&gt;, or, if &lt;code&gt;IncludeAll = true&lt;/code&gt;, all &lt;code&gt;Memberships&lt;/code&gt; of all owned &lt;code&gt;Namespaces&lt;/code&gt;. When computing imported &lt;code&gt;Memberships&lt;/code&gt;, ignore this &lt;code&gt;Namespace&lt;/code&gt; and any &lt;code&gt;Namespaces&lt;/code&gt; in the given &lt;code&gt;excluded&lt;/code&gt; set.&lt;/p&gt; ">
@@ -7433,7 +7433,7 @@
             <type xmi:idref="Root-Elements-Element" />
             <upperValue xmi:id="Root-Elements-Element-owner-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Root-Elements-Element-ownedElement" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedElement" aggregation="composite">
+          <ownedAttribute xmi:id="Root-Elements-Element-ownedElement" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedElement">
             <association xmi:idref="Root-Elements-A_owner_ownedElement" />
             <lowerValue xmi:id="Root-Elements-Element-ownedElement-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Root-Elements-Element-ownedElement-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The Elements owned by this Element, derived as the &lt;tt&gt;ownedRelatedElements&lt;/tt&gt; of the &lt;tt&gt;ownedRelationships&lt;/tt&gt; of this Element.&lt;/p&gt; ">
@@ -7453,7 +7453,7 @@
             <type xmi:idref="Root-Annotations-Documentation" />
             <upperValue xmi:id="Root-Elements-Element-documentation-upperValue" xmi:type="uml:LiteralUnlimitedNatural" name="" value="-1" />
           </ownedAttribute>
-          <ownedAttribute xmi:id="Root-Elements-Element-ownedAnnotation" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedAnnotation" aggregation="composite">
+          <ownedAttribute xmi:id="Root-Elements-Element-ownedAnnotation" xmi:type="uml:Property" isDerived="true" isOrdered="true" name="ownedAnnotation">
             <association xmi:idref="Root-Elements-A_ownedAnnotation_owningAnnotatedElement" />
             <lowerValue xmi:id="Root-Elements-Element-ownedAnnotation-lowerValue" xmi:type="uml:LiteralInteger" name="" />
             <ownedComment xmi:id="Root-Elements-Element-ownedAnnotation-_comment.0" xmi:type="uml:Comment" body="&lt;p&gt;The &lt;code&gt;ownedRelationships&lt;/code&gt; of this &lt;code&gt;Element&lt;/code&gt; that are &lt;code&gt;Annotations&lt;/code&gt;, for which this &lt;code&gt;Element&lt;/code&gt; is the &lt;code&gt;annotatedElement&lt;/code&gt;.&lt;/code&gt;">

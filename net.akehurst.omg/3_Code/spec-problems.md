@@ -1,25 +1,29 @@
 # Problems found in the KerML, SysML and UML specs and XMI
 
-6 November 2026 · David Akehurst
+6 November 2026, updated 15 November 2026 · David Akehurst
 
 ## Summary
 
-The OMG XMI for KerML 1.0 and SysML 2.0 has about 180 problems that stop its OCL being used as written; UML 2.5.1 has 35, and its XMI is left unpatched. Every fix lives in the patched XMI (`kerml_patched.xmi`, `sysml_patched.xmi`), and each one is also listed in the `specs/ocl-fixes.md` file next to it.
+The OMG XMI for KerML 1.0 and SysML 2.0 has about 180 problems that stop its OCL being used as written; UML 2.5.1 has 35 (29 of them still open). Every fix lives in the patched XMI (`kerml_patched.xmi`, `sysml_patched.xmi`, `uml_patched.xmi`), and each one is also listed in the `specs/ocl-fixes.md` file next to it.
 
 | Kind of problem | KerML 1.0 | SysML 2.0 |
 | --- | --- | --- |
-| OCL with wrong names, typos or missing `endif` | 53 | 14 |
+| OCL with wrong names, typos or missing `endif` | 59 | 14 |
 | Derivation rule that names the wrong property, or has no `property =` start | 2 | 4 |
 | Derived property with no OCL at all | 47 (+ `valuation`) | 52 |
 | Operation with no body | 1 (`escapedName`) | 0 |
 | XMI structure (missing or wrong result parameters) | 2 kinds | 0 |
 | Rule whose logic is wrong | 0 | 1 (`satisfyingFeature`) |
+| Containment property not marked composite | 2 (`ownedRelationship`, `ownedRelatedElement`) | 0 (owned through KerML) |
+| Operation still not implemented | 9 (no OCL, or not translated yet) | 1 (`namingFeature`) |
 
 Sources checked: the XMI files (KerML ptc-25-04-04, SysML ptc-25-02-15, UML ptc-18-01-01), the formal spec PDFs (KerML formal-26-03-01, SysML formal-26-03-02) and the OMG pilot implementation (Systems-Modeling/SysML-v2-Pilot-Implementation). Most errors in the XMI appear the same way in the formal spec text.
 
+On 15 November 2026 these XMI files were checked against the OMG machine-readable pages, and they are the latest official files: SysML 2.0 `SysML.xmi` (ptc/25-02-15), KerML 1.0 `KerML.xmi` (ptc/25-04-04), and UML 2.5.1 `UML.xmi`, `PrimitiveTypes.xmi` and `StandardProfile.xmi` (ptc/18-01-01 to 18-01-03). No newer version of any of the three (SysML 2.1, KerML 1.1, UML 2.6) has machine-readable files yet.
+
 ## KerML 1.0: errors in the OCL
 
-53 OCL expressions in the KerML XMI use names that don't exist in the metamodel, use operations that OCL doesn't have, or are not well formed. Each was fixed in `kerml_patched.xmi` by checking the names against the metamodel, and against the spec text or the pilot where the intent was unclear.
+59 OCL expressions in the KerML XMI use names that don't exist in the metamodel, use operations that OCL doesn't have, or are not well formed. Each was fixed in `kerml_patched.xmi` by checking the names against the metamodel, and against the spec text or the pilot where the intent was unclear.
 
 | Problem | Was | Now |
 | --- | --- | --- |
@@ -89,6 +93,34 @@ Problems in the XMI structure:
 
 - The result parameters named `result` of the `evaluate` operations and of `Type::allSupertypes` have no `direction="return"`, so they read as input parameters. Fixed in the patched XMI.
 - `Type::isCompatibleWith` and `Feature::isCompatibleWith` are Boolean queries but have no result parameter, in the XMI or in the spec. A Boolean result was added.
+- No property in the KerML XMI is marked composite: `aggregation="composite"` appears nowhere, so the XMI says nothing about which properties own their values (the SysML XMI is the same). In KerML an Element owns other Elements only through Relationships, so the patched XMI marks just the two properties that hold that ownership composite: `Element::ownedRelationship` and `Relationship::ownedRelatedElement`. This is also what the OMG pilot's `SysML.ecore` does (there they are the only containment features, apart from the pilot's own `InvocationExpression::operand`). All the other `owned...` properties (`Namespace::ownedMember`, `Type::ownedFeature` and so on) are derived from these two and are not composite, so each element has one owner. (Until 16 November 2026 the patched XMI also marked 33 of those derived properties composite; David chose to follow the pilot instead.)
+
+## KerML 1.0: operations still not implemented
+
+9 KerML operations are still a TODO in the generated api (and so in the SysML api, which includes KerML). There are no derivation TODOs left.
+
+Six more operations had errors that were still in `kerml_patched.xmi` after the first round of fixes (some of these bodies had other errors fixed, see the table above). They were fixed on 15 November 2026 and are now implemented:
+
+| Operation | Problem | Fix |
+| --- | --- | --- |
+| `Namespace::visibilityOf` | Uses `memberships`, which doesn't exist, and has two `if`s but only one `endif` | `membership`; `endif` added |
+| `Namespace::visibleMemberships` | Uses `selectAsKind`, which is not an OCL operation, then `.` where `->` is needed before `select`, and calls the operation `visibleMemberships` with `->` on a collection | `selectByKind`, `->select`, `->collect(ns \| ns.visibleMemberships(...))` |
+| `Expression::modelLevelEvaluable` | The `forAll(` on `ownedFeature` is never closed (the same in the spec text) | `)` added at the end, as the spec prose describes |
+| `FeatureReferenceExpression::modelLevelEvaluable` | Calls `modelLevelEvaluable` on `referent.valuation`, which is a FeatureValue; FeatureValue has no such operation. The spec prose says "the value Expression" | `referent.valuation.value.modelLevelEvaluable(...)` |
+| `FeatureChainExpression::sourceTargetFeature` | Compares `direction` with `_'in'`, which is not a name; the let variable is typed `Feature` but holds a collection | `FeatureDirectionKind::_'in'`; `OrderedSet(Feature)` |
+| `OwningMembership::path` | Calls `self.oclAsType(Relationship).path()` to mean "the Relationship version of path". OCL has no such super call: `oclAsType` doesn't change which operation is called, so as written it calls itself. (The generator treats `oclAsType` to a direct supertype as a super call, but Relationship is an indirect supertype of OwningMembership.) | The bodies of `Relationship::path` and `Element::path` written out in place |
+
+No OCL in the spec:
+
+- `Namespace::resolveGlobal`, `Namespace::qualificationOf`, `Namespace::unqualifiedNameOf` and `MetadataFeature::syntaxElement`: the body is the words "No OCL". The first three depend on the textual notation's syntax of qualified names.
+- `InvocationExpression::evaluate` and `MetadataAccessExpression::metaclassFeature`: no body at all, only a description in words.
+
+Valid OCL that the generator doesn't translate yet:
+
+- `Membership::isDistinguishableFrom` uses `oclType()`.
+- `MultiplicityRange::valueOf`: the generator reports a comparison of non-integers at `value >= 0`.
+
+`Import::importedMemberships` is also a TODO, but it is abstract in the spec, and `NamespaceImport` and `MembershipImport` implement it.
 
 ## KerML 1.0: derivations and bodies missing from the spec
 
@@ -183,6 +215,13 @@ Five derivation rules have the wrong content or wrong logic:
 | deriveUsageNestedEnumeration | Defines `ownedNested`, which does not exist | `nestedEnumeration = nestedUsage->selectByKind(EnumerationUsage)` |
 | deriveSatisfyRequirementUsageSatisfyingFeature | Typo `exits` for `exists`; the let variable is typed `BindingConnector` but holds a collection; and the condition is the wrong way round, so the rule gives null whenever a binding to another feature exists, which is always. It also relies on a BindingConnector that a tool must add as an implied relationship; a model read from the textual notation has only the subject's FeatureValue. | The other end of the BindingConnector to the subjectParameter (spec rule, corrected); if there is none, the Feature referenced by the subject's FeatureValue (as the pilot does). |
 
+## SysML 2.0: XMI structure and operations
+
+- The root package's URI is `https://ww.omg.org/spec/SysML/20250201`, with `ww.` for `www.` (it is the same in the file served by OMG). References to SysML elements by this URI won't match `https://www.omg.org/...`.
+- As in KerML, no property is marked composite. SysML elements are owned through the KerML `ownedRelationship` and `ownedRelatedElement`, so no SysML property is made composite in the patched XMI. Derived properties such as `Definition::ownedPart` and `Usage::nestedPart` are views of that ownership, as in the pilot. (Until 16 November 2026 the 27 `Definition::owned*` properties and 10 membership `owned...` properties were marked composite, but the matching `Usage::nested*` were not.)
+
+Still not implemented: `PerformActionUsage::namingFeature` calls `self.oclAsType(Usage).namingFeature()` to mean the Usage version of the operation, the same super-call problem as KerML's `OwningMembership::path`. Usage is an indirect supertype of PerformActionUsage, so the generator leaves it as a TODO.
+
 ## SysML 2.0: derived properties with no OCL
 
 52 derived properties have no derivation in the SysML XMI. A rule was added for each, following the pilot, except where noted. TYPES is the `Feature::type` derivation, as in the KerML section.
@@ -242,28 +281,37 @@ Five derivation rules have the wrong content or wrong logic:
 | FramedConcernMembership::referencedConcern | `let r : Feature = ownedConcern.referencedFeatureTarget() in if r.oclIsKindOf(ConcernUsage) then r.oclAsType(ConcernUsage) else ownedConcern endif` | pilot |
 | RequirementVerificationMembership::verifiedRequirement | `let r : Feature = ownedRequirement.referencedFeatureTarget() in if r.oclIsKindOf(RequirementUsage) then r.oclAsType(RequirementUsage) else ownedRequirement endif` | pilot |
 
-## UML 2.5.1: problems found (XMI not patched)
+## UML 2.5.1: problems found
 
-The UML XMI (ptc-18-01-01) is used as published, so these problems are left in place: 6 errors in its OCL, and 29 more rules or bodies that can't be used for other reasons. Together they leave 43 TODOs in the generated UML api, because some rules serve both a derived property and its operation.
+The UML XMI (ptc-18-01-01) has 6 errors in its OCL, and 29 more rules or bodies that couldn't be used for other reasons, 5 of which (the `allInstances()` rules) are now implemented. Since 20 November 2026 the UML modules are generated from `uml/v2_5_1/specs/uml_patched.xmi`, which fixes `Classifier::directlyUsedInterfaces`, `Extension::metaclassEnd`, `Action::containingBehavior`, `Behavior::context` and `behavioredClassifier`, `ConnectorEnd::definingEnd`, `ExtensionEnd::lower`, `Message::messageKind`, `Parameter::default`, `Package::makesVisible` and `visibleMembers`, `Namespace::getNamesOfMember` and `excludeCollisions` (every edit is listed in `uml/v2_5_1/specs/ocl-fixes.md`), and the generator now translates `x.oclIsKindOf(v.oclType())`. That leaves 17 TODOs in the generated UML api, all operations (counted 20 November 2026); the problems below that are fixed say so.
 
 Errors in the spec OCL:
 
 | Rule | Problem |
 | --- | --- |
-| Message::messageKind (derivation) | Defined as `messageKind`, the property itself, so it is circular |
+| Message::messageKind (derivation) | Defined as `messageKind`, the property itself, so it is circular (fixed in uml_patched.xmi) |
 | Property::isCompatibleWith | Uses `TypeElement`, which doesn't exist; `TypedElement` is meant |
-| Package::makesVisible | Compares `ei.importedElement = VisibilityKind::public`; `ei.visibility` is meant |
+| Package::makesVisible | Compares `ei.importedElement = VisibilityKind::public`; `ei.visibility` is meant (fixed in uml_patched.xmi) |
 | Transition::isConsistentWith | Uses `source.redefinedTransition`, but `source` is a Vertex, and `redefinedTransition` belongs to Transition |
 | Region::isRedefinitionContextValid | Uses `State::redefinedState`, which is not in the metamodel |
 | Vertex::isConsistentWith | Calls `oclIsKindOf` on `redefinedElement`, which is a collection |
 
-Rules that navigate non-navigable association ends (the same kind of problem as KerML's `valuation`): `Property::isAttribute`, `isNavigable` and `subsettingContext` (`classifier`); `ConnectorEnd::definingEnd` (`connector`); `MessageEnd::oppositeEnd` (`messageEnd`); `Gate::isInsideCF`, `isOutsideCF`, `getOperand` and `MessageEnd::enclosingFragment` (`combinedFragment`); `Gate::isFormal` and `Action::containingBehavior` (`interaction`); `Gate::isActual` (`interactionUse`); `Classifier::directlyUsedInterfaces` (`supplierDependency`); `Behavior::context` (`nestingClass`).
+Rules that navigate non-navigable association ends (the same kind of problem as KerML's `valuation`): `Property::isAttribute`, `isNavigable` and `subsettingContext` (`classifier`); `MessageEnd::oppositeEnd` (`messageEnd`); `Gate::isInsideCF`, `isOutsideCF`, `getOperand` and `MessageEnd::enclosingFragment` (`combinedFragment`); `Gate::isFormal` (`interaction`); `Gate::isActual` (`interactionUse`). Fixed in `uml_patched.xmi` by going through `owner` instead: `ConnectorEnd::definingEnd` (`connector`), `Action::containingBehavior` (`interaction`), `Behavior::context` (`nestingClass`); and `Classifier::directlyUsedInterfaces` (`supplierDependency`, and it also collected the clients instead of the suppliers).
 
-Rules that use `allInstances()`, which needs a whole model rather than one element: `NamedElement::clientDependency`, `Vertex::incoming` and `outgoing`, `Class::extension` and `ConnectableElement::end`.
+Rules that use `allInstances()`, which needs a whole model rather than one element: `NamedElement::clientDependency`, `Vertex::incoming` and `outgoing`, `Class::extension` and `ConnectableElement::end`. Since 2026-11-14 the generator translates `T.allInstances()` as the instances of `T` held by the factory of `self`, so these are now implemented.
 
-No OCL at all: `ExtensionEnd::lower`, `CallAction::inputParameters` and `outputParameters`, and `Behavior::behavioredClassifier`.
+No OCL at all: `CallAction::inputParameters` and `outputParameters`. `ExtensionEnd::lower` (now `lowerBound()`) and `Behavior::behavioredClassifier` (its rule was a precondition, not the body) are fixed in `uml_patched.xmi`.
 
-Valid OCL that the generator doesn't translate yet: `oclType()` in `Classifier::maySpecializeType`, `NamedElement::isDistinguishableFrom`, `ParameterableElement::isCompatibleWith` and `ValueSpecification::isCompatibleWith`; `isUnique` in `BehavioralFeature::isDistinguishableFrom`; and the comparison with the primitive type `String` in `Parameter::default`.
+Its XMI also uses older namespaces than its own URI: the XMI and UML namespaces are `20131001`, and it refers to PrimitiveTypes as `http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi`, while the PrimitiveTypes file's own URI is `http://www.omg.org/spec/PrimitiveTypes/20161101`, and the KerML and SysML XMI refer to it as `https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi`. So the same primitive types are referred to in three ways, and each build maps its own spelling.
+
+Valid OCL that the generator doesn't translate yet: `isUnique` in `BehavioralFeature::isDistinguishableFrom`. Since 20 November 2026 `oclType()` (in `Classifier::maySpecializeType`, `NamedElement::isDistinguishableFrom`, `ParameterableElement::isCompatibleWith` and `ValueSpecification::isCompatibleWith`) is translated, and `Parameter::default` (comparison with the primitive type `String`) is replaced in `uml_patched.xmi`.
+
+Other problems found by reading every property of the SysML 1.7 profile and the UML metamodel (test_UML_ReadAllProperties): the packages of the UML metamodel import each other, so `Package::makesVisible`, `visibleMembers` and `Namespace::getNamesOfMember` recursed for ever (rewritten with `closure` in `uml_patched.xmi`); `Namespace::excludeCollisions` excluded every import, because each element is indistinguishable from itself (fixed); `Extension::metaclassEnd` cast the metaclass end to ExtensionEnd (fixed); and the UML XMI has 8 duplicate xmi:ids (e.g. Vertex::isConsistentWith has the id `State-isConsistentWith`), left as they are.
+
+## SysML 1.7 (ptc/24-01-02): problems in the XMI
+
+- The profile imports the UML StandardProfile with `href="https://www.omg.org/spec/UML/20161101/StandardProfile.xmi#StandardProfile"` (2 places). In the StandardProfile XMI (ptc/18-01-03) the profile's xmi:id is `_0`, so that reference doesn't resolve. The references to its stereotypes (`#Trace`, `#Refine`) do resolve.
+- It refers to the StandardProfile by `https`, but the StandardProfile's own URI is `http://www.omg.org/spec/UML/20161101/StandardProfile`. The XMI reader maps the `https` form to the `http` one by default.
 
 ## Where the spec and the pilot disagree
 

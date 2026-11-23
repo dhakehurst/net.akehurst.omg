@@ -11,7 +11,7 @@ kotlin {
                 api(libs.nak.kotlinx.collections)
                 api(libs.nak.kotlinx.utils)
 
-                api(project(":uml-2_5_1-ram"))
+                api(project(":dd-1_1-ram"))
             }
         }
     }
@@ -21,7 +21,8 @@ tasks.named<generator.GenerateTask>("generate") {
     modelName = "DiagramDefinition"
     sourceXmiPaths = listOf(
         layout.projectDirectory.file("../specs/DD_20131001_DiagramCommon.xmi"),
-        layout.projectDirectory.file("../specs/DD_20131001DiagramGraph.xmi")
+        layout.projectDirectory.file("../specs/DD_20131001DiagramGraph.xmi"),
+        layout.projectDirectory.file("../specs/DD_20131001_DiagramInterchange.xmi")
     )
     generateDir.set(layout.projectDirectory.dir("../../../_templates/agl-types"))
     parameters = mapOf(
@@ -35,5 +36,6 @@ tasks.named<generator.GenerateTask>("generate") {
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Boolean" to "Boolean",
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#Real" to "Double",
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#UnlimitedNatural" to "Long",
+        "http://www.omg.org/spec/UML/20131001/UML.xmi#Element" to "Any"
     )
 }

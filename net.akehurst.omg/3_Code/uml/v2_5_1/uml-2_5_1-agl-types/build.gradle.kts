@@ -14,12 +14,18 @@ kotlin {
                 api(project(":uml-2_5_1-ram"))
             }
         }
+        jvmTest {
+            dependencies {
+                // test_UML_ReadAllProperties reads sample models with the XMI reader
+                implementation(project(":uml-2_5_1-xmi"))
+            }
+        }
     }
 }
 
 tasks.named<generator.GenerateTask>("generate") {
     modelName = "UML"
-    sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/UML_2-5-1_ASM_ptc-18-01-01.xmi"))
+    sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/uml_patched.xmi"))
     generateDir.set(layout.projectDirectory.dir("../../../_templates/agl-types"))
     parameters = mapOf(
         "TARGET_PACKAGE" to "net.akehurst.omg.uml.v2_5_1",

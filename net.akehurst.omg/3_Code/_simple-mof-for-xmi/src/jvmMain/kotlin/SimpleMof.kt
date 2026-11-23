@@ -66,6 +66,7 @@ object SimpleMof {
             interface_("MofType", implementation = MofType::class) {
                 propertyOfWithBinding(setOf(VAL), "isAbstract", "Boolean", accessor = MofType::isAbstract)
                 propertyOfWithBinding(setOf(VAL), "isPrimitive", "Boolean", accessor = MofType::isPrimitive)
+                propertyOfWithBinding(setOf(VAL), "isExternal", "Boolean", accessor = MofType::isExternal)
                 propertyOfWithBinding(setOf(VAL), "ownedAttribute", "List", accessor = MofType::ownedAttribute) { typeArgument("MofProperty") }
                 //propertyOfWithBinding(setOf(VAL), "allAttributes", "Set", accessor = MofType::allOwnedAttributes) { typeArgument("MofProperty") }
                 propertyOfWithBinding(setOf(VAL), "ownedRedefiningAttribute", "List", accessor = MofType::ownedRedefiningAttribute) { typeArgument("MofProperty") }
@@ -144,6 +145,10 @@ object SimpleMof {
             data("MofUnionImpl") {
                 propertyOf(setOf(VAL, REF), "union", "MofProperty")
                 propertyOf(setOf(VAL, REF), "subsetters", "List") { typeArgument("MofProperty") }
+            }
+            data("MofReflectiveFeature") {
+                propertyOf(setOf(VAL, REF), "name", "String")
+                propertyOf(setOf(VAL, REF), "property", "MofProperty")
             }
             data("MofAttributeBridging") {
                 propertyOf(setOf(VAL, REF), "original", "MofProperty")

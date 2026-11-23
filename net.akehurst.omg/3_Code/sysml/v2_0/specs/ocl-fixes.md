@@ -97,3 +97,7 @@ Where the pilot narrows the type further than the metamodel (`ActionUsage::actio
 | SatisfyRequirementUsage::satisfiedRequirement | `let r : Feature = referencedFeatureTarget() in if r.oclIsKindOf(RequirementUsage) then r.oclAsType(RequirementUsage) else self endif` | pilot |
 | FramedConcernMembership::referencedConcern | `let r : Feature = ownedConcern.referencedFeatureTarget() in if r.oclIsKindOf(ConcernUsage) then r.oclAsType(ConcernUsage) else ownedConcern endif` | pilot |
 | RequirementVerificationMembership::verifiedRequirement | `let r : Feature = ownedRequirement.referencedFeatureTarget() in if r.oclIsKindOf(RequirementUsage) then r.oclAsType(RequirementUsage) else ownedRequirement endif` | pilot |
+
+## Properties made composite
+
+No property in the OMG XMI is marked composite. SysML elements are owned through KerML's `Element::ownedRelationship` and `Relationship::ownedRelatedElement` (composite in `kerml_patched.xmi`), so no SysML property is made composite, as in the OMG pilot's `SysML.ecore`.

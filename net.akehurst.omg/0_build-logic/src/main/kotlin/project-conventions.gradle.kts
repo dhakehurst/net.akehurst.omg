@@ -136,9 +136,9 @@ mavenPublishing {
 
     coordinates(group as String, project.name, version as String)
     pom {
-        name.set("AGL Parser, Processor, etc")
-        description.set("Dynamic, scan-on-demand, parsing; when a regular expression is just not enough")
-        url.set("https://medium.com/@dr.david.h.akehurst/a-kotlin-multi-platform-parser-usable-from-a-jvm-or-javascript-59e870832a79")
+        name.set(project.name)
+        description.set("Kotlin Multiplatform implementations of OMG metamodels (UML, KerML, SysML and others), for JVM, JS and Wasm (JS)")
+        url.set("https://github.com/dhakehurst/net.akehurst.omg")
 
         licenses {
             license {
@@ -153,7 +153,9 @@ mavenPublishing {
             }
         }
         scm {
-            url.set("https://github.com/dhakehurst/net.akehurst.language")
+            url.set("https://github.com/dhakehurst/net.akehurst.omg")
+            connection.set("scm:git:https://github.com/dhakehurst/net.akehurst.omg.git")
+            developerConnection.set("scm:git:ssh://git@github.com/dhakehurst/net.akehurst.omg.git")
         }
     }
 }

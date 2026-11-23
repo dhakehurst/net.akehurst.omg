@@ -103,6 +103,22 @@ class MofModel(
         return type is MofEnum || primitives.contains(type.name)
     }
 
+    // --- for the reflective (by-name) API ---
+    private val excludedPackages: List<String> get() = (generateParameters["EXCLUDE_PACKAGE"] as? List<String>) ?: emptyList()
+
+    /** classes of the packages that are generated, abstract ones included, most specific first (a class comes before all its supertypes) */
+    val reflectiveClassList: List<MofClass>
+        get() = classList
+            .filter { c -> c.parentPackage?.let { excludedPackages.contains(it.qualifiedName) } != true }
+            .sortedWith(compareByDescending<MofClass> { it.allSuperTypes.size }.thenBy { it.name })
+
+    /** the concrete classes of [reflectiveClassList], most specific first */
+    val reflectiveConcreteClassList: List<MofClass> get() = reflectiveClassList.filter { it.isAbstract.not() }
+
+    /** enumerations of the packages that are generated */
+    val reflectiveEnumList: List<MofEnum>
+        get() = enumList.filter { e -> e.parentPackage?.let { excludedPackages.contains(it.qualifiedName) } != true }
+
     fun addPackage(file: String, parent: MofPackage?, obj: MofPackage) {
         packageList.add(obj)
         refHandler.setRef(file, obj.xmiId, obj)
@@ -226,6 +242,8 @@ interface MofType {
     val validName: String
     val isAbstract: Boolean
     val isPrimitive: Boolean
+    /** a type from outside the XMI, given by the generator's referencedTypeMapping (no code is generated for it) */
+    val isExternal: Boolean get() = false
     val hasSubtypes: Boolean
 
     val ownedRedefiningAttribute: List<MofProperty>
@@ -649,6 +667,24 @@ open class MofClass(
                 model.classList.filter { !it.isAbstract && it.allSuperTypes.contains(this) }).toSet()
     }
 
+    /**
+     * For the reflective (by-name) API: the features of this class (inherited ones included, derived ones too), by their names in the metamodel.
+     * The properties are the ones the builder uses (after redefinition). A redefined property's name, if it differs,
+     * is also given, for the redefining property.
+     */
+    val reflectiveFeatures: List<MofReflectiveFeature> by lazy {
+        val normalized = allNormalisedAttributeFlat.toList()
+        val byName = linkedMapOf<String, MofProperty>()
+        normalized.forEach { p -> byName.putIfAbsent(p.name, p) }
+        normalized.forEach { p -> p.allRedefinedProperty.forEach { r -> byName.putIfAbsent(r.name, p) } }
+        byName.map { (n, p) -> MofReflectiveFeature(n, p) }
+    }
+
+    /** all supertypes, most specific first (a class comes before all its supertypes) */
+    val allSuperTypesMostSpecificFirst: List<MofType> by lazy {
+        allSuperTypes.sortedWith(compareByDescending<MofType> { it.allSuperTypes.size }.thenBy { it.name })
+    }
+
     fun addAttribute(file: String, attr: MofProperty) {
         model.refHandler.setRef(file, attr.xmiId, attr)
         this.ownedAttribute.add(attr)
@@ -670,6 +706,8 @@ class ExternalReferenceClass(
     href: String,
     name: String
 ) : MofClass(model, name, href) {
+
+    override val isExternal: Boolean get() = true
 
     override fun hashCode(): Int = xmiId.hashCode()
     override fun equals(other: Any?): Boolean = when {
@@ -704,11 +742,13 @@ class MofProperty(
     val subsettedPropertyRef: Set<String> = mutableSetOf()
     var opposite: MofProperty? = null
     var association: MofAssociation? = null
+    /** the 'defaultValue' of the property in the XMI, if it has one */
+    var defaultValue: MofDefaultValue? = null
 
     // --- derived ---
     val name: String
         get() = when {
-            isAssociationOwned -> association!!.name!! + "_" + nameInXmi.ifBlank { type.name.decapitalise }
+            isAssociationOwned -> (association!!.name ?: association!!.xmiId) + "_" + nameInXmi.ifBlank { type.name.decapitalise }
             else -> nameInXmi.ifBlank { type.name.decapitalise }
         }
     val attrName by lazy {
@@ -772,6 +812,72 @@ class MofProperty(
             else -> "$colTypeName<${type.validName}>"
         }
     }
+
+    /** the name of the type as in the metamodel, e.g. 'UnlimitedNatural' for a primitive type that is mapped to Long */
+    val typeNameInXmi: String
+        get() = when (val t = type) {
+            is ExternalReferenceClass -> when {
+                t.xmiId == "UNKOWN" -> "Any"
+                else -> t.xmiId.substringAfterLast('#').substringAfterLast('/')
+            }
+            else -> t.name
+        }
+
+    /**
+     * the Kotlin expression for the default value of a stored, single-valued property of a primitive or enumeration type,
+     * e.g. 'false', '0L', or the fully qualified enumeration literal; null if the property has no (usable) default.
+     * A literal with no 'value' attribute has the XMI default value of its type (false, 0, 0.0, "").
+     * Defaults given by an expression (OpaqueExpression) are not used.
+     */
+    val defaultValueCode: String? by lazy {
+        val dv = defaultValue
+        when {
+            null == dv || isDerived || isDerivedUnion || !isSingle -> null
+            else -> when (val t = type) {
+                is MofEnum -> {
+                    val litId = dv.instanceRef
+                    val lit = t.literals.firstOrNull { it.xmiId == litId || it.name == dv.value }
+                    when {
+                        null == lit || "InstanceValue" != dv.xmiType && null == dv.value -> null
+                        else -> {
+                            val tp = model.generateParameters["TARGET_PACKAGE"] as? String
+                            val pkg = t.parentPackage?.qualifiedName
+                            if (null == tp || null == pkg) null else "$tp.api.$pkg.${t.validName}.${lit.validName}"
+                        }
+                    }
+                }
+
+                else -> when {
+                    dv.xmiType !in setOf("LiteralBoolean", "LiteralInteger", "LiteralReal", "LiteralString", "LiteralUnlimitedNatural") -> null
+                    else -> when (typeNameInXmi) {
+                        "Boolean" -> when (dv.value?.trim()) {
+                            null, "", "false" -> "false"
+                            "true" -> "true"
+                            else -> null
+                        }
+
+                        "Integer", "UnlimitedNatural" -> when (val v = dv.value?.trim()) {
+                            null, "" -> "0L"
+                            "*" -> if (isUnlimitedNatural) "-1L" else null
+                            else -> v.toLongOrNull()?.let { "${it}L" }
+                        }
+
+                        "Real" -> when (val v = dv.value?.trim()) {
+                            null, "" -> "0.0"
+                            else -> v.toDoubleOrNull()?.toString()
+                        }
+
+                        "String" -> "\"" + (dv.value ?: "").replace("\\", "\\\\").replace("\"", "\\\"").replace("$", "\\$") + "\""
+                        else -> null
+                    }
+                }
+            }
+        }
+    }
+    val hasDefaultValue: Boolean get() = null != defaultValueCode
+
+    /** the type is UnlimitedNatural, whose value '*' is -1 */
+    val isUnlimitedNatural: Boolean get() = "UnlimitedNatural" == typeNameInXmi
 
     val isOptional: Boolean get() = 0 == lowerBound && isSingle // possibly empty collections are not treated as optional, just maybe empty
     val isSingle: Boolean get() = 1 == upperBound
@@ -1109,12 +1215,48 @@ data class MofUnionImpl(
     val subsetters: List<MofProperty>
 )
 
+/** a feature of a class for the reflective API: the name it is found by, and the property that is set */
+data class MofReflectiveFeature(
+    val name: String,
+    val property: MofProperty
+)
+
+/** a 'defaultValue' of a property: a literal (xmiType e.g. 'LiteralBoolean', with its 'value' if given) or an InstanceValue of an enumeration literal */
+data class MofDefaultValue(
+    val xmiType: String,
+    val value: String?,
+    val instanceRef: String?
+)
+
 data class MofEnumLiteral(
     val name: String,
     val xmiId: String
 ) {
-    /** the Kotlin name of the enum entry, e.g. 'in_' for 'in' */
-    val validName: String get() = kotlinValidName(name)
+    /**
+     * the Kotlin name of the enum entry, e.g. 'in_' for 'in'.
+     * A name that is not a Kotlin identifier (e.g. the Systems Modeling API Operator literals '=', '<', '<=')
+     * is spelled with the names of its symbols, e.g. 'EQ', 'LT', 'LT_EQ'.
+     */
+    val validName: String get() = when {
+        Regex("[A-Za-z_][A-Za-z0-9_]*").matches(name) -> kotlinValidName(name)
+        else -> {
+            val symbolNames = mapOf('=' to "EQ", '<' to "LT", '>' to "GT", '!' to "NOT", '+' to "PLUS", '-' to "MINUS", '*' to "STAR", '/' to "SLASH", '.' to "DOT", '&' to "AND", '|' to "OR")
+            val parts = mutableListOf<String>()
+            val word = StringBuilder()
+            name.forEach { c ->
+                when {
+                    c.isLetterOrDigit() || c == '_' -> word.append(c)
+                    else -> {
+                        if (word.isNotEmpty()) { parts.add(word.toString()); word.clear() }
+                        symbolNames[c]?.let { parts.add(it) }
+                    }
+                }
+            }
+            if (word.isNotEmpty()) parts.add(word.toString())
+            val n = parts.joinToString("_").ifEmpty { "_" }
+            if (n.first().isDigit()) "_$n" else kotlinValidName(n)
+        }
+    }
 }
 
 data class MofConstraint(

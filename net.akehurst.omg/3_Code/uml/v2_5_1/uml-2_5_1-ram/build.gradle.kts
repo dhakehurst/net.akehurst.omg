@@ -18,7 +18,7 @@ kotlin {
 
 tasks.named<generator.GenerateTask>("generate") {
     modelName = "UML"
-    sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/UML_2-5-1_ASM_ptc-18-01-01.xmi"))
+    sourceXmiPaths = listOf(layout.projectDirectory.file("../specs/uml_patched.xmi"))
     generateDir.set(layout.projectDirectory.dir("../../../_templates/ram"))
     parameters = mapOf(
         "TARGET_PACKAGE" to "net.akehurst.omg.uml.v2_5_1",
@@ -33,3 +33,5 @@ tasks.named<generator.GenerateTask>("generate") {
         "http://www.omg.org/spec/UML/20131001/PrimitiveTypes.xmi#UnlimitedNatural" to "Long",
     )
 }
+// test_UML_Ram_Footprint builds 100k objects
+tasks.named<Test>("jvmTest") { maxHeapSize = "3g" }

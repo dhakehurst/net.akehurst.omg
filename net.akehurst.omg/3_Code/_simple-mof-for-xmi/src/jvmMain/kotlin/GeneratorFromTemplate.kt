@@ -20,7 +20,10 @@ import net.akehurst.language.agl.Agl
 import net.akehurst.language.expressions.processor.ObjectGraphAccessorMutatorByReflection
 import net.akehurst.language.agl.processor.FormatOptionsDefault
 import net.akehurst.language.agl.processor.FormatResultDefault
+import net.akehurst.language.agl.semanticAnalyser.contextFromTypesDomain
 import net.akehurst.language.agl.syntaxAnalyser.LocationMapDefault
+import net.akehurst.language.format.processor.AglFormat
+import net.akehurst.language.formatter.api.AglFormatDomain
 import net.akehurst.language.api.processor.FormatString
 import net.akehurst.language.issues.api.LanguageProcessorPhase
 import net.akehurst.language.issues.ram.IssueHolder
@@ -35,7 +38,16 @@ class GeneratorFromTemplate(
     private val types: TypesDomain,
 ) {
     private val _issues = IssueHolder(LanguageProcessorPhase.FORMAT)
-    private val _formatResult = Agl.formatDomain(FormatString(templateString), types).let {
+    private companion object {
+        // WORKAROUND (agl 4.2.4.0, 2026-11-20): agl's format parser keeps state between parses, so after parsing
+        // ram/ClassesRam.agl-fmt the shared Agl.registry format processor fails to parse api/Reflective.agl-fmt
+        // (PARSE error at line 341). A fresh processor per template avoids that; go back to Agl.formatDomain once agl is fixed.
+        fun formatDomain(template: FormatString, types: TypesDomain) =
+            Agl.processorFromGrammar(AglFormat.grammarDomain, Agl.configurationFromLanguageObject(AglFormat))
+                .process(template.value, Agl.options { semanticAnalysis { sentenceContext(contextFromTypesDomain(types)) } })
+    }
+
+    private val _formatResult = formatDomain(FormatString(templateString), types).let {
         check(it.allIssues.errors.isEmpty()) { it.allIssues.toString() }
         it
     }
