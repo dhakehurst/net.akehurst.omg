@@ -15,7 +15,7 @@ kotlinx-serialization = "1.11.0"
 nak-kotlinx = "2.4.10-SNAPSHOT"
 nal-agl = "4.2.4.0"
 nak-compose = "2.4.10-SNAPSHOT"
-xmlutil = "1.0.0"
+xmlutil = "1.0.2.1"
 
 [libraries]
 korlibs-korio = { module = "org.korge:korlibs-io", version.ref = "korlibs" }
