@@ -115,19 +115,10 @@ tasks.named<Test>("jvmTest") {
     }
 }
 
+// vanniktech applies the signing plugin and creates and wires the sign tasks (signAllPublications below).
+// Only the signatory is chosen here: the local gpg command.
 signing {
-    setRequired( {  gradle.taskGraph.hasTask("uploadArchives") })
     useGpgCmd()
-    val publishing = project.properties["publishing"] as PublishingExtension
-    sign(publishing.publications)
-}
-val signTasks = tasks.matching { it.name.matches(Regex("sign(.)+")) }.toTypedArray()
-tasks.forEach {
-    when {
-        it.name.matches(Regex("publish(.)+")) -> {
-            it.mustRunAfter(*signTasks)
-        }
-    }
 }
 
 mavenPublishing {
