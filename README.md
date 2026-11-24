@@ -59,26 +59,29 @@ These modules are not published: `_simple-mof-for-xmi`, `_templates`, `_testmode
 
 ## Using
 
-The modules are not yet published to Maven Central. Build them to your local Maven repository (see below) and use
-the group `net.akehurst.omg`, the module name as the artifact, and the version in `gradle/libs.versions.toml`
-(`project`, currently `2.4.0-SNAPSHOT`). The `mof` modules have version `2.5.1`.
+Release 2.4.0 of these four UML modules is on Maven Central, for the JVM only, with the group `net.akehurst.omg`:
+`uml-2_5_1-api`, `uml-2_5_1-ram`, `uml-2_5_1-xmi` and `uml-2_5_1-agl-types`.
 
 ```kotlin
 // build.gradle.kts
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 kotlin {
     sourceSets {
-        commonMain {
+        jvmMain {
             dependencies {
-                implementation("net.akehurst.omg:uml-2_5_1-ram:2.4.0-SNAPSHOT")
+                implementation("net.akehurst.omg:uml-2_5_1-ram:2.4.0")
             }
         }
     }
 }
 ```
+
+The JS and Wasm (JS) variants of these modules, and all other modules (KerML, SysML, Systems Modeling API, DD, MOF,
+diagram, and `uml-2_5_1-gui-compose`), are not on Maven Central yet. To use them, build them to your local Maven
+repository (see below), add `mavenLocal()` to `repositories`, and use the module name as the artifact and the version
+in `gradle/libs.versions.toml` (`project`). The `mof` modules have version `2.5.1`.
 
 Building a small UML model with the generated builder:
 

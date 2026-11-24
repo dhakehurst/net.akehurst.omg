@@ -14,6 +14,10 @@ model.packagedElementSet.filterIsInstance<Class>().map { it.name }
 
 All modules have the group `net.akehurst.omg`. The Kotlin package is `net.akehurst.omg.uml.v2_5_1`.
 
+`uml-2_5_1-api`, `uml-2_5_1-ram`, `uml-2_5_1-xmi` and `uml-2_5_1-agl-types` version 2.4.0 are on Maven Central for the
+JVM. Their JS and Wasm (JS) variants, and `uml-2_5_1-gui-compose`, are not published yet; build them to your local
+Maven repository (see the [root README](../../../../README.md#using)).
+
 | Module | Contents |
 |---|---|
 | `uml-2_5_1-api` | Generated: one interface per metaclass (package `api.UML.<Package>`, e.g. `api.UML.StructuredClassifiers.Class`), `UML_ModelFactory`, `UML_ModelBuilder`, `UML_ModelResolver`, `UML_ModelAsString`, `UML_ModelReflective` (by-name API), and the derivations of derived properties |
