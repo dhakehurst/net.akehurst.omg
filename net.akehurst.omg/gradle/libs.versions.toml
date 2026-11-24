@@ -12,9 +12,9 @@ korlibs = "6.1.0"
 kotlinx-coroutines = "1.11.0"
 kotlinx-serialization = "1.11.0"
 
-nak-kotlinx = "2.4.0"
+nak-kotlinx = "2.4.10-SNAPSHOT"
 nal-agl = "4.2.4.0"
-nak-compose = "2.4.0"
+nak-compose = "2.4.10-SNAPSHOT"
 xmlutil = "1.0.0"
 
 [libraries]
