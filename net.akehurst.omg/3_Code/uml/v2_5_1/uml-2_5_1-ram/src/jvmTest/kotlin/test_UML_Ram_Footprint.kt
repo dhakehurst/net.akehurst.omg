@@ -15,12 +15,22 @@ class test_UML_Ram_Footprint {
         return rt.totalMemory() - rt.freeMemory()
     }
 
+    /**
+     * Class histogram via the in-process DiagnosticCommand MBean (same output as `jcmd <pid> GC.class_histogram`).
+     * Running jcmd against the test's own pid needs the attach mechanism, which can block (seen on macOS),
+     * so the test hung; the MBean needs no attach.
+     */
     private fun histogram(top: Int) {
-        val pid = ProcessHandle.current().pid()
-        val jcmd = System.getProperty("java.home") + "/bin/jcmd"
-        val p = ProcessBuilder(jcmd, pid.toString(), "GC.class_histogram").redirectErrorStream(true).start()
-        p.inputStream.bufferedReader().readLines().also { java.io.File(System.getProperty("java.io.tmpdir"), "uml-histo.txt").writeText(it.joinToString("\n")) }.take(top + 3).forEach { println(it) }
-        p.waitFor()
+        val lines = try {
+            val server = java.lang.management.ManagementFactory.getPlatformMBeanServer()
+            val name = javax.management.ObjectName("com.sun.management:type=DiagnosticCommand")
+            val out = server.invoke(name, "gcClassHistogram", arrayOf<Any>(arrayOf<String>()), arrayOf("[Ljava.lang.String;")) as String
+            out.lines()
+        } catch (e: Exception) {
+            listOf("class histogram not available on this JVM: $e")
+        }
+        java.io.File(System.getProperty("java.io.tmpdir"), "uml-histo.txt").writeText(lines.joinToString("\n"))
+        lines.take(top + 3).forEach { println(it) }
     }
 
     private fun measure(label: String, n: Int, construct: (UML_ModelFactoryRam, Int) -> Any) {
